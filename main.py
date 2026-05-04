@@ -10,6 +10,7 @@ from ui.screens.login_screen import LoginScreen
 from ui.screens.signup_screen import SignupScreen
 from ui.screens.dashboard_screen import DashboardScreen
 from ui.screens.year_setup_screen import YearSetupScreen 
+from ui.screens.subject_screen import SubjectScreen 
 
 load_dotenv()
 
@@ -30,6 +31,9 @@ def main():
     router.register("signup", signup)
     router.register("dashboard", dashboard)
     router.register("year_setup", year_setup) 
+    # router.register("dashboard", DashboardScreen(router))
+    router.register("subject_setup", SubjectScreen(router)) 
+    
 
     # Initial View
     router.navigate("login")

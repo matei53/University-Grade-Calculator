@@ -35,11 +35,21 @@ CREATE TABLE IF NOT EXISTS semesters (
 CREATE TABLE IF NOT EXISTS subjects (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     semester_id INTEGER NOT NULL REFERENCES semesters(id),
+    academic_year_id INTEGER NOT NULL REFERENCES academic_years(id), -- ADD THIS LINE
     name TEXT NOT NULL,
     credit_value INTEGER NOT NULL,
     passing_grade REAL NOT NULL DEFAULT 5.0,
     max_grade REAL DEFAULT 10.0
 );
+
+-- CREATE TABLE IF NOT EXISTS subjects (
+--     id INTEGER PRIMARY KEY AUTOINCREMENT,
+--     semester_id INTEGER NOT NULL REFERENCES semesters(id),
+--     name TEXT NOT NULL,
+--     credit_value INTEGER NOT NULL,
+--     passing_grade REAL NOT NULL DEFAULT 5.0,
+--     max_grade REAL DEFAULT 10.0
+-- );
 
 CREATE TABLE IF NOT EXISTS assessments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
