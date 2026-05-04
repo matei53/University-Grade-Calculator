@@ -20,7 +20,9 @@ class SignupScreen(QWidget):
         layout.setSpacing(12)
         self.setLayout(layout)
 
-        layout.addWidget(QLabel("<h2>Create Account</h2>"))
+        title_label = QLabel("Create Account")
+        title_label.setStyleSheet("font-size: 24px; font-weight: bold; margin-bottom: 10px;")
+        layout.addWidget(title_label)
 
         self.username_input = QLineEdit()
         self.username_input.setPlaceholderText("Username")

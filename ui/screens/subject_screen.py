@@ -1,183 +1,191 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QSpinBox, QPushButton, QMessageBox, 
-                             QScrollArea, QFrame)
+                             QLineEdit, QSpinBox, QPushButton, QMessageBox, QComboBox)
 from PyQt6.QtCore import Qt
 
-# Import your newly created components and services
 from ui.components.assessment_row import AssessmentRow
 from services.grade_service import GradeService
 from repositories.subject_repo import SubjectRepo
 from repositories.assessment_repo import AssessmentRepo
-
-# ... (importurile raman la fel ca in mesajul anterior)
+from models.session import Session
 
 class SubjectScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
-        self.current_year_id = 1
         self.assessment_rows = []
         self.setup_ui()
 
     def setup_ui(self):
         main_layout = QVBoxLayout()
 
-        # --- Subject Details Section ---
-        self.title = QLabel("Add New Subject")
+        # --- Navigație ---
+        nav_layout = QHBoxLayout()
+        self.back_btn = QPushButton("← Înapoi la Dashboard")
+        self.back_btn.setFixedWidth(160)
+        self.back_btn.setStyleSheet("background-color: #E0DDD9; color: #0A0D08; font-weight: bold; border-radius: 6px; padding: 6px;")
+        self.back_btn.clicked.connect(self.exit_to_dashboard)
+        
+        self.title = QLabel("Adaugă Materie Nouă")
         self.title.setStyleSheet("color: #2D4B1D; font-size: 18px; font-weight: bold;")
         
-        self.name_input = QLineEdit()
-        self.name_input.setPlaceholderText("Subject Name (e.g., Data Structures)")
+        nav_layout.addWidget(self.back_btn)
+        nav_layout.addStretch()
+        nav_layout.addWidget(self.title)
+        main_layout.addLayout(nav_layout)
+        main_layout.addSpacing(20)
 
-        credits_layout = QHBoxLayout()
-        self.credits_label = QLabel("Credits:")
+        # --- Nume Materie ---
+        self.name_input = QLineEdit()
+        self.name_input.setPlaceholderText("Nume Materie (ex: Structuri de Date)")
+        self.name_input.setStyleSheet("padding: 5px; font-size: 14px;")
+        main_layout.addWidget(self.name_input)
+
+        # --- Selector An, Semestru și Credite ---
+        details_layout = QHBoxLayout()
+        
+        # 1. Selector An (NOU)
+        self.year_combo = QComboBox()
+        self.year_combo.addItems(["Anul 1", "Anul 2", "Anul 3", "Anul 4"]) # Opțiuni standard de licență
+        
+        # 2. Selector Semestru
+        self.semester_input = QSpinBox()
+        self.semester_input.setRange(1, 2)
+        
+        # 3. Selector Credite
         self.credits_input = QSpinBox()
         self.credits_input.setRange(1, 30)
         self.credits_input.setValue(5)
         
-        self.semester_label = QLabel("Semester:")
-        self.semester_input = QSpinBox()
-        self.semester_input.setRange(1, 2)
+        details_layout.addWidget(QLabel("An Universitar:"))
+        details_layout.addWidget(self.year_combo)
+        details_layout.addStretch()
+        details_layout.addWidget(QLabel("Semestru:"))
+        details_layout.addWidget(self.semester_input)
+        details_layout.addStretch()
+        details_layout.addWidget(QLabel("Credite:"))
+        details_layout.addWidget(self.credits_input)
         
-        credits_layout.addWidget(self.credits_label)
-        credits_layout.addWidget(self.credits_input)
-        credits_layout.addStretch()
-        credits_layout.addWidget(self.semester_label)
-        credits_layout.addWidget(self.semester_input)
+        main_layout.addLayout(details_layout)
 
-        # --- Dynamic Assessments Section ---
-        self.assessments_label = QLabel("Assessments (Must total 100%)")
+        # --- Secțiune Evaluări ---
+        self.assessments_label = QLabel("Evaluări (Totalul trebuie să fie 100%)")
         self.assessments_label.setStyleSheet("font-weight: bold; margin-top: 15px;")
+        main_layout.addWidget(self.assessments_label)
         
-        # Container for the dynamic rows
         self.assessments_container = QWidget()
         self.assessments_layout = QVBoxLayout(self.assessments_container)
         self.assessments_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(self.assessments_container)
         
-        self.add_assessment_btn = QPushButton("+ Add Assessment Component")
-        self.add_assessment_btn.setStyleSheet("background-color: #C4B7A6; color: #0A0D08;") # STONE_GREY
+        self.add_assessment_btn = QPushButton("+ Adaugă Componentă Evaluare")
+        self.add_assessment_btn.setStyleSheet("background-color: #C4B7A6; color: #0A0D08; padding: 5px; border-radius: 4px;")
         self.add_assessment_btn.clicked.connect(self.add_assessment_row)
+        main_layout.addWidget(self.add_assessment_btn)
 
-        # Status label to show real-time percentage
-        self.weight_status_label = QLabel("Total Weight: 0.0%")
+        # --- Status și Salvare ---
+        self.weight_status_label = QLabel("Pondere Totală: 0.0%")
         self.weight_status_label.setStyleSheet("color: red;")
+        main_layout.addWidget(self.weight_status_label)
 
         self.average_label = QLabel("Media Curentă: 0.00")
         self.average_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #2D4B1D;")
         main_layout.addWidget(self.average_label)
-
-        # --- Save Button ---
-        self.save_btn = QPushButton("Save Subject")
-        self.save_btn.clicked.connect(self.save_subject)
-
-        # Assemble the layout
-        main_layout.addWidget(self.title)
-        main_layout.addWidget(self.name_input)
-        main_layout.addLayout(credits_layout)
-        main_layout.addWidget(self.assessments_label)
-        main_layout.addWidget(self.assessments_container)
-        main_layout.addWidget(self.add_assessment_btn)
-        main_layout.addWidget(self.weight_status_label)
+        
         main_layout.addStretch()
+
+        self.save_btn = QPushButton("Salvează Materia")
+        self.save_btn.setStyleSheet("background-color: #2D4B1D; color: white; font-weight: bold; font-size: 14px; padding: 10px; border-radius: 6px;")
+        self.save_btn.clicked.connect(self.save_subject)
         main_layout.addWidget(self.save_btn)
 
         self.setLayout(main_layout)
-
-        # Add one row by default
         self.add_assessment_row()
 
     def add_assessment_row(self):
-        """Spawns a new AssessmentRow widget and wires up its signals."""
         row = AssessmentRow()
         self.assessment_rows.append(row)
         self.assessments_layout.addWidget(row)
-        
-        # Connect signals
         row.remove_requested.connect(self.remove_assessment_row)
         row.weight_changed.connect(self.update_weight_status)
-        
-        self.update_weight_status()
         row.score_changed.connect(self.update_average_display)
+        self.update_weight_status()
 
     def update_average_display(self):
-        """Calculează media ponderată în timp real."""
         data_list = [row.get_data() for row in self.assessment_rows]
-
-        # Folosim GradeService pentru calcul
-        from services.grade_service import GradeService
-
-        # Simulăm formatul de date pentru service
-        assessments_for_math = []
-        grades_dict = {}
-        for i, data in enumerate(data_list):
-            assessments_for_math.append({'id': i, 'weight': data['weight']})
-            grades_dict[i] = data['score']
-
+        assessments_for_math = [{'id': i, 'weight': d['weight']} for i, d in enumerate(data_list)]
+        grades_dict = {i: d['score'] for i, d in enumerate(data_list)}
         avg = GradeService.calculate_subject_average(assessments_for_math, grades_dict)
         self.average_label.setText(f"Media Curentă: {avg:.2f}")
 
     def remove_assessment_row(self, row_widget):
-        """Removes an AssessmentRow widget."""
-        if len(self.assessment_rows) > 1: # Keep at least one row
+        if len(self.assessment_rows) > 1:
             self.assessment_rows.remove(row_widget)
             self.assessments_layout.removeWidget(row_widget)
             row_widget.deleteLater()
             self.update_weight_status()
+            self.update_average_display()
         else:
-            QMessageBox.warning(self, "Warning", "You must have at least one assessment component.")
+            QMessageBox.warning(self, "Atenție", "Trebuie să existe cel puțin o evaluare.")
 
     def update_weight_status(self):
-        """Recalculates the total weight and updates the UI label."""
-        data_list = [row.get_data() for row in self.assessment_rows]
-        total_weight = sum(float(item['weight']) for item in data_list)
-        
-        self.weight_status_label.setText(f"Total Weight: {total_weight:.1f}%")
-        
-        if total_weight == 100.0:
-            self.weight_status_label.setStyleSheet("color: #2D4B1D; font-weight: bold;") # Green if valid
-        else:
-            self.weight_status_label.setStyleSheet("color: red; font-weight: bold;")
+        total_weight = sum(float(row.get_data()['weight']) for row in self.assessment_rows)
+        self.weight_status_label.setText(f"Pondere Totală: {total_weight:.1f}%")
+        color = "#2D4B1D" if total_weight == 100.0 else "red"
+        self.weight_status_label.setStyleSheet(f"color: {color}; font-weight: bold;")
+
+    def clear_form(self):
+        self.name_input.clear()
+        self.year_combo.setCurrentIndex(0) # Reset la Anul 1
+        self.semester_input.setValue(1)
+        self.credits_input.setValue(5)
+        for row in list(self.assessment_rows):
+            self.assessment_rows.remove(row)
+            self.assessments_layout.removeWidget(row)
+            row.deleteLater()
+        self.add_assessment_row()
+        self.average_label.setText("Media Curentă: 0.00")
+
+    def exit_to_dashboard(self):
+        self.clear_form()
+        self.router.navigate("dashboard")
 
     def save_subject(self):
-        """Validates all data and saves to the database using Repositories."""
-        if not self.current_year_id:
-             # For testing purposes later, we'll hardcode an ID if none is passed
-             self.current_year_id = 1 
+        try:
+            user_id = Session.get_current_user_id()
+        except Exception as e:
+            QMessageBox.critical(self, "Eroare Sesiune", "Nu ești logat!")
+            return
 
         subject_name = self.name_input.text().strip()
-        if not subject_name:
-            QMessageBox.warning(self, "Error", "Subject name cannot be empty.")
-            return
-
-        # 1. Grab all data from the dynamic rows
         assessments_data = [row.get_data() for row in self.assessment_rows]
 
-        # 2. Validate using your GradeService
-        if not GradeService.validate_weights_total(assessments_data):
-            QMessageBox.warning(self, "Error", "Assessment weights must total exactly 100%.")
+        if not subject_name:
+            QMessageBox.warning(self, "Eroare", "Introdu numele materiei.")
             return
 
-        # 3. Save to Database
+        if not GradeService.validate_weights_total(assessments_data):
+            QMessageBox.warning(self, "Eroare", "Ponderile evaluărilor trebuie să însumeze 100%.")
+            return
+
+        # Extragem numărul anului din selecția ("Anul 1" -> 1)
+        selected_year_text = self.year_combo.currentText()
+        year_level = int(selected_year_text.split(" ")[1])
+
         try:
-            # Save the subject first
+            # Salvăm materia apelând repo-ul actualizat care creează și anul/semestrul dacă e nevoie
             subject_id = SubjectRepo.add_subject(
-                year_id=self.current_year_id,
-                name=subject_name,
+                user_id=user_id,
+                subject_name=subject_name,
                 credits=self.credits_input.value(),
-                semester_index=self.semester_input.value() # <--- NEW NAME
+                semester_index=self.semester_input.value(),
+                year_level=year_level
             )
-
-            # Loop through and save each assessment attached to that subject
-            for assessment in assessments_data:
-                AssessmentRepo.add_assessment(
-                    subject_id=subject_id,
-                    name=assessment['name'],
-                    weight=assessment['weight'],
-                    score=assessment['score'] # ADAUGĂ ACEASTĂ LINIE
-                )
-
-            QMessageBox.information(self, "Success", "Subject and assessments saved successfully!")
-            self.name_input.clear()
             
+            # Salvăm notele
+            for a in assessments_data:
+                AssessmentRepo.add_assessment(subject_id, a['name'], a['weight'], a['score'])
+                
+            QMessageBox.information(self, "Succes", "Materia a fost adăugată cu succes!")
+            self.exit_to_dashboard()
         except Exception as e:
-            QMessageBox.critical(self, "Database Error", str(e))
+            QMessageBox.critical(self, "Eroare DB", f"A apărut o problemă la salvare: {str(e)}")
