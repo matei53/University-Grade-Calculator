@@ -18,3 +18,9 @@ class Session:
     @classmethod
     def is_logged_in(cls) -> bool:
         return cls._current_user is not None
+
+    @classmethod
+    def get_current_user_id(cls) -> int:
+        if not cls._current_user:
+            raise RuntimeError("No user is logged in.")
+        return cls._current_user["id"]

@@ -1,23 +1,29 @@
-import sys
-from PyQt6.QtWidgets import QApplication, QStackedWidget, QMainWindow
+from PyQt6.QtWidgets import QMainWindow, QStackedWidget
+from ui.styles import DASHBOARD_STYLE
 
 class AppRouter(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("UniGrade")
-        self.resize(1000, 750) # Slightly larger for breathing room
-        self.stack = QStackedWidget()
-        self.setCentralWidget(self.stack)
-        self.screens = {}
+        self.resize(1000, 700)
+        
+        self.setStyleSheet(DASHBOARD_STYLE)
 
-    def register(self, name: str, screen):
-        self.screens[name] = screen
-        self.stack.addWidget(screen)
+        self.stacked_widget = QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
+        
+        self.routes = {}
 
-    def navigate(self, name: str):
-        screen = self.screens.get(name)
-        if screen:
-            self.stack.setCurrentWidget(screen)
-            # CRITICAL: Tell the screen to refresh its data
-            if hasattr(screen, "on_screen_shown"):
-                screen.on_screen_shown()
+    def register(self, name, widget):
+        self.routes[name] = widget
+        self.stacked_widget.addWidget(widget)
+
+    def navigate(self, name):
+        if name in self.routes:
+            widget = self.routes[name]
+            self.stacked_widget.setCurrentWidget(widget)
+            # This line forces the dashboard to refresh its data from the DB!
+            if hasattr(widget, 'on_screen_shown'):
+                widget.on_screen_shown()
+        else:
+            print(f"Ruta '{name}' nu este inregistrata.")

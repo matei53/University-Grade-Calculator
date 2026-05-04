@@ -32,7 +32,7 @@ def main():
     router.register("year_setup", year_setup) 
 
     # Initial View
-    router.navigate("dashboard")
+    router.navigate("login")
     
     router.show()
     sys.exit(app.exec())
