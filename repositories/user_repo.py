@@ -21,3 +21,9 @@ class UserRepo:
                 "UPDATE users SET university_id = ? WHERE id = ?",
                 (university_id, user_id)
             )
+    def update_major(self, user_id: int, major_id: int):
+        with get_connection() as conn:
+            conn.execute(
+                "UPDATE users SET major_id = ? WHERE id = ?",
+                (major_id, user_id)
+            )
