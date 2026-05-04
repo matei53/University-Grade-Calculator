@@ -25,15 +25,14 @@ def main():
     signup = SignupScreen(router)
     dashboard = DashboardScreen(router)
     year_setup = YearSetupScreen(router) 
+    subject_setup = SubjectScreen(router) 
 
     # Routes
     router.register("login", login)
     router.register("signup", signup)
     router.register("dashboard", dashboard)
     router.register("year_setup", year_setup) 
-    # router.register("dashboard", DashboardScreen(router))
-    router.register("subject_setup", SubjectScreen(router)) 
-    
+    router.register("subject_setup", subject_setup) 
 
     # Initial View
     router.navigate("login")
