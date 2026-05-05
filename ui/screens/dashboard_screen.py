@@ -174,50 +174,76 @@ class DashboardScreen(QWidget):
         self.progress_card.findChild(QLabel, "CardValue").setText(f"{prog_int}%")
         self.main_progress_bar.setValue(prog_int)
 
+    # def on_screen_shown(self):
+    #     # Triggered by Router to refresh from DB
+    #     self.update_dashboard(self.current_view_year)
+
     def on_screen_shown(self):
-        # Triggered by Router to refresh from DB
+        # 1. Reload all data from DB to catch changes from Signup/Setup
+        self.all_data = self._load_user_data()
+        
+        # 2. Update the Header labels (University/Major)
+        info = self._get_logged_in_user_info()
+        self.subtitle.setText(f"{info['university']} · {info['major']}")
+        
+        # 3. Refresh the UI components
         self.update_dashboard(self.current_view_year)
 
-    def _get_logged_in_user_info(self):
-        user = None
-        try:
-            user = Session.get_user()
-        except RuntimeError:
-            pass
+    # def _get_logged_in_user_info(self):
+    #     user = None
+    #     try:
+    #         user = Session.get_user()
+    #     except RuntimeError:
+    #         pass
         
-        uni_name = "University of Bucharest"
-        major_name = "Computer Science"
+    #     uni_name = "University of Bucharest"
+    #     major_name = "Computer Science"
 
-        if user:
-            # Get university name
-            if "university_id" in user and user["university_id"]:
-                try:
-                    with open(self.UNI_DATA_PATH, "r") as f:
-                        universities = json.load(f)
-                        for uni in universities:
-                            if uni["id"] == user["university_id"]:
-                                uni_name = uni["name"]
-                                break
-                except Exception:
-                    pass
+    #     if user:
+    #         # Get university name
+    #         if "university_id" in user and user["university_id"]:
+    #             try:
+    #                 with open(self.UNI_DATA_PATH, "r") as f:
+    #                     universities = json.load(f)
+    #                     for uni in universities:
+    #                         if uni["id"] == user["university_id"]:
+    #                             uni_name = uni["name"]
+    #                             break
+    #             except Exception:
+    #                 pass
             
-            # Get major name
-            if "major_id" in user and user["major_id"]:
-                try:
-                    majors_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "majors.json")
-                    with open(majors_path, "r") as f:
-                        majors = json.load(f)
-                        for major in majors:
-                            if major["id"] == user["major_id"]:
-                                major_name = major["name"]
-                                break
-                except Exception:
-                    pass
+    #         # Get major name
+    #         if "major_id" in user and user["major_id"]:
+    #             try:
+    #                 majors_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "majors.json")
+    #                 with open(majors_path, "r") as f:
+    #                     majors = json.load(f)
+    #                     for major in majors:
+    #                         if major["id"] == user["major_id"]:
+    #                             major_name = major["name"]
+    #                             break
+    #             except Exception:
+    #                 pass
         
-        return {
-            "university": uni_name, 
-            "major": major_name
-        }
+    #     return {
+    #         "university": uni_name, 
+    #         "major": major_name
+    #     }
+
+    def _get_logged_in_user_info(self):
+        try:
+            user_id = Session.get_current_user_id()
+            from repositories.user_repo import UserRepo
+            repo = UserRepo()
+            profile = repo.get_profile_info(user_id)
+            
+            return {
+                "university": profile['university_name'] if profile and profile['university_name'] else "No University Set",
+                "major": profile['major_name'] if profile and profile['major_name'] else "No Major Set"
+            }
+        except Exception as e:
+            print(f"Error fetching profile: {e}")
+            return {"university": "UniGrade", "major": "Student"}
 
     def _load_user_data(self):
         """Load real user data from database and format it for the dashboard."""
