@@ -61,17 +61,14 @@ class SubjectRepo:
         return year_id
 
     @staticmethod
-    def add_subject(user_id, subject_name, credits, semester_index, year_level):
+    def add_subject(user_id, subject_name, credits, semester_index, year_level, passing_grade=5.0, max_grade=10.0):
         """
         Adaugă o materie. Creează anul automat dacă e nevoie prin fallback.
         """
         with get_connection() as conn:
-            # 1. Asigură-te că anul există
             year_id = SubjectRepo._ensure_year_and_semesters_exist(conn, user_id, year_level)
-
             cursor = conn.cursor()
             
-            # 2. Găsește ID-ul semestrului corect
             sem_row = cursor.execute(
                 "SELECT id FROM semesters WHERE academic_year_id = ? AND order_index = ?", 
                 (year_id, semester_index)
@@ -80,10 +77,9 @@ class SubjectRepo:
             if not sem_row:
                 raise ValueError(f"Nu am găsit semestrul {semester_index} pentru Anul {year_level}.")
 
-            # 3. Inserează materia
             cursor.execute(
-                "INSERT INTO subjects (semester_id, academic_year_id, name, credit_value) VALUES (?, ?, ?, ?)",
-                (sem_row['id'], year_id, subject_name, credits)
+                "INSERT INTO subjects (semester_id, academic_year_id, name, credit_value, passing_grade, max_grade) VALUES (?, ?, ?, ?, ?, ?)",
+                (sem_row['id'], year_id, subject_name, credits, passing_grade, max_grade)
             )
             conn.commit()
             return cursor.lastrowid

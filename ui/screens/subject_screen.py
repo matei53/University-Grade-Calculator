@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QSpinBox, QPushButton, QMessageBox, QComboBox)
+                             QLineEdit, QSpinBox, QPushButton, QMessageBox, QComboBox, QDoubleSpinBox)
 from PyQt6.QtCore import Qt
 
 from ui.components.assessment_row import AssessmentRow
@@ -66,6 +66,25 @@ class SubjectScreen(QWidget):
         details_layout.addWidget(self.credits_input)
         
         main_layout.addLayout(details_layout)
+
+        # --- NOU: Setări Notare Materie ---
+        grading_layout = QHBoxLayout()
+        
+        self.subject_passing_grade = QDoubleSpinBox()
+        self.subject_passing_grade.setRange(1.0, 1000.0)
+        self.subject_passing_grade.setValue(5.0)
+        
+        self.subject_max_grade = QDoubleSpinBox()
+        self.subject_max_grade.setRange(1.0, 1000.0)
+        self.subject_max_grade.setValue(10.0)
+
+        grading_layout.addWidget(QLabel("Notă Trecere Materie:"))
+        grading_layout.addWidget(self.subject_passing_grade)
+        grading_layout.addStretch()
+        grading_layout.addWidget(QLabel("Notă Maximă Materie:"))
+        grading_layout.addWidget(self.subject_max_grade)
+        
+        main_layout.addLayout(grading_layout)
 
         # --- Secțiune Evaluări ---
         self.assessments_label = QLabel("Evaluări (Totalul trebuie să fie 100%)")
@@ -195,18 +214,25 @@ class SubjectScreen(QWidget):
         year_level = int(selected_year_text.split(" ")[1])
 
         try:
-            # Salvăm materia apelând repo-ul actualizat care creează și anul/semestrul dacă e nevoie
             subject_id = SubjectRepo.add_subject(
                 user_id=user_id,
                 subject_name=subject_name,
                 credits=self.credits_input.value(),
                 semester_index=self.semester_input.value(),
-                year_level=year_level
+                year_level=year_level,
+                passing_grade=self.subject_passing_grade.value(),
+                max_grade=self.subject_max_grade.value()
             )
             
-            # Salvăm notele
             for a in assessments_data:
-                AssessmentRepo.add_assessment(subject_id, a['name'], a['weight'], a['score'])
+                AssessmentRepo.add_assessment(
+                    subject_id=subject_id, 
+                    name=a['name'], 
+                    weight=a['weight'], 
+                    score=a['score'],
+                    max_score=a['max_score'],
+                    passing_grade=a['passing_grade']
+                )
                 
             QMessageBox.information(self, "Succes", "Materia a fost adăugată cu succes!")
             self.exit_to_dashboard()

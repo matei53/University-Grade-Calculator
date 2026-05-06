@@ -2,17 +2,16 @@ from database.db import get_connection
 
 class AssessmentRepo:
     @staticmethod
-    def add_assessment(subject_id, name, weight, score):
+    def add_assessment(subject_id, name, weight, score, max_score=10.0, passing_grade=5.0):
         with get_connection() as conn:
             cursor = conn.cursor()
-            # 1. Save to assessments table (it expects max_score, not the actual score)
+            
             cursor.execute(
-                "INSERT INTO assessments (subject_id, name, weight, max_score) VALUES (?, ?, ?, 10.0)",
-                (subject_id, name, weight)
+                "INSERT INTO assessments (subject_id, name, weight, max_score, passing_grade) VALUES (?, ?, ?, ?, ?)",
+                (subject_id, name, weight, max_score, passing_grade)
             )
             assessment_id = cursor.lastrowid
             
-            # 2. Save the actual grade to the dedicated grades table
             cursor.execute(
                 "INSERT INTO grades (assessment_id, score) VALUES (?, ?)",
                 (assessment_id, score)
