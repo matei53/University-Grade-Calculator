@@ -1,0 +1,290 @@
+# Nature-Minimalist Palette
+FOREST_GREEN = "#2D4B1D"
+SAGE_GREEN   = "#A8C686"
+CREAM_BONE   = "#F4F1EE"
+STONE_GREY   = "#C4B7A6"
+MIDNIGHT     = "#0A0D08"
+
+DASHBOARD_STYLE = f"""
+    QWidget {{
+        background-color: {CREAM_BONE};
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLabel {{
+        background: transparent;
+        border: none;
+        padding: 0px;
+        margin: 0px;
+    }}
+
+    QScrollArea {{
+        border: none;
+        background-color: transparent;
+    }}
+
+    QLabel#HeaderTitle {{
+        font-size: 24px;
+        font-weight: bold;
+        color: {FOREST_GREEN};
+    }}
+
+    QLabel#HeaderSubtitle {{
+        color: #666;
+        font-size: 12px;
+        font-weight: normal;
+    }}
+
+    QPushButton#FilterButton {{
+        background-color: #E0DDD9;
+        border: none;
+        border-radius: 15px;
+        padding: 6px 18px;
+        font-weight: bold;
+        color: #444;
+    }}
+
+    QPushButton#FilterButton:hover {{
+        background-color: {STONE_GREY};
+    }}
+
+    QPushButton#FilterButton[active="true"] {{
+        background-color: {FOREST_GREEN};
+        color: white;
+    }}
+
+    QFrame#StatCard {{
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-radius: 12px;
+        padding: 10px;
+    }}
+
+    QLabel#CardTitle {{
+        color: #777;
+        font-size: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }}
+
+    QLabel#CardValue {{
+        color: {FOREST_GREEN};
+        font-size: 32px;
+        font-weight: bold;
+    }}
+
+    QLabel#CardSub {{
+        color: #999;
+        font-size: 11px;
+    }}
+
+    QToolButton#YearToggle {{
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-radius: 12px;
+        padding: 15px;
+        font-weight: bold;
+        font-size: 15px;
+        text-align: left;
+    }}
+
+    QToolButton#YearToggle:checked {{
+        border-bottom-left-radius: 0px;
+        border-bottom-right-radius: 0px;
+    }}
+
+    QFrame#YearContentArea {{
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-top: none;
+        border-bottom-left-radius: 12px;
+        border-bottom-right-radius: 12px;
+    }}
+
+    QFrame#MiniStatCard {{
+        background-color: #F0EDE9;
+        border: none;
+        border-radius: 10px;
+        min-height: 60px;
+    }}
+
+    QProgressBar {{
+        background-color: #E5E5E5;
+        border: none;
+        border-radius: 6px;
+        height: 12px;
+        text-align: center;
+    }}
+
+    QProgressBar::chunk {{
+        background-color: {FOREST_GREEN};
+        border-radius: 6px;
+    }}
+
+    QFrame#SubjectRow {{
+        background-color: transparent;
+        border: none;
+        border-bottom: 1px solid #F0F0F0;
+    }}
+
+    QFrame#SubjectRow:last-child {{
+        border-bottom: none;
+    }}
+
+    QLabel#SemesterHeader {{
+        color: {FOREST_GREEN};
+        font-weight: bold;
+        font-size: 11px;
+        text-transform: uppercase;
+        margin-top: 15px;
+        margin-bottom: 5px;
+    }}
+
+    QPushButton#SecondaryButton {{
+        background-color: {FOREST_GREEN};
+        color: white;
+        border-radius: 8px;
+        padding: 8px 16px;
+        font-weight: bold;
+    }}
+
+    QPushButton#SecondaryButton:hover {{
+        background-color: #3d632a;
+    }}
+"""
+
+AUTH_STYLE = f"""
+    QWidget {{
+        background-color: {CREAM_BONE};
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLabel {{
+        background: transparent;
+        border: none;
+        padding: 0px;
+        margin: 0px;
+    }}
+
+    QLabel#AuthTitle {{
+        font-size: 32px;
+        font-weight: bold;
+        color: {FOREST_GREEN};
+        margin-bottom: 10px;
+    }}
+
+    QLabel#AuthSubtitle {{
+        font-size: 18px;
+        color: {STONE_GREY};
+        font-weight: normal;
+    }}
+
+    QLineEdit#AuthInput {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLineEdit#AuthInput:focus {{
+        border: 2px solid {FOREST_GREEN};
+        outline: none;
+    }}
+
+    QLineEdit#AuthInput::placeholder {{
+        color: #999;
+    }}
+
+    QPushButton#PrimaryButton {{
+        background-color: {FOREST_GREEN};
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+        font-size: 13px;
+    }}
+
+    QPushButton#PrimaryButton:hover {{
+        background-color: #3d632a;
+    }}
+
+    QPushButton#PrimaryButton:pressed {{
+        background-color: #2D4B1D;
+    }}
+
+    QPushButton#SecondaryLink {{
+        background: transparent;
+        color: {FOREST_GREEN};
+        border: none;
+        text-decoration: underline;
+        font-size: 13px;
+        padding: 0px;
+    }}
+
+    QPushButton#SecondaryLink:hover {{
+        color: #3d632a;
+    }}
+
+    QLabel#ErrorLabel {{
+        color: #D32F2F;
+        font-weight: 500;
+        min-height: 20px;
+    }}
+
+    QComboBox {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QComboBox:focus {{
+        border: 2px solid {FOREST_GREEN};
+    }}
+
+    QComboBox::drop-down {{
+        border: none;
+    }}
+
+    QComboBox::down-arrow {{
+        image: none;
+    }}
+
+
+    /* Configration */
+    QLineEdit#AuthInput, QSpinBox#AuthInput, QDoubleSpinBox#AuthInput, QComboBox#AuthInput {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: #0A0D08;
+    }}
+
+    QLineEdit#AuthInput:focus, QSpinBox#AuthInput:focus, QDoubleSpinBox#AuthInput:focus {{
+        border: 2px solid #2D4B1D;
+    }}
+
+    /* Ensure the labels in the setup screen have the Nature-Minimalist feel */
+    QLabel {{
+        font-family: 'Segoe UI', sans-serif;
+    }}
+
+    QPushButton#PrimaryButton {{
+        background-color: #2D4B1D;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+    }}
+"""
