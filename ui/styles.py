@@ -259,4 +259,32 @@ AUTH_STYLE = f"""
     QComboBox::down-arrow {{
         image: none;
     }}
+
+
+    /* Configration */
+    QLineEdit#AuthInput, QSpinBox#AuthInput, QDoubleSpinBox#AuthInput, QComboBox#AuthInput {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: #0A0D08;
+    }}
+
+    QLineEdit#AuthInput:focus, QSpinBox#AuthInput:focus, QDoubleSpinBox#AuthInput:focus {{
+        border: 2px solid #2D4B1D;
+    }}
+
+    /* Ensure the labels in the setup screen have the Nature-Minimalist feel */
+    QLabel {{
+        font-family: 'Segoe UI', sans-serif;
+    }}
+
+    QPushButton#PrimaryButton {{
+        background-color: #2D4B1D;
+        color: white;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+    }}
 """
