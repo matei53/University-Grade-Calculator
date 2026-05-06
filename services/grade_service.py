@@ -6,15 +6,23 @@ class GradeService:
         return total_weight == 100.0
 
     @staticmethod
-    def calculate_subject_average(assessments: list[dict], grades: dict) -> float:
+    def calculate_subject_average(assessments: list[dict], subject_max_grade: float = 10.0) -> float:
         """
-        Calculates the weighted average for a subject.
-        'grades' is a dict mapping assessment_id to raw_score.
+        Calculates the weighted average for a subject, normalizing each assessment 
+        score to the subject's max grade.
         """
         total_score = 0.0
-        for assessment in assessments:
-            a_id = assessment['id']
-            if a_id in grades and grades[a_id] is not None:
-                weighted_portion = (float(grades[a_id]) * float(assessment['weight'])) / 100.0
+        for a in assessments:
+            score = a.get('score')
+            weight = a.get('weight', 0.0)
+            max_score = a.get('max_score', 10.0)
+            
+            if score is not None:
+                # 1. Normalizăm nota la o fracție (ex: 45 / 100 = 0.45)
+                normalized_score = (float(score) / float(max_score)) if float(max_score) > 0 else 0
+                
+                # 2. Aplicăm ponderea și scalăm la nota maximă a materiei (ex: 0.45 * 1.0 * 10 = 4.5)
+                weighted_portion = normalized_score * (float(weight) / 100.0) * float(subject_max_grade)
                 total_score += weighted_portion
+                
         return round(total_score, 2)

@@ -77,6 +77,7 @@ class SubjectScreen(QWidget):
         self.subject_max_grade = QDoubleSpinBox()
         self.subject_max_grade.setRange(1.0, 1000.0)
         self.subject_max_grade.setValue(10.0)
+        self.subject_max_grade.valueChanged.connect(self.update_average_display)
 
         grading_layout.addWidget(QLabel("Notă Trecere Materie:"))
         grading_layout.addWidget(self.subject_passing_grade)
@@ -154,9 +155,8 @@ class SubjectScreen(QWidget):
 
     def update_average_display(self):
         data_list = [row.get_data() for row in self.assessment_rows]
-        assessments_for_math = [{'id': i, 'weight': d['weight']} for i, d in enumerate(data_list)]
-        grades_dict = {i: d['score'] for i, d in enumerate(data_list)}
-        avg = GradeService.calculate_subject_average(assessments_for_math, grades_dict)
+        subject_max = self.subject_max_grade.value()        
+        avg = GradeService.calculate_subject_average(data_list, subject_max)
         self.average_label.setText(f"Media Curentă: {avg:.2f}")
 
     def remove_assessment_row(self, row_widget):

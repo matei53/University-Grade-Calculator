@@ -86,7 +86,7 @@ class CollapsibleYear(QWidget):
         graded_list = [s for s in subjects if s['grade'] is not None]
         
         # FIX 2: Only sum credits for subjects that are actually PASSED
-        total_passed_creds = sum(s['credits'] for s in graded_list if s['grade'] >= passing_grade)
+        total_passed_creds = sum(s['credits'] for s in graded_list if s['grade'] >= s.get('passing_grade', passing_grade))
         
         # We still want to see total credits Attempted vs Earned? 
         # Usually, students want to see Earned/Target.
@@ -147,7 +147,7 @@ class CollapsibleYear(QWidget):
                     
                     grade_val = sub['grade']
                     # logic for failure: must have a grade AND it must be below threshold
-                    is_failed = grade_val is not None and grade_val < passing_grade
+                    is_failed = grade_val is not None and grade_val < sub.get('passing_grade', passing_grade)
                     
                     credit_text = f"{sub['credits']} Credits"
                     if is_failed:
