@@ -7,6 +7,7 @@ from services.grade_service import GradeService
 from repositories.subject_repo import SubjectRepo
 from repositories.assessment_repo import AssessmentRepo
 from models.session import Session
+from database.db import get_connection
 
 class SubjectScreen(QWidget):
     def __init__(self, router):
@@ -45,7 +46,6 @@ class SubjectScreen(QWidget):
         
         # 1. Selector An (NOU)
         self.year_combo = QComboBox()
-        self.year_combo.addItems(["Anul 1", "Anul 2", "Anul 3", "Anul 4"]) # Opțiuni standard de licență
         
         # 2. Selector Semestru
         self.semester_input = QSpinBox()
@@ -100,6 +100,29 @@ class SubjectScreen(QWidget):
 
         self.setLayout(main_layout)
         self.add_assessment_row()
+
+    def on_screen_shown(self):
+        """Se apelează automat de router când intrăm pe acest ecran pentru a reîncărca anii."""
+        self.year_combo.clear()
+        try:
+            user_id = Session.get_current_user_id()
+            with get_connection() as conn:
+                # Căutăm câți ani a generat acest utilizator la Sign Up
+                years = conn.execute(
+                    "SELECT order_index FROM academic_years WHERE user_id = ? ORDER BY order_index",
+                    (user_id,)
+                ).fetchall()
+            
+            # Populăm dropdown-ul dinamic
+            if years:
+                for y in years:
+                    self.year_combo.addItem(f"Anul {y['order_index']}")
+            else:
+                # Fallback de siguranță
+                self.year_combo.addItems(["Anul 1", "Anul 2", "Anul 3"])
+        except Exception as e:
+            print(f"Eroare la încărcarea anilor: {e}")
+            self.year_combo.addItems(["Anul 1", "Anul 2", "Anul 3"])
 
     def add_assessment_row(self):
         row = AssessmentRow()

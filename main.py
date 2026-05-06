@@ -32,7 +32,7 @@ def main():
     router.register("subject_setup", subject_setup) 
 
     # Initial View
-    router.navigate("dashboard")
+    router.navigate("login")
     
     router.show()
     sys.exit(app.exec())
