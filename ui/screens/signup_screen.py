@@ -5,6 +5,7 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import Qt
 from services.auth_service import AuthService
+from services.data_service import DataService
 from models.session import Session
 from ui.components.university_picker import UniversityPicker
 from ui.components.major_picker import MajorPicker
@@ -156,6 +157,8 @@ class SignupScreen(QWidget):
         confirm = self.confirm_input.text().strip()
         university_id = self.university_picker.selected_id()
         major_id = self.major_picker.selected_id()
+        custom_university = self.university_picker.custom_input_value()
+        custom_major = self.major_picker.custom_input_value()
         num_years = self.years_spinbox.value()
         credit_requirements = [spinbox.value() for spinbox in self.credit_requirement_inputs]
 
@@ -163,8 +166,38 @@ class SignupScreen(QWidget):
             self.error_label.setText("Passwords do not match.")
             return
 
+        # Validate that user selected or inputted a university and major
+        if not university_id and not custom_university:
+            self.error_label.setText("Please select or enter a university.")
+            return
+
+        if not major_id and not custom_major:
+            self.error_label.setText("Please select or enter a major.")
+            return
+
         try:
+            # Handle custom university input
+            if custom_university:
+                try:
+                    university_id = DataService.add_university(custom_university)
+                    self.university_picker.reload_dropdown()
+                except ValueError as e:
+                    self.error_label.setText(f"Error adding university: {str(e)}")
+                    return
+
+            # Handle custom major input
+            if custom_major:
+                try:
+                    major_id = DataService.add_major(custom_major)
+                    self.major_picker.reload_dropdown()
+                except ValueError as e:
+                    self.error_label.setText(f"Error adding major: {str(e)}")
+                    return
+
+            # Sign up the user
             user = self.auth_service.sign_up(username, password, num_years, credit_requirements)
+            
+            # Update user with university and major
             from repositories.user_repo import UserRepo
             repo = UserRepo()
             if university_id:
@@ -173,6 +206,7 @@ class SignupScreen(QWidget):
             if major_id:
                 repo.update_major(user["id"], major_id)
                 user["major_id"] = major_id
+            
             Session.login(user)
             self.error_label.setText("")
             self.router.navigate("dashboard")
