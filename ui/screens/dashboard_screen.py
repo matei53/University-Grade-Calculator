@@ -20,8 +20,11 @@ class DashboardScreen(QWidget):
         self.router = router
         self.current_view_year = 1 
         
-        # Load real data from database
-        self.all_data = self._load_user_data()
+        # Load real data from database (will be empty if no user logged in during init)
+        try:
+            self.all_data = self._load_user_data()
+        except RuntimeError:
+            self.all_data = {}
         
         # Calculate total degree credits as sum of all subject credits
         self.total_degree_credits = sum(
@@ -61,39 +64,38 @@ class DashboardScreen(QWidget):
         add_grades_btn.setObjectName("SecondaryButton")
         add_grades_btn.setFixedWidth(120)
         add_grades_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
-
-        add_year_btn = QPushButton("+ Add Year")
-        add_year_btn.setObjectName("SecondaryButton")
-        add_year_btn.setFixedWidth(120)
-        add_year_btn.clicked.connect(lambda: self.router.navigate("year_setup"))
         
         logout_btn = QPushButton("Log Out")
         logout_btn.setFixedWidth(100)
         logout_btn.clicked.connect(self._handle_logout)
         
         header_layout.addWidget(add_grades_btn)
-        header_layout.addWidget(add_year_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
 
         # 2. Filter Bar
         filter_widget = QWidget()
-        filter_layout = QHBoxLayout(filter_widget)
-        filter_layout.setContentsMargins(0, 0, 0, 0)
+        self.filter_layout = QHBoxLayout(filter_widget)
+        self.filter_layout.setContentsMargins(0, 0, 0, 0)
         
-        filter_label = QLabel("View up to:")
-        filter_label.setStyleSheet("font-weight: bold; color: #555;")
-        filter_layout.addWidget(filter_label)
+        self.filter_label = QLabel("View up to:")
+        self.filter_label.setStyleSheet("font-weight: bold; color: #555;")
+        self.filter_layout.addWidget(self.filter_label)
 
+        print(f"[Dashboard._build_ui()] self.all_data.keys() = {list(self.all_data.keys())}")
+        
         for year_num in sorted(self.all_data.keys()):
+            print(f"[Dashboard._build_ui()] Creating button for Year {year_num}")
             btn = QPushButton(f"Year {year_num}")
             btn.setObjectName("FilterButton")
             btn.setCheckable(True)
             btn.clicked.connect(lambda checked, y=year_num: self.update_dashboard(y))
             self.year_buttons.append(btn)
-            filter_layout.addWidget(btn)
+            self.filter_layout.addWidget(btn)
         
-        filter_layout.addStretch()
+        print(f"[Dashboard._build_ui()] Created {len(self.year_buttons)} year buttons")
+        
+        self.filter_layout.addStretch()
         self.main_layout.addWidget(filter_widget)
 
         # 3. Main Stats Cards
@@ -182,12 +184,69 @@ class DashboardScreen(QWidget):
         # 1. Reload all data from DB to catch changes from Signup/Setup
         self.all_data = self._load_user_data()
         
-        # 2. Update the Header labels (University/Major)
+        # 2. Recalculate total degree credits
+        self.total_degree_credits = sum(
+            subject['credits'] 
+            for year_data in self.all_data.values() 
+            for subject in year_data['subjects']
+        )
+        
+        # 3. Rebuild year filter buttons
+        self._rebuild_year_buttons()
+        
+        # 4. Rebuild year components
+        self._rebuild_year_components()
+        
+        # 5. Update the Header labels (University/Major)
         info = self._get_logged_in_user_info()
         self.subtitle.setText(f"{info['university']} · {info['major']}")
         
-        # 3. Refresh the UI components
+        # 6. Refresh the UI components
         self.update_dashboard(self.current_view_year)
+
+    def _rebuild_year_buttons(self):
+        """Rebuild the year filter buttons based on current all_data."""
+        # Clear the layout of all buttons (but keep the label and stretch)
+        # We need to remove items starting from index 1 until we hit the stretch
+        while self.filter_layout.count() > 2:  # Keep label (0) and stretch (last)
+            item = self.filter_layout.takeAt(1)
+            if item and item.widget():
+                item.widget().deleteLater()
+        
+        # Clear old buttons list
+        self.year_buttons = []
+        
+        # Add new buttons for each year
+        print(f"[Dashboard._rebuild_year_buttons()] Rebuilding buttons for years: {sorted(self.all_data.keys())}")
+        for year_num in sorted(self.all_data.keys()):
+            btn = QPushButton(f"Year {year_num}")
+            btn.setObjectName("FilterButton")
+            btn.setCheckable(True)
+            btn.clicked.connect(lambda checked, y=year_num: self.update_dashboard(y))
+            self.year_buttons.append(btn)
+            # Insert before the stretch (which is at the end)
+            self.filter_layout.insertWidget(self.filter_layout.count() - 1, btn)
+        
+        print(f"[Dashboard._rebuild_year_buttons()] Recreated {len(self.year_buttons)} year buttons")
+
+    def _rebuild_year_components(self):
+        """Rebuild the year components (CollapsibleYear widgets)."""
+        # Clear old year components from the scroll area
+        while self.years_container.count():
+            widget = self.years_container.takeAt(0).widget()
+            if widget:
+                widget.deleteLater()
+        
+        self.year_components = {}
+        
+        # Add new collapsible year components
+        for year_num, data in self.all_data.items():
+            collapsible = CollapsibleYear(f"Year {year_num}")
+            collapsible.set_subjects(data['subjects'], data['target_credits'])
+            self.years_container.addWidget(collapsible)
+            self.year_components[year_num] = collapsible
+        
+        print(f"[Dashboard._rebuild_year_components()] Recreated {len(self.year_components)} year components")
 
     # def _get_logged_in_user_info(self):
     #     user = None
@@ -241,8 +300,8 @@ class DashboardScreen(QWidget):
                 "university": profile['university_name'] if profile and profile['university_name'] else "No University Set",
                 "major": profile['major_name'] if profile and profile['major_name'] else "No Major Set"
             }
-        except Exception as e:
-            print(f"Error fetching profile: {e}")
+        except (RuntimeError, Exception):
+            # Return default values if no user is logged in or error occurs
             return {"university": "UniGrade", "major": "Student"}
 
     def _load_user_data(self):
@@ -252,6 +311,7 @@ class DashboardScreen(QWidget):
         except RuntimeError:
             return {}
         
+        print(f"[Dashboard] Loading data for user {user_id}")
         all_data = {}
         
         with get_connection() as conn:
@@ -263,10 +323,14 @@ class DashboardScreen(QWidget):
                 (user_id,)
             ).fetchall()
             
+            print(f"[Dashboard] Found {len(years)} years for user {user_id}")
+            
             for year in years:
                 year_id = year['id']
                 year_num = year['order_index']
                 target_credits = year['credit_requirement'] or 60
+                
+                print(f"[Dashboard] Processing Year {year_num} (ID: {year_id})")
                 
                 subjects_list = []
                 
