@@ -6,9 +6,9 @@ from services.dashboard_service import DashboardService
 from models.session import Session
 import json
 import os
+from repositories.user_repo import UserRepo
 
 class DashboardScreen(QWidget):
-    UNI_DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "universities.json")
     
     def __init__(self, router):
         super().__init__()
@@ -59,9 +59,9 @@ class DashboardScreen(QWidget):
 
         # 3. Main Stats Cards
         stats_layout = QHBoxLayout()
-        self.media_card = self._create_stat_card("MEDIA PONDERATĂ", "0.00")
-        self.credits_card = self._create_stat_card("CREDITE", "0")
-        self.progress_card = self._create_stat_card("PROGRES", "0%")
+        self.media_card = self._create_stat_card("WEIGHTED AVERAGE", "0.00")
+        self.credits_card = self._create_stat_card("CREDITS", "0")
+        self.progress_card = self._create_stat_card("PROGRESS", "0%")
         
         self.main_progress_bar = QProgressBar()
         self.main_progress_bar.setFixedHeight(10)
@@ -83,15 +83,22 @@ class DashboardScreen(QWidget):
         self.main_layout.addWidget(scroll)
 
     def on_screen_shown(self):
-        """Reîmprospătează datele din DB de fiecare dată când ecranul devine vizibil."""
-        user_info = self._get_logged_in_user_info()
-        self.passing_grade = user_info.get('passing_grade', 5.0)
-        self.total_degree_credits = user_info.get('total_degree_credits', 180)
-        self.subtitle.setText(f"{user_info['university']} | {user_info['major']}")
+        """Refreshes the UI with real data every time the screen is shown."""
+        user_id = Session.get_current_user_id()
         
+        # 1. Fetch real Profile Info (University & Major)
+        repo = UserRepo()
+        profile = repo.get_profile_info(user_id)
+        
+        if profile:
+            # profile is a sqlite3.Row, access it like a dictionary
+            uni = profile["university_name"] if profile["university_name"] else "No University Set"
+            major = profile["major_name"] if profile["major_name"] else "No Major Set"
+            self.subtitle.setText(f"{uni} | {major}")
+        
+        # 2. Load Academic Data for Stats
         try:
-            uid = Session.get_current_user_id()
-            self.all_data = DashboardService.get_user_dashboard_data(uid)
+            self.all_data = DashboardService.get_user_dashboard_data(user_id)
         except Exception:
             self.all_data = {}
             
@@ -109,7 +116,7 @@ class DashboardScreen(QWidget):
                 item.widget().deleteLater()
         
         self.year_buttons = []
-        filter_label = QLabel("Filtrează până la:")
+        filter_label = QLabel("Filter up to:")
         filter_label.setStyleSheet("font-weight: bold; color: #555;")
         self.filter_layout.addWidget(filter_label)
         
@@ -150,23 +157,33 @@ class DashboardScreen(QWidget):
         return card
 
     def update_dashboard(self, up_to_yr):
-        """Actualizează mediile și vizibilitatea elementelor UI."""
+        
         for b in self.year_buttons:
             is_active = b.text() == f"Anul {up_to_yr}"
             b.setProperty("active", is_active)
             b.style().unpolish(b)
             b.style().polish(b)
+        
+        # 1. Calculate dynamic total for the progress bar
+        total_program_credits = sum(year_data['target_credits'] for year_data in self.all_data.values())
 
+        # 2. Get passing grade fallback
+        current_passing_grade = getattr(self, 'passing_grade', 5.0)
+
+        # 3. Call the stats service with dynamic values
         stats = DashboardService.calculate_stats(
             self.all_data, 
             up_to_yr, 
-            total_program_credits=self.total_degree_credits,
-            passing_grade=float(self.passing_grade)
+            total_program_credits=total_program_credits,
+            passing_grade=float(current_passing_grade)
         )
 
+        # 4. Handle Visibility of Year Components
+        # This ensures if you filter "Up to Year 2", Year 3 disappears
         for y, comp in self.year_components.items():
             comp.setVisible(y <= up_to_yr)
 
+        # 5. Update UI labels
         self.media_card.findChild(QLabel, "CardValue").setText(f"{stats['weighted_avg']:.2f}")
         self.credits_card.findChild(QLabel, "CardValue").setText(str(stats['credits']))
         
@@ -174,28 +191,7 @@ class DashboardScreen(QWidget):
         self.progress_card.findChild(QLabel, "CardValue").setText(f"{p}%")
         self.main_progress_bar.setValue(p)
 
-    def _get_logged_in_user_info(self):
-        """Obține informațiile universitare ale utilizatorului curent."""
-        try:
-            user = Session.get_user()
-        except Exception:
-            user = None
-            
-        uni_name = "University of Bucharest"
-        major_name = "Computer Science"
-        
-        if user and "university_id" in user:
-            try:
-                with open(self.UNI_DATA_PATH, "r") as f:
-                    universities = json.load(f)
-                    for uni in universities:
-                        if uni["id"] == user["university_id"]:
-                            uni_name = uni["name"]
-                            break
-            except Exception:
-                pass
-        return {"university": uni_name, "major": major_name, "passing_grade": 5.0, "total_degree_credits": 180}
-
+    
     def _handle_logout(self):
         Session.logout()
         self.router.navigate("login")
