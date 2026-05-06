@@ -78,6 +78,9 @@ class SubjectScreen(QWidget):
         self.subject_max_grade.setRange(1.0, 1000.0)
         self.subject_max_grade.setValue(10.0)
         self.subject_max_grade.valueChanged.connect(self.update_average_display)
+        
+        self.subject_max_grade.valueChanged.connect(self.subject_passing_grade.setMaximum)
+        self.subject_passing_grade.setMaximum(self.subject_max_grade.value())
 
         grading_layout.addWidget(QLabel("Notă Trecere Materie:"))
         grading_layout.addWidget(self.subject_passing_grade)
@@ -88,7 +91,7 @@ class SubjectScreen(QWidget):
         main_layout.addLayout(grading_layout)
 
         # --- Secțiune Evaluări ---
-        self.assessments_label = QLabel("Evaluări (Totalul trebuie să fie 100%)")
+        self.assessments_label = QLabel("Evaluări")
         self.assessments_label.setStyleSheet("font-weight: bold; margin-top: 15px;")
         main_layout.addWidget(self.assessments_label)
         

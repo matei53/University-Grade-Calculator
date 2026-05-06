@@ -35,13 +35,17 @@ class AssessmentRow(QWidget):
         self.max_score_input.setRange(1.0, 1000.0)
         self.max_score_input.setValue(10.0)
         self.max_score_input.setPrefix("Din max: ")
-        self.max_score_input.valueChanged.connect(self.score_changed.emit) # Când schimbi maximul, recalculează media
+        self.max_score_input.valueChanged.connect(self.score_changed.emit) 
 
         # 5. Condiție de trecere a probei
         self.passing_grade_input = QDoubleSpinBox()
         self.passing_grade_input.setRange(0.0, 1000.0)
         self.passing_grade_input.setValue(5.0)
         self.passing_grade_input.setPrefix("Minim probă: ")
+
+        # --- NOU: Constrângeri Dinamice ---
+        self.max_score_input.valueChanged.connect(self._update_limits)
+        self._update_limits(self.max_score_input.value()) # Inițializare limite la creare
 
         # Buton ștergere
         self.remove_btn = QPushButton("X")
@@ -55,6 +59,11 @@ class AssessmentRow(QWidget):
         layout.addWidget(self.passing_grade_input)
         layout.addWidget(self.remove_btn)
         self.setLayout(layout)
+
+    def _update_limits(self, max_val):
+        """Asigură că nota obținută și nota de trecere nu pot depăși nota maximă."""
+        self.score_input.setMaximum(max_val)
+        self.passing_grade_input.setMaximum(max_val)
 
     def get_data(self):
         return {
