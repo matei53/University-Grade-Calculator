@@ -13,12 +13,20 @@ class DashboardService:
                 year_num = y["order_index"]
                 all_data[year_num] = {"target_credits": y["credit_requirement"], "subjects": []}
                 
+                # # 2. Fetch Subjects
+                # subjects = conn.execute("""
+                #     SELECT sub.id as subject_id, sub.name, sub.credit_value as credits, sem.order_index as semester
+                #     FROM subjects sub
+                #     JOIN semesters sem ON sub.semester_id = sem.id
+                #     WHERE sem.academic_year_id = ?
+                # """, (y["id"],)).fetchall()
+
                 # 2. Fetch Subjects
                 subjects = conn.execute("""
                     SELECT sub.id as subject_id, sub.name, sub.credit_value as credits, sem.order_index as semester
                     FROM subjects sub
-                    JOIN semesters sem ON sub.semester_id = sem.id
-                    WHERE sem.academic_year_id = ?
+                    LEFT JOIN semesters sem ON sub.semester_id = sem.id  
+                    WHERE sub.academic_year_id = ?                      
                 """, (y["id"],)).fetchall()
                 
                 for sub in subjects:
@@ -45,6 +53,7 @@ class DashboardService:
                         'semester': sub["semester"]
                     })
         return all_data
+
 
     @staticmethod
     def calculate_stats(all_years_data, up_to_year, total_program_credits=180, passing_grade=5.0):

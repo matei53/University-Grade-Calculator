@@ -155,3 +155,108 @@ DASHBOARD_STYLE = f"""
         background-color: #3d632a;
     }}
 """
+
+AUTH_STYLE = f"""
+    QWidget {{
+        background-color: {CREAM_BONE};
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLabel {{
+        background: transparent;
+        border: none;
+        padding: 0px;
+        margin: 0px;
+    }}
+
+    QLabel#AuthTitle {{
+        font-size: 32px;
+        font-weight: bold;
+        color: {FOREST_GREEN};
+        margin-bottom: 10px;
+    }}
+
+    QLabel#AuthSubtitle {{
+        font-size: 18px;
+        color: {STONE_GREY};
+        font-weight: normal;
+    }}
+
+    QLineEdit#AuthInput {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLineEdit#AuthInput:focus {{
+        border: 2px solid {FOREST_GREEN};
+        outline: none;
+    }}
+
+    QLineEdit#AuthInput::placeholder {{
+        color: #999;
+    }}
+
+    QPushButton#PrimaryButton {{
+        background-color: {FOREST_GREEN};
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        font-weight: bold;
+        font-size: 13px;
+    }}
+
+    QPushButton#PrimaryButton:hover {{
+        background-color: #3d632a;
+    }}
+
+    QPushButton#PrimaryButton:pressed {{
+        background-color: #2D4B1D;
+    }}
+
+    QPushButton#SecondaryLink {{
+        background: transparent;
+        color: {FOREST_GREEN};
+        border: none;
+        text-decoration: underline;
+        font-size: 13px;
+        padding: 0px;
+    }}
+
+    QPushButton#SecondaryLink:hover {{
+        color: #3d632a;
+    }}
+
+    QLabel#ErrorLabel {{
+        color: #D32F2F;
+        font-weight: 500;
+        min-height: 20px;
+    }}
+
+    QComboBox {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QComboBox:focus {{
+        border: 2px solid {FOREST_GREEN};
+    }}
+
+    QComboBox::drop-down {{
+        border: none;
+    }}
+
+    QComboBox::down-arrow {{
+        image: none;
+    }}
+"""

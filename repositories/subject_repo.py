@@ -1,12 +1,39 @@
 from database.db import get_connection
 
 class SubjectRepo:
+    
+    @staticmethod
+    def create_years_for_user(user_id, num_years, credit_requirements=None):
+        """
+        Creează anii și semestrele la crearea contului (Sign Up), 
+        folosind creditele personalizate introduse de utilizator.
+        """
+        if credit_requirements is None:
+            credit_requirements = [60] * num_years
+            
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            for year_index in range(1, num_years + 1):
+                # Preia creditele pentru anul curent (sau 60 default)
+                credit_req = credit_requirements[year_index - 1] if year_index - 1 < len(credit_requirements) else 60
+                
+                # Creează anul
+                cursor.execute(
+                    "INSERT INTO academic_years (user_id, label, order_index, credit_requirement) VALUES (?, ?, ?, ?)",
+                    (user_id, f"Anul {year_index}", year_index, credit_req)
+                )
+                year_id = cursor.lastrowid
+                
+                # Creează cele 2 semestre pentru acest an
+                cursor.execute("INSERT INTO semesters (academic_year_id, label, order_index) VALUES (?, 'Semestrul 1', 1)", (year_id,))
+                cursor.execute("INSERT INTO semesters (academic_year_id, label, order_index) VALUES (?, 'Semestrul 2', 2)", (year_id,))
+            conn.commit()
 
     @staticmethod
     def _ensure_year_and_semesters_exist(conn, user_id, year_level):
         """
         Funcție internă: Verifică dacă Anul (1, 2, 3, 4) există pentru utilizator.
-        Dacă nu, îl creează automat împreună cu cele 2 semestre.
+        Dacă nu există, îl creează automat (fallback).
         """
         label = f"Anul {year_level}"
         
@@ -19,7 +46,7 @@ class SubjectRepo:
         if year_row:
             return year_row['id']
 
-        # 2. Dacă nu există, creează anul (presupunem un target implicit de 60 de credite)
+        # 2. Dacă nu există, creează anul cu 60 de credite default
         cursor = conn.cursor()
         cursor.execute(
             "INSERT INTO academic_years (user_id, label, order_index, credit_requirement) VALUES (?, ?, ?, ?)",
@@ -36,10 +63,10 @@ class SubjectRepo:
     @staticmethod
     def add_subject(user_id, subject_name, credits, semester_index, year_level):
         """
-        Adaugă o materie. Creează anul automat dacă e nevoie.
+        Adaugă o materie. Creează anul automat dacă e nevoie prin fallback.
         """
         with get_connection() as conn:
-            # 1. Asigură-te că anul există (sau creează-l)
+            # 1. Asigură-te că anul există
             year_id = SubjectRepo._ensure_year_and_semesters_exist(conn, user_id, year_level)
 
             cursor = conn.cursor()
@@ -55,8 +82,8 @@ class SubjectRepo:
 
             # 3. Inserează materia
             cursor.execute(
-                "INSERT INTO subjects (semester_id, name, credit_value) VALUES (?, ?, ?)",
-                (sem_row['id'], subject_name, credits)
+                "INSERT INTO subjects (semester_id, academic_year_id, name, credit_value) VALUES (?, ?, ?, ?)",
+                (sem_row['id'], year_id, subject_name, credits)
             )
             conn.commit()
             return cursor.lastrowid
