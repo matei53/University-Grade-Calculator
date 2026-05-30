@@ -1,57 +1,53 @@
-from database.db import get_connection
+from client.api_client import APIClient
 
 class DashboardService:
     @staticmethod
     def get_user_dashboard_data(user_id):
-        """Fetches dynamic data from the database instead of hardcoded mocks."""
+        """Fetches dynamic data from the API server."""
+        client = APIClient()
         all_data = {}
-        with get_connection() as conn:
-            # 1. Fetch Years for this user
-            years = conn.execute("SELECT id, order_index, credit_requirement FROM academic_years WHERE user_id = ?", (user_id,)).fetchall()
+        
+        try:
+            years = client.get_academic_years()
             
-            for y in years:
-                year_num = y["order_index"]
-                all_data[year_num] = {"target_credits": y["credit_requirement"], "subjects": []}
-
-                # 2. Fetch Subjects (Adăugăm max_grade și passing_grade)
-                subjects = conn.execute("""
-                    SELECT sub.id as subject_id, sub.name, sub.credit_value as credits, 
-                           sem.order_index as semester, sub.max_grade, sub.passing_grade
-                    FROM subjects sub
-                    LEFT JOIN semesters sem ON sub.semester_id = sem.id  
-                    WHERE sub.academic_year_id = ?                  
-                """, (y["id"],)).fetchall()
+            for year in years:
+                year_num = year["order_index"]
+                all_data[year_num] = {
+                    "target_credits": year.get("credit_requirement"),
+                    "subjects": []
+                }
                 
-                for sub in subjects:
-                    # 3. Fetch Grades and calculate average (Adăugăm max_score din assessments)
-                    assessments = conn.execute("""
-                        SELECT a.weight, a.max_score, g.score 
-                        FROM assessments a 
-                        LEFT JOIN grades g ON g.assessment_id = a.id 
-                        WHERE a.subject_id = ?
-                    """, (sub["subject_id"],)).fetchall()
+                for subject in year.get("subjects", []):
+                    # Calculate average grade from assessments
+                    assessments = subject.get("assessments", [])
                     
                     total_grade = 0.0
                     has_grades = False
-                    subject_max = sub["max_grade"] if sub["max_grade"] else 10.0
+                    subject_max = subject.get("max_grade", 10.0)
                     
-                    for a in assessments:
-                        if a["score"] is not None:
-                            has_grades = True
-                            a_max = a["max_score"] if a["max_score"] else 10.0
-                            # Aplicăm aceeași formulă de normalizare!
-                            normalized_score = (float(a["score"]) / float(a_max)) if float(a_max) > 0 else 0
-                            total_grade += normalized_score * (float(a["weight"]) / 100.0) * float(subject_max)
+                    for assessment in assessments:
+                        grades = assessment.get("grades", [])
+                        if grades and len(grades) > 0:
+                            score = grades[0].get("score")
+                            if score is not None:
+                                has_grades = True
+                                max_score = assessment.get("max_score", 10.0)
+                                # Normalize and weight the score
+                                normalized_score = (float(score) / float(max_score)) if float(max_score) > 0 else 0
+                                total_grade += normalized_score * (float(assessment.get("weight", 0)) / 100.0) * float(subject_max)
                     
                     all_data[year_num]["subjects"].append({
-                        'name': sub["name"],
-                        'credits': sub["credits"],
+                        'name': subject["name"],
+                        'credits': subject["credit_value"],
                         'grade': round(total_grade, 2) if has_grades else None,
-                        'semester': sub["semester"],
-                        'passing_grade': sub["passing_grade"] if sub["passing_grade"] else 5.0
+                        'semester': subject.get("semester_index", 1),
+                        'passing_grade': subject.get("passing_grade", 5.0)
                     })
+        except Exception as e:
+            print(f"Error fetching dashboard data: {e}")
+            return {}
+        
         return all_data
-
 
     @staticmethod
     def calculate_stats(all_years_data, up_to_year, total_program_credits=180, passing_grade=5.0):

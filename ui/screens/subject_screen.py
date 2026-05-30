@@ -5,16 +5,15 @@ from PyQt6.QtCore import Qt
 
 from ui.components.assessment_row import AssessmentRow
 from services.grade_service import GradeService
-from repositories.subject_repo import SubjectRepo
-from repositories.assessment_repo import AssessmentRepo
 from models.session import Session
-from database.db import get_connection
+from client.api_client import APIClient
 
 class SubjectScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
         self.assessment_rows = []
+        self.api_client = APIClient()
         self.setup_ui()
 
     def setup_ui(self):
@@ -155,14 +154,12 @@ class SubjectScreen(QWidget):
         self.add_assessment_row()
 
     def on_screen_shown(self):
+        # Create fresh API client to ensure we have the current user's token
+        self.api_client = APIClient()
+        
         self.year_combo.clear()
         try:
-            user_id = Session.get_current_user_id()
-            with get_connection() as conn:
-                years = conn.execute(
-                    "SELECT order_index FROM academic_years WHERE user_id = ? ORDER BY order_index",
-                    (user_id,)
-                ).fetchall()
+            years = self.api_client.get_academic_years()
             
             if years:
                 for y in years:
@@ -170,6 +167,7 @@ class SubjectScreen(QWidget):
             else:
                 self.year_combo.addItems(["Year 1", "Year 2", "Year 3"])
         except Exception as e:
+            print(f"Error loading academic years: {e}")
             self.year_combo.addItems(["Year 1", "Year 2", "Year 3"])
 
     def add_assessment_row(self):
@@ -227,12 +225,6 @@ class SubjectScreen(QWidget):
         self.router.navigate("dashboard")
 
     def save_subject(self):
-        try:
-            user_id = Session.get_current_user_id()
-        except Exception:
-            QMessageBox.critical(self, "Session Error", "User not logged in!")
-            return
-
         subject_name = self.name_input.text().strip()
         assessments_data = [row.get_data() for row in self.assessment_rows]
 
@@ -248,9 +240,9 @@ class SubjectScreen(QWidget):
             selected_year_text = self.year_combo.currentText()
             year_level = int(selected_year_text.split(" ")[1])
             
-            subject_id = SubjectRepo.add_subject(
-                user_id=user_id,
-                subject_name=subject_name,
+            # Add subject via API
+            subject = self.api_client.add_subject(
+                name=subject_name,
                 credits=self.credits_input.value(),
                 semester_index=self.semester_input.value(),
                 year_level=year_level,
@@ -258,9 +250,10 @@ class SubjectScreen(QWidget):
                 max_grade=self.subject_max_grade.value()
             )
             
+            # Add assessments via API
             for a in assessments_data:
-                AssessmentRepo.add_assessment(
-                    subject_id=subject_id, 
+                self.api_client.add_assessment(
+                    subject_id=subject['id'],
                     name=a['name'], 
                     weight=a['weight'], 
                     score=a['score'],
@@ -271,4 +264,4 @@ class SubjectScreen(QWidget):
             QMessageBox.information(self, "Success", "Subject added successfully!")
             self.exit_to_dashboard()
         except Exception as e:
-            QMessageBox.critical(self, "Database Error", f"Failed to save: {str(e)}")
+            QMessageBox.critical(self, "Error", f"Failed to save: {str(e)}")
