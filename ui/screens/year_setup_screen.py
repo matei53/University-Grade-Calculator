@@ -1,6 +1,15 @@
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QSpinBox, QPushButton, QMessageBox
-from models.session import Session
+from PyQt6.QtWidgets import (
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
+
 from client.api_client import APIClient
+
 
 class YearSetupScreen(QWidget):
     def __init__(self, router):
@@ -10,8 +19,10 @@ class YearSetupScreen(QWidget):
         layout = QVBoxLayout()
 
         self.title = QLabel("Set Up Academic Year")
-        self.title.setStyleSheet("color: #2D4B1D; font-size: 18px; font-weight: bold;")
-        
+        self.title.setStyleSheet(
+            "color: #2D4B1D; font-size: 18px; font-weight: bold;"
+        )
+
         self.year_name_input = QLineEdit()
         self.year_name_input.setPlaceholderText("ex: Anul 1")
 
@@ -22,10 +33,12 @@ class YearSetupScreen(QWidget):
 
         self.save_btn = QPushButton("Salvează Anul")
         self.save_btn.clicked.connect(self.save_year)
-        
+
         # Buton pentru a merge la adaugare subiecte
         self.next_btn = QPushButton("Mergi la Subiecte")
-        self.next_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
+        self.next_btn.clicked.connect(
+            lambda: self.router.navigate("subject_setup")
+        )
 
         layout.addWidget(self.title)
         layout.addWidget(self.year_name_input)
@@ -34,12 +47,11 @@ class YearSetupScreen(QWidget):
         layout.addWidget(self.save_btn)
         layout.addWidget(self.next_btn)
         layout.addStretch()
-        
+
         self.setLayout(layout)
 
     def save_year(self):
         year_name = self.year_name_input.text().strip()
-        target_credits = self.target_credits_input.value()
 
         if not year_name:
             QMessageBox.warning(self, "Eroare", "Introdu numele anului.")
@@ -47,7 +59,13 @@ class YearSetupScreen(QWidget):
 
         try:
             # Note: Academic years are created during signup
-            # This is kept for reference but the actual year creation happens on the server
-            QMessageBox.information(self, "Info", "Academic years are managed automatically.\nPlease add subjects instead.")
+            # This is kept for reference but the actual year creation
+            # happens on the server
+            QMessageBox.information(
+                self,
+                "Info",
+                "Academic years are managed automatically.\n\
+                    Please add subjects instead.",
+            )
         except Exception as e:
             QMessageBox.critical(self, "Eroare DB", str(e))

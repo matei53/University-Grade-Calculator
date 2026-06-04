@@ -1,12 +1,23 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, 
-                             QLineEdit, QSpinBox, QPushButton, QMessageBox, 
-                             QComboBox, QDoubleSpinBox, QFrame, QGridLayout)
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QDoubleSpinBox,
+    QFrame,
+    QGridLayout,
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QMessageBox,
+    QPushButton,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
 
-from ui.components.assessment_row import AssessmentRow
-from services.grade_service import GradeService
-from models.session import Session
 from client.api_client import APIClient
+from services.grade_service import GradeService
+from ui.components.assessment_row import AssessmentRow
+
 
 class SubjectScreen(QWidget):
     def __init__(self, router):
@@ -23,16 +34,19 @@ class SubjectScreen(QWidget):
 
         # --- Navigation & Left-Aligned Title ---
         header_area = QVBoxLayout()
-        
+
         self.back_btn = QPushButton("← Back to Dashboard")
         self.back_btn.setObjectName("FilterButton")
         self.back_btn.setFixedWidth(180)
         self.back_btn.clicked.connect(self.exit_to_dashboard)
-        
+
         self.title = QLabel("Add New Subject")
         self.title.setObjectName("HeaderTitle")
-        self.title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2D4B1D; margin-top: 10px;") 
-        
+        self.title.setStyleSheet(
+            "font-size: 20px; font-weight: bold; color: #2D4B1D; \
+            margin-top: 10px;"
+        )
+
         header_area.addWidget(self.back_btn)
         header_area.addWidget(self.title)
         main_layout.addLayout(header_area)
@@ -45,12 +59,17 @@ class SubjectScreen(QWidget):
         card_layout.setSpacing(15)
 
         detail_title = QLabel("SUBJECT DETAILS")
-        detail_title.setStyleSheet("color: #2D4B1D; font-weight: bold; font-size: 11px; letter-spacing: 1px;")
+        detail_title.setStyleSheet(
+            "color: #2D4B1D; font-weight: bold; font-size: 11px; \
+            letter-spacing: 1px;"
+        )
         card_layout.addWidget(detail_title)
 
         self.name_input = QLineEdit()
         self.name_input.setObjectName("AuthInput")
-        self.name_input.setPlaceholderText("Subject Name (e.g. Data Structures)")
+        self.name_input.setPlaceholderText(
+            "Subject Name (e.g. Data Structures)"
+        )
         card_layout.addWidget(self.name_input)
 
         # --- Exact Alignment Grid ---
@@ -68,7 +87,7 @@ class SubjectScreen(QWidget):
         self.semester_input = QSpinBox()
         self.semester_input.setObjectName("AuthInput")
         self.semester_input.setRange(1, 2)
-        
+
         grid_layout.addWidget(QLabel("Academic Year:"), 0, 0)
         grid_layout.addWidget(self.year_combo, 0, 1)
         grid_layout.addWidget(QLabel("Semester:"), 1, 0)
@@ -79,18 +98,27 @@ class SubjectScreen(QWidget):
         self.credits_input.setObjectName("AuthInput")
         self.credits_input.setRange(1, 30)
         self.credits_input.setValue(5)
-        
-        grid_layout.setColumnStretch(2, 1) # Spacer before credits
-        grid_layout.addWidget(QLabel("Credits:"), 0, 3, Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        grid_layout.addWidget(self.credits_input, 0, 4, Qt.AlignmentFlag.AlignVCenter)
-        grid_layout.setColumnStretch(5, 1) # Spacer after credits
+
+        grid_layout.setColumnStretch(2, 1)  # Spacer before credits
+        grid_layout.addWidget(
+            QLabel("Credits:"),
+            0,
+            3,
+            Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
+        )
+        grid_layout.addWidget(
+            self.credits_input, 0, 4, Qt.AlignmentFlag.AlignVCenter
+        )
+        grid_layout.setColumnStretch(5, 1)  # Spacer after credits
 
         # Right Column (Grades)
         self.subject_max_grade = QDoubleSpinBox()
         self.subject_max_grade.setObjectName("AuthInput")
         self.subject_max_grade.setRange(1.0, 100.0)
         self.subject_max_grade.setValue(10.0)
-        self.subject_max_grade.valueChanged.connect(self.update_average_display)
+        self.subject_max_grade.valueChanged.connect(
+            self.update_average_display
+        )
 
         self.subject_passing_grade = QDoubleSpinBox()
         self.subject_passing_grade.setObjectName("AuthInput")
@@ -108,22 +136,27 @@ class SubjectScreen(QWidget):
         # --- Assessments Section ---
         assessment_header_layout = QVBoxLayout()
         assessment_header_layout.setSpacing(2)
-        
+
         self.assessments_label = QLabel("ASSESSMENTS")
-        self.assessments_label.setStyleSheet("color: #2D4B1D; font-weight: bold; font-size: 11px; letter-spacing: 1px; margin-top: 10px;")
-        
+        self.assessments_label.setStyleSheet(
+            "color: #2D4B1D; font-weight: bold; font-size: 11px; \
+            letter-spacing: 1px; margin-top: 10px;"
+        )
+
         self.weight_rule_label = QLabel("Total weight must equal 100%")
-        self.weight_rule_label.setStyleSheet("color: #A8C686; font-size: 10px; font-weight: bold;")
-        
+        self.weight_rule_label.setStyleSheet(
+            "color: #A8C686; font-size: 10px; font-weight: bold;"
+        )
+
         assessment_header_layout.addWidget(self.assessments_label)
         assessment_header_layout.addWidget(self.weight_rule_label)
         main_layout.addLayout(assessment_header_layout)
-        
+
         self.assessments_container = QWidget()
         self.assessments_layout = QVBoxLayout(self.assessments_container)
         self.assessments_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.addWidget(self.assessments_container)
-        
+
         self.add_assessment_btn = QPushButton("+ Add Assessment Component")
         self.add_assessment_btn.setObjectName("SecondaryButton")
         self.add_assessment_btn.clicked.connect(self.add_assessment_row)
@@ -132,16 +165,20 @@ class SubjectScreen(QWidget):
         # --- Status Row ---
         status_layout = QHBoxLayout()
         self.weight_status_label = QLabel("Total Weight: 0.0%")
-        self.weight_status_label.setStyleSheet("color: #D32F2F; font-weight: bold; font-size: 13px;")
-        
+        self.weight_status_label.setStyleSheet(
+            "color: #D32F2F; font-weight: bold; font-size: 13px;"
+        )
+
         self.average_label = QLabel("Current Average: 0.00")
-        self.average_label.setStyleSheet("font-weight: bold; font-size: 13px; color: #2D4B1D;")
-        
+        self.average_label.setStyleSheet(
+            "font-weight: bold; font-size: 13px; color: #2D4B1D;"
+        )
+
         status_layout.addWidget(self.weight_status_label)
         status_layout.addStretch()
         status_layout.addWidget(self.average_label)
         main_layout.addLayout(status_layout)
-        
+
         main_layout.addStretch()
 
         self.save_btn = QPushButton("Save Subject")
@@ -156,11 +193,11 @@ class SubjectScreen(QWidget):
     def on_screen_shown(self):
         # Create fresh API client to ensure we have the current user's token
         self.api_client = APIClient()
-        
+
         self.year_combo.clear()
         try:
             years = self.api_client.get_academic_years()
-            
+
             if years:
                 for y in years:
                     self.year_combo.addItem(f"Year {y['order_index']}")
@@ -178,7 +215,7 @@ class SubjectScreen(QWidget):
         row.score_input.setPrefix("Grade: ")
         row.max_score_input.setPrefix("Max: ")
         row.passing_grade_input.setPrefix("Pass: ")
-        
+
         self.assessment_rows.append(row)
         self.assessments_layout.addWidget(row)
         row.remove_requested.connect(self.remove_assessment_row)
@@ -188,7 +225,7 @@ class SubjectScreen(QWidget):
 
     def update_average_display(self):
         data_list = [row.get_data() for row in self.assessment_rows]
-        subject_max = self.subject_max_grade.value()        
+        subject_max = self.subject_max_grade.value()
         avg = GradeService.calculate_subject_average(data_list, subject_max)
         self.average_label.setText(f"Current Average: {avg:.2f}")
 
@@ -200,13 +237,21 @@ class SubjectScreen(QWidget):
             self.update_weight_status()
             self.update_average_display()
         else:
-            QMessageBox.warning(self, "Warning", "At least one assessment component is required.")
+            QMessageBox.warning(
+                self,
+                "Warning",
+                "At least one assessment component is required.",
+            )
 
     def update_weight_status(self):
-        total_weight = sum(float(row.get_data()['weight']) for row in self.assessment_rows)
+        total_weight = sum(
+            float(row.get_data()["weight"]) for row in self.assessment_rows
+        )
         self.weight_status_label.setText(f"Total Weight: {total_weight:.1f}%")
         color = "#2D4B1D" if total_weight == 100.0 else "#D32F2F"
-        self.weight_status_label.setStyleSheet(f"color: {color}; font-weight: bold; font-size: 13px;")
+        self.weight_status_label.setStyleSheet(
+            f"color: {color}; font-weight: bold; font-size: 13px;"
+        )
 
     def clear_form(self):
         self.name_input.clear()
@@ -233,13 +278,17 @@ class SubjectScreen(QWidget):
             return
 
         if not GradeService.validate_weights_total(assessments_data):
-            QMessageBox.warning(self, "Error", "Total assessment weights must equal 100%.")
+            QMessageBox.warning(
+                self,
+                "Error",
+                "Total assessment weights must equal 100%.",
+            )
             return
 
         try:
             selected_year_text = self.year_combo.currentText()
             year_level = int(selected_year_text.split(" ")[1])
-            
+
             # Add subject via API
             subject = self.api_client.add_subject(
                 name=subject_name,
@@ -247,21 +296,23 @@ class SubjectScreen(QWidget):
                 semester_index=self.semester_input.value(),
                 year_level=year_level,
                 passing_grade=self.subject_passing_grade.value(),
-                max_grade=self.subject_max_grade.value()
+                max_grade=self.subject_max_grade.value(),
             )
-            
+
             # Add assessments via API
             for a in assessments_data:
                 self.api_client.add_assessment(
-                    subject_id=subject['id'],
-                    name=a['name'], 
-                    weight=a['weight'], 
-                    score=a['score'],
-                    max_score=a['max_score'],
-                    passing_grade=a['passing_grade']
+                    subject_id=subject["id"],
+                    name=a["name"],
+                    weight=a["weight"],
+                    score=a["score"],
+                    max_score=a["max_score"],
+                    passing_grade=a["passing_grade"],
                 )
-                
-            QMessageBox.information(self, "Success", "Subject added successfully!")
+
+            QMessageBox.information(
+                self, "Success", "Subject added successfully!"
+            )
             self.exit_to_dashboard()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save: {str(e)}")

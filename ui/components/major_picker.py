@@ -1,9 +1,12 @@
 import json
 import os
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QLineEdit
-from PyQt6.QtCore import Qt
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "majors.json")
+from PyQt6.QtWidgets import QComboBox, QLineEdit, QVBoxLayout, QWidget
+
+DATA_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "..", "data", "majors.json"
+)
+
 
 class MajorPicker(QWidget):
     def __init__(self):
@@ -72,7 +75,6 @@ class MajorPicker(QWidget):
     def reload_dropdown(self):
         """Reload the dropdown with latest data from JSON."""
         self.combo_box.blockSignals(True)
-        current_index = self.combo_box.currentIndex()
         self.combo_box.clear()
         self._load_dropdown()
         self.combo_box.setCurrentIndex(0)  # Reset to placeholder

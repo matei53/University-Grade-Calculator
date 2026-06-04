@@ -1,5 +1,12 @@
-from PyQt6.QtWidgets import QWidget, QHBoxLayout, QLineEdit, QDoubleSpinBox, QPushButton
 from PyQt6.QtCore import pyqtSignal
+from PyQt6.QtWidgets import (
+    QDoubleSpinBox,
+    QHBoxLayout,
+    QLineEdit,
+    QPushButton,
+    QWidget,
+)
+
 
 class AssessmentRow(QWidget):
     remove_requested = pyqtSignal(QWidget)
@@ -10,12 +17,12 @@ class AssessmentRow(QWidget):
         super().__init__(parent)
         layout = QHBoxLayout()
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(10) # Puțin spațiu între elemente
+        layout.setSpacing(10)  # Puțin spațiu între elemente
 
         # 1. Nume evaluare
         self.name_input = QLineEdit()
         self.name_input.setPlaceholderText("Nume (ex: Examen)")
-        
+
         # 2. Pondere
         self.weight_input = QDoubleSpinBox()
         self.weight_input.setRange(0.0, 100.0)
@@ -35,7 +42,7 @@ class AssessmentRow(QWidget):
         self.max_score_input.setRange(1.0, 1000.0)
         self.max_score_input.setValue(10.0)
         self.max_score_input.setPrefix("Din max: ")
-        self.max_score_input.valueChanged.connect(self.score_changed.emit) 
+        self.max_score_input.valueChanged.connect(self.score_changed.emit)
 
         # 5. Condiție de trecere a probei
         self.passing_grade_input = QDoubleSpinBox()
@@ -45,12 +52,19 @@ class AssessmentRow(QWidget):
 
         # --- NOU: Constrângeri Dinamice ---
         self.max_score_input.valueChanged.connect(self._update_limits)
-        self._update_limits(self.max_score_input.value()) # Inițializare limite la creare
+        self._update_limits(
+            self.max_score_input.value()
+        )  # Inițializare limite la creare
 
         # Buton ștergere
         self.remove_btn = QPushButton("X")
-        self.remove_btn.setStyleSheet("background-color: #ffcccc; font-weight: bold; border-radius: 4px; padding: 4px 8px;")
-        self.remove_btn.clicked.connect(lambda: self.remove_requested.emit(self))
+        self.remove_btn.setStyleSheet(
+            "background-color: #ffcccc; font-weight: bold; \
+            border-radius: 4px; padding: 4px 8px;"
+        )
+        self.remove_btn.clicked.connect(
+            lambda: self.remove_requested.emit(self)
+        )
 
         layout.addWidget(self.name_input)
         layout.addWidget(self.weight_input)
@@ -61,7 +75,7 @@ class AssessmentRow(QWidget):
         self.setLayout(layout)
 
     def _update_limits(self, max_val):
-        """Asigură că nota obținută și nota de trecere nu pot depăși nota maximă."""
+        """Asigură că nota luata/nota de trecere nu pot depăși nota maximă"""
         self.score_input.setMaximum(max_val)
         self.passing_grade_input.setMaximum(max_val)
 
@@ -71,5 +85,5 @@ class AssessmentRow(QWidget):
             "weight": self.weight_input.value(),
             "score": self.score_input.value(),
             "max_score": self.max_score_input.value(),
-            "passing_grade": self.passing_grade_input.value()
+            "passing_grade": self.passing_grade_input.value(),
         }

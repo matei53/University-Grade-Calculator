@@ -1,9 +1,9 @@
 # Nature-Minimalist Palette
 FOREST_GREEN = "#2D4B1D"
-SAGE_GREEN   = "#A8C686"
-CREAM_BONE   = "#F4F1EE"
-STONE_GREY   = "#C4B7A6"
-MIDNIGHT     = "#0A0D08"
+SAGE_GREEN = "#A8C686"
+CREAM_BONE = "#F4F1EE"
+STONE_GREY = "#C4B7A6"
+MIDNIGHT = "#0A0D08"
 
 DASHBOARD_STYLE = f"""
     QWidget {{
@@ -262,7 +262,8 @@ AUTH_STYLE = f"""
 
 
     /* Configration */
-    QLineEdit#AuthInput, QSpinBox#AuthInput, QDoubleSpinBox#AuthInput, QComboBox#AuthInput {{
+    QLineEdit#AuthInput, QSpinBox#AuthInput, QDoubleSpinBox#AuthInput, \
+    QComboBox#AuthInput {{
         background-color: white;
         border: 1px solid #D0CCC8;
         border-radius: 8px;
@@ -271,7 +272,8 @@ AUTH_STYLE = f"""
         color: #0A0D08;
     }}
 
-    QLineEdit#AuthInput:focus, QSpinBox#AuthInput:focus, QDoubleSpinBox#AuthInput:focus {{
+    QLineEdit#AuthInput:focus, QSpinBox#AuthInput:focus, \
+    QDoubleSpinBox#AuthInput:focus {{
         border: 2px solid #2D4B1D;
     }}
 

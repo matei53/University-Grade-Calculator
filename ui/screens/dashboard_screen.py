@@ -1,13 +1,24 @@
-from PyQt6.QtWidgets import (QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QScrollArea, QFrame, QProgressBar)
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QFrame,
+    QHBoxLayout,
+    QLabel,
+    QProgressBar,
+    QPushButton,
+    QScrollArea,
+    QVBoxLayout,
+    QWidget,
+)
+
+from client.api_client import APIClient
+from models.session import Session
+from services.dashboard_service import DashboardService
 from ui.components.collapsible_year import CollapsibleYear
 from ui.styles import DASHBOARD_STYLE
-from services.dashboard_service import DashboardService
-from models.session import Session
-from client.api_client import APIClient
+
 
 class DashboardScreen(QWidget):
-    
+
     def __init__(self, router):
         super().__init__()
         self.router = router
@@ -26,12 +37,12 @@ class DashboardScreen(QWidget):
         # 1. Header
         header_layout = QHBoxLayout()
         title_container = QVBoxLayout()
-        
+
         self.header_title = QLabel("UniGrade")
         self.header_title.setObjectName("HeaderTitle")
         self.subtitle = QLabel("Welcome")
         self.subtitle.setObjectName("HeaderSubtitle")
-        
+
         title_container.addWidget(self.header_title)
         title_container.addWidget(self.subtitle)
         header_layout.addLayout(title_container)
@@ -40,14 +51,22 @@ class DashboardScreen(QWidget):
         # Buton Adaugă Materie (Singura acțiune principală conform cerinței)
         add_subject_btn = QPushButton("+ Adaugă Materie")
         add_subject_btn.setFixedWidth(140)
-        add_subject_btn.setStyleSheet("background-color: #A8C686; color: #0A0D08; font-weight: bold; border-radius: 6px; padding: 6px;") 
-        add_subject_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
-        
+        add_subject_btn.setStyleSheet(
+            "background-color: #A8C686; color: #0A0D08; font-weight: bold; \
+            border-radius: 6px; padding: 6px;"
+        )
+        add_subject_btn.clicked.connect(
+            lambda: self.router.navigate("subject_setup")
+        )
+
         logout_btn = QPushButton("Log Out")
         logout_btn.setFixedWidth(90)
-        logout_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
+        logout_btn.setStyleSheet(
+            "background-color: #ffffff; border: 1px solid #ccc; \
+            border-radius: 6px; padding: 6px;"
+        )
         logout_btn.clicked.connect(self._handle_logout)
-        
+
         header_layout.addWidget(add_subject_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
@@ -61,12 +80,12 @@ class DashboardScreen(QWidget):
         self.media_card = self._create_stat_card("WEIGHTED AVERAGE", "0.00")
         self.credits_card = self._create_stat_card("CREDITS", "0")
         self.progress_card = self._create_stat_card("PROGRESS", "0%")
-        
+
         self.main_progress_bar = QProgressBar()
         self.main_progress_bar.setFixedHeight(10)
         self.main_progress_bar.setTextVisible(False)
         self.progress_card.layout().addWidget(self.main_progress_bar)
-        
+
         stats_layout.addWidget(self.media_card)
         stats_layout.addWidget(self.credits_card)
         stats_layout.addWidget(self.progress_card)
@@ -85,7 +104,7 @@ class DashboardScreen(QWidget):
         """Refreshes the UI with real data every time the screen is shown."""
         # Clear any cached API client to ensure fresh token
         self.api_client = APIClient()
-        
+
         # 1. Fetch real Profile Info (University & Major)
         try:
             profile = self.api_client.get_profile()
@@ -95,31 +114,32 @@ class DashboardScreen(QWidget):
         except Exception as e:
             print(f"Error fetching profile: {e}")
             self.subtitle.setText("Loading...")
-        
+
         # 2. Load Academic Data for Stats
         try:
             self.all_data = DashboardService.get_user_dashboard_data(None)
         except Exception:
             self.all_data = {}
-            
+
         self._rebuild_dynamic_ui()
-        
+
         if self.all_data:
             self.update_dashboard(max(self.all_data.keys()))
 
     def _rebuild_dynamic_ui(self):
-        """Metoda sigură de curățare a layout-urilor pentru a evita crash-ul la login."""
+        """Metoda sigură de curățare a layout-urilor pentru a evita
+        crash-ul la login."""
         # 1. Curățare Filtre
         while self.filter_layout.count():
             item = self.filter_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-        
+
         self.year_buttons = []
         filter_label = QLabel("Filter up to:")
         filter_label.setStyleSheet("font-weight: bold; color: #555;")
         self.filter_layout.addWidget(filter_label)
-        
+
         for y in sorted(self.all_data.keys()):
             btn = QPushButton(f"Anul {y}")
             btn.setObjectName("FilterButton")
@@ -128,54 +148,59 @@ class DashboardScreen(QWidget):
             self.year_buttons.append(btn)
             self.filter_layout.addWidget(btn)
         self.filter_layout.addStretch()
-        
+
         # 2. Curățare Componente Ani
         while self.years_container.count():
             item = self.years_container.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
-                
+
         self.year_components = {}
         for y, data in self.all_data.items():
             comp = CollapsibleYear(f"Anul {y}")
-            comp.set_subjects(data['subjects'], data['target_credits'])
-            
+            comp.set_subjects(data["subjects"], data["target_credits"])
+
             # Deschidem cardul automat pentru vizibilitate instantă
             comp.toggle_button.setChecked(True)
             comp._toggle()
-            
+
             self.years_container.addWidget(comp)
             self.year_components[y] = comp
 
     def _create_stat_card(self, title, val):
         card = QFrame()
         card.setObjectName("StatCard")
-        l = QVBoxLayout(card)
-        t = QLabel(title); t.setObjectName("CardTitle")
-        v = QLabel(val); v.setObjectName("CardValue")
-        l.addWidget(t); l.addWidget(v)
+        l_ = QVBoxLayout(card)
+        t = QLabel(title)
+        t.setObjectName("CardTitle")
+        v = QLabel(val)
+        v.setObjectName("CardValue")
+        l_.addWidget(t)
+        l_.addWidget(v)
         return card
 
     def update_dashboard(self, up_to_yr):
-        
+
         for b in self.year_buttons:
             is_active = b.text() == f"Anul {up_to_yr}"
             b.setProperty("active", is_active)
             b.style().unpolish(b)
             b.style().polish(b)
-        
+
         # 1. Calculate dynamic total for the progress bar
-        total_program_credits = sum(year_data['target_credits'] for year_data in self.all_data.values())
+        total_program_credits = sum(
+            year_data["target_credits"] for year_data in self.all_data.values()
+        )
 
         # 2. Get passing grade fallback
-        current_passing_grade = getattr(self, 'passing_grade', 5.0)
+        current_passing_grade = getattr(self, "passing_grade", 5.0)
 
         # 3. Call the stats service with dynamic values
         stats = DashboardService.calculate_stats(
-            self.all_data, 
-            up_to_yr, 
+            self.all_data,
+            up_to_yr,
             total_program_credits=total_program_credits,
-            passing_grade=float(current_passing_grade)
+            passing_grade=float(current_passing_grade),
         )
 
         # 4. Handle Visibility of Year Components
@@ -184,14 +209,17 @@ class DashboardScreen(QWidget):
             comp.setVisible(y <= up_to_yr)
 
         # 5. Update UI labels
-        self.media_card.findChild(QLabel, "CardValue").setText(f"{stats['weighted_avg']:.2f}")
-        self.credits_card.findChild(QLabel, "CardValue").setText(str(stats['credits']))
-        
-        p = int(stats['progress'])
+        self.media_card.findChild(QLabel, "CardValue").setText(
+            f"{stats['weighted_avg']:.2f}"
+        )
+        self.credits_card.findChild(QLabel, "CardValue").setText(
+            str(stats["credits"])
+        )
+
+        p = int(stats["progress"])
         self.progress_card.findChild(QLabel, "CardValue").setText(f"{p}%")
         self.main_progress_bar.setValue(p)
 
-    
     def _handle_logout(self):
         Session.logout()
         self.router.navigate("login")

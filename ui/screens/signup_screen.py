@@ -1,15 +1,22 @@
 # ui/screens/signup_screen.py
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel,
-    QLineEdit, QPushButton, QSpinBox, QScrollArea
-)
 from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import (
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QScrollArea,
+    QSpinBox,
+    QVBoxLayout,
+    QWidget,
+)
+
+from models.session import Session
 from services.auth_service import AuthService
 from services.data_service import DataService
-from models.session import Session
-from ui.components.university_picker import UniversityPicker
 from ui.components.major_picker import MajorPicker
+from ui.components.university_picker import UniversityPicker
 from ui.styles import AUTH_STYLE
+
 
 class SignupScreen(QWidget):
     def __init__(self, router):
@@ -29,11 +36,15 @@ class SignupScreen(QWidget):
         # Title
         title = QLabel("UniGrade")
         title.setObjectName("AuthTitle")
-        self.main_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            title, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         subtitle = QLabel("Create Account")
         subtitle.setObjectName("AuthSubtitle")
-        self.main_layout.addWidget(subtitle, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            subtitle, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.main_layout.addSpacing(20)
 
@@ -41,7 +52,7 @@ class SignupScreen(QWidget):
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
         scroll_area.setStyleSheet("QScrollArea { border: none; }")
-        
+
         scroll_content = QWidget()
         scroll_layout = QVBoxLayout(scroll_content)
         scroll_layout.setContentsMargins(0, 0, 0, 0)
@@ -81,13 +92,30 @@ class SignupScreen(QWidget):
         self.years_spinbox.setFixedWidth(300)
         self.years_spinbox.valueChanged.connect(self._update_credit_inputs)
 
-        scroll_layout.addWidget(self.username_input, alignment=Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(self.password_input, alignment=Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(self.confirm_input, alignment=Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(self.university_picker, alignment=Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(self.major_picker, alignment=Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(years_label, alignment=Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(self.years_spinbox, alignment=Qt.AlignmentFlag.AlignCenter)
+        scroll_layout.addWidget(
+            self.username_input,
+            alignment=Qt.AlignmentFlag.AlignCenter,
+        )
+        scroll_layout.addWidget(
+            self.password_input,
+            alignment=Qt.AlignmentFlag.AlignCenter,
+        )
+        scroll_layout.addWidget(
+            self.confirm_input, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        scroll_layout.addWidget(
+            self.university_picker,
+            alignment=Qt.AlignmentFlag.AlignCenter,
+        )
+        scroll_layout.addWidget(
+            self.major_picker, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        scroll_layout.addWidget(
+            years_label, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        scroll_layout.addWidget(
+            self.years_spinbox, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         # Container for credit requirement inputs
         self.credit_container = QWidget()
@@ -95,7 +123,10 @@ class SignupScreen(QWidget):
         self.credit_layout.setContentsMargins(0, 0, 0, 0)
         self.credit_layout.setSpacing(10)
         self.credit_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        scroll_layout.addWidget(self.credit_container, alignment=Qt.AlignmentFlag.AlignCenter)
+        scroll_layout.addWidget(
+            self.credit_container,
+            alignment=Qt.AlignmentFlag.AlignCenter,
+        )
 
         scroll_area.setWidget(scroll_content)
         self.main_layout.addWidget(scroll_area)
@@ -105,7 +136,9 @@ class SignupScreen(QWidget):
         # Error label
         self.error_label = QLabel("")
         self.error_label.setObjectName("ErrorLabel")
-        self.main_layout.addWidget(self.error_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            self.error_label, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.main_layout.addSpacing(10)
 
@@ -119,14 +152,19 @@ class SignupScreen(QWidget):
         back_btn.setObjectName("SecondaryLink")
         back_btn.clicked.connect(lambda: self.router.navigate("login"))
 
-        self.main_layout.addWidget(signup_btn, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.main_layout.addWidget(back_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            signup_btn, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        self.main_layout.addWidget(
+            back_btn, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         # Initialize credit inputs
         self._update_credit_inputs()
 
     def _update_credit_inputs(self):
-        """Update the credit requirement input fields based on selected number of years."""
+        """Update the credit requirement input fields based on selected
+        number of years."""
         # Clear existing inputs
         while self.credit_layout.count():
             widget = self.credit_layout.takeAt(0).widget()
@@ -140,15 +178,19 @@ class SignupScreen(QWidget):
         for year_index in range(1, num_years + 1):
             year_label = QLabel(f"Year {year_index} Credit Requirement:")
             year_label.setObjectName("AuthLabel")
-            
+
             spinbox = QSpinBox()
             spinbox.setMinimum(1)
             spinbox.setMaximum(200)
             spinbox.setValue(60)
             spinbox.setFixedWidth(300)
-            
-            self.credit_layout.addWidget(year_label, alignment=Qt.AlignmentFlag.AlignCenter)
-            self.credit_layout.addWidget(spinbox, alignment=Qt.AlignmentFlag.AlignCenter)
+
+            self.credit_layout.addWidget(
+                year_label, alignment=Qt.AlignmentFlag.AlignCenter
+            )
+            self.credit_layout.addWidget(
+                spinbox, alignment=Qt.AlignmentFlag.AlignCenter
+            )
             self.credit_requirement_inputs.append(spinbox)
 
     def _handle_signup(self):
@@ -160,7 +202,9 @@ class SignupScreen(QWidget):
         custom_university = self.university_picker.custom_input_value()
         custom_major = self.major_picker.custom_input_value()
         num_years = self.years_spinbox.value()
-        credit_requirements = [spinbox.value() for spinbox in self.credit_requirement_inputs]
+        credit_requirements = [
+            spinbox.value() for spinbox in self.credit_requirement_inputs
+        ]
 
         if password != confirm:
             self.error_label.setText("Passwords do not match.")
@@ -179,10 +223,14 @@ class SignupScreen(QWidget):
             # Handle custom university input
             if custom_university:
                 try:
-                    university_id = DataService.add_university(custom_university)
+                    university_id = DataService.add_university(
+                        custom_university
+                    )
                     self.university_picker.reload_dropdown()
                 except ValueError as e:
-                    self.error_label.setText(f"Error adding university: {str(e)}")
+                    self.error_label.setText(
+                        f"Error adding university: {str(e)}"
+                    )
                     return
 
             # Handle custom major input
@@ -195,27 +243,31 @@ class SignupScreen(QWidget):
                     return
 
             # Sign up the user - this returns {"access_token": "..."}
-            response = self.auth_service.sign_up(username, password, num_years, credit_requirements)
-            
+            response = self.auth_service.sign_up(
+                username, password, num_years, credit_requirements
+            )
+
             # Extract and store the token
             token = response.get("access_token")
             if token:
                 self.auth_service.client.token = token
-            
+
             # Update user with university and major
             if university_id or major_id:
                 self.auth_service.client.update_profile(
-                    university_id=university_id if university_id else None,
-                    major_id=major_id if major_id else None
+                    university_id=(university_id if university_id else None),
+                    major_id=major_id if major_id else None,
                 )
-            
+
             # Store session info
             user_profile = self.auth_service.client.get_profile()
-            Session.login({
-                "id": user_profile.get("id"),
-                "username": username,
-                "token": token
-            })
+            Session.login(
+                {
+                    "id": user_profile.get("id"),
+                    "username": username,
+                    "token": token,
+                }
+            )
             self.error_label.setText("")
             self.router.navigate("dashboard")
         except ValueError as e:

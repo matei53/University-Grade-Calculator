@@ -1,11 +1,16 @@
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel,
-    QLineEdit, QPushButton, QMessageBox
-)
 from PyQt6.QtCore import Qt
-from services.auth_service import AuthService
+from PyQt6.QtWidgets import (
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
 from models.session import Session
+from services.auth_service import AuthService
 from ui.styles import AUTH_STYLE
+
 
 class LoginScreen(QWidget):
     def __init__(self, router):
@@ -24,11 +29,15 @@ class LoginScreen(QWidget):
         # Title
         title = QLabel("UniGrade")
         title.setObjectName("AuthTitle")
-        self.main_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            title, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         subtitle = QLabel("Log In")
         subtitle.setObjectName("AuthSubtitle")
-        self.main_layout.addWidget(subtitle, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            subtitle, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.main_layout.addSpacing(20)
 
@@ -44,13 +53,21 @@ class LoginScreen(QWidget):
         self.password_input.setObjectName("AuthInput")
         self.password_input.setFixedWidth(300)
 
-        self.main_layout.addWidget(self.username_input, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.main_layout.addWidget(self.password_input, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            self.username_input,
+            alignment=Qt.AlignmentFlag.AlignCenter,
+        )
+        self.main_layout.addWidget(
+            self.password_input,
+            alignment=Qt.AlignmentFlag.AlignCenter,
+        )
 
         # Error label
         self.error_label = QLabel("")
         self.error_label.setObjectName("ErrorLabel")
-        self.main_layout.addWidget(self.error_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            self.error_label, alignment=Qt.AlignmentFlag.AlignCenter
+        )
 
         self.main_layout.addSpacing(10)
 
@@ -64,8 +81,12 @@ class LoginScreen(QWidget):
         signup_btn.setObjectName("SecondaryLink")
         signup_btn.clicked.connect(lambda: self.router.navigate("signup"))
 
-        self.main_layout.addWidget(login_btn, alignment=Qt.AlignmentFlag.AlignCenter)
-        self.main_layout.addWidget(signup_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(
+            login_btn, alignment=Qt.AlignmentFlag.AlignCenter
+        )
+        self.main_layout.addWidget(
+            signup_btn, alignment=Qt.AlignmentFlag.AlignCenter
+        )
         self.main_layout.addStretch()
 
     def _handle_login(self):

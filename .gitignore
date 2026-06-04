@@ -10,3 +10,28 @@ __pycache__/
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Testing and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+.mypy_cache/
+.mypy.cache/
+.hypothesis/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI Instructions
+CI_CD_SETUP.md
+QUICKSTART_TESTING.md
+TESTING.md
