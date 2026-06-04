@@ -4,9 +4,7 @@ from ui.components.collapsible_year import CollapsibleYear
 from ui.styles import DASHBOARD_STYLE
 from services.dashboard_service import DashboardService
 from models.session import Session
-import json
-import os
-from repositories.user_repo import UserRepo
+from client.api_client import APIClient
 
 class DashboardScreen(QWidget):
     
@@ -16,6 +14,7 @@ class DashboardScreen(QWidget):
         self.all_data = {}
         self.year_buttons = []
         self.year_components = {}
+        self.api_client = APIClient()
         self.setStyleSheet(DASHBOARD_STYLE)
         self._build_ui()
 
@@ -84,21 +83,22 @@ class DashboardScreen(QWidget):
 
     def on_screen_shown(self):
         """Refreshes the UI with real data every time the screen is shown."""
-        user_id = Session.get_current_user_id()
+        # Clear any cached API client to ensure fresh token
+        self.api_client = APIClient()
         
         # 1. Fetch real Profile Info (University & Major)
-        repo = UserRepo()
-        profile = repo.get_profile_info(user_id)
-        
-        if profile:
-            # profile is a sqlite3.Row, access it like a dictionary
-            uni = profile["university_name"] if profile["university_name"] else "No University Set"
-            major = profile["major_name"] if profile["major_name"] else "No Major Set"
+        try:
+            profile = self.api_client.get_profile()
+            uni = profile.get("university_name") or "No University Set"
+            major = profile.get("major_name") or "No Major Set"
             self.subtitle.setText(f"{uni} | {major}")
+        except Exception as e:
+            print(f"Error fetching profile: {e}")
+            self.subtitle.setText("Loading...")
         
         # 2. Load Academic Data for Stats
         try:
-            self.all_data = DashboardService.get_user_dashboard_data(user_id)
+            self.all_data = DashboardService.get_user_dashboard_data(None)
         except Exception:
             self.all_data = {}
             

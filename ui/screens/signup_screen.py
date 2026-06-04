@@ -194,20 +194,28 @@ class SignupScreen(QWidget):
                     self.error_label.setText(f"Error adding major: {str(e)}")
                     return
 
-            # Sign up the user
-            user = self.auth_service.sign_up(username, password, num_years, credit_requirements)
+            # Sign up the user - this returns {"access_token": "..."}
+            response = self.auth_service.sign_up(username, password, num_years, credit_requirements)
+            
+            # Extract and store the token
+            token = response.get("access_token")
+            if token:
+                self.auth_service.client.token = token
             
             # Update user with university and major
-            from repositories.user_repo import UserRepo
-            repo = UserRepo()
-            if university_id:
-                repo.update_university(user["id"], university_id)
-                user["university_id"] = university_id
-            if major_id:
-                repo.update_major(user["id"], major_id)
-                user["major_id"] = major_id
+            if university_id or major_id:
+                self.auth_service.client.update_profile(
+                    university_id=university_id if university_id else None,
+                    major_id=major_id if major_id else None
+                )
             
-            Session.login(user)
+            # Store session info
+            user_profile = self.auth_service.client.get_profile()
+            Session.login({
+                "id": user_profile.get("id"),
+                "username": username,
+                "token": token
+            })
             self.error_label.setText("")
             self.router.navigate("dashboard")
         except ValueError as e:

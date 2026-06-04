@@ -1,11 +1,12 @@
 from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel, QLineEdit, QSpinBox, QPushButton, QMessageBox
-from repositories.subject_repo import SubjectRepo
 from models.session import Session
+from client.api_client import APIClient
 
 class YearSetupScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
+        self.api_client = APIClient()
         layout = QVBoxLayout()
 
         self.title = QLabel("Set Up Academic Year")
@@ -37,7 +38,6 @@ class YearSetupScreen(QWidget):
         self.setLayout(layout)
 
     def save_year(self):
-        user_id = Session.get_current_user_id()
         year_name = self.year_name_input.text().strip()
         target_credits = self.target_credits_input.value()
 
@@ -46,7 +46,8 @@ class YearSetupScreen(QWidget):
             return
 
         try:
-            SubjectRepo.add_academic_year(user_id, year_name, target_credits)
-            QMessageBox.information(self, "Succes", f"{year_name} a fost adăugat!")
+            # Note: Academic years are created during signup
+            # This is kept for reference but the actual year creation happens on the server
+            QMessageBox.information(self, "Info", "Academic years are managed automatically.\nPlease add subjects instead.")
         except Exception as e:
             QMessageBox.critical(self, "Eroare DB", str(e))

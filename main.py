@@ -1,20 +1,44 @@
 import sys
 import os
 from dotenv import load_dotenv
-from PyQt6.QtWidgets import QApplication
+from PyQt6.QtWidgets import QApplication, QMessageBox
 
 # Internal Imports
-from database.db import initialize_db
 from ui.app import AppRouter
 from ui.screens.login_screen import LoginScreen
 from ui.screens.signup_screen import SignupScreen
 from ui.screens.dashboard_screen import DashboardScreen
-from ui.screens.subject_screen import SubjectScreen 
+from ui.screens.subject_screen import SubjectScreen
+from client.api_client import APIClient
 
 load_dotenv()
 
+def check_server_connection():
+    """Verify that the API server is running"""
+    try:
+        import requests
+        # Try to access a public endpoint (universities list doesn't require auth)
+        response = requests.get("http://localhost:8000/profile/universities", timeout=2)
+        return response.status_code == 200
+    except Exception:
+        # Server is likely not running
+        return False
+
 def main():
-    initialize_db()
+    # Check if server is running
+    if not check_server_connection():
+        # Create a QApplication to show the error dialog
+        app = QApplication(sys.argv)
+        QMessageBox.critical(
+            None,
+            "Server Error",
+            "Cannot connect to the API server.\n\n"
+            "Make sure the FastAPI server is running:\n"
+            "python server/main.py\n\n"
+            "Or run: uvicorn server.main:app --reload"
+        )
+        sys.exit(1)
+    
     app = QApplication(sys.argv)
     app.setApplicationName("UniGrade")
     router = AppRouter()
