@@ -1,10 +1,7 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Boolean
-from sqlalchemy.orm import relationship
 from __future__ import annotations
-
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -36,10 +33,10 @@ class User(Base):
         String, unique=True, nullable=False, index=True
     )
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
-    university_id: Mapped[int | None] = mapped_column(
+    university_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("universities.id"), nullable=True
     )
-    major_id: Mapped[int | None] = mapped_column(
+    major_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("majors.id"), nullable=True
     )
     created_at: Mapped[datetime] = mapped_column(
@@ -48,10 +45,10 @@ class User(Base):
 
     leaderboard_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
-    university: Mapped[University | None] = relationship(
+    university: Mapped[University] = relationship(
         back_populates="users"
     )
-    major: Mapped[Major | None] = relationship(back_populates="users")
+    major: Mapped[Major] = relationship(back_populates="users")
     academic_years: Mapped[list[AcademicYear]] = relationship(
         back_populates="user",
         cascade="all, delete-orphan",
@@ -67,7 +64,7 @@ class AcademicYear(Base):
     )
     label: Mapped[str] = mapped_column(String, nullable=False)
     order_index: Mapped[int] = mapped_column(Integer, nullable=False)
-    credit_requirement: Mapped[int | None] = mapped_column(
+    credit_requirement: Mapped[int] = mapped_column(
         Integer, nullable=True
     )
 
@@ -152,6 +149,6 @@ class Grade(Base):
         nullable=False,
         unique=True,
     )
-    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    score: Mapped[float] = mapped_column(Float, nullable=True)
 
     assessment: Mapped[Assessment] = relationship(back_populates="grades")
