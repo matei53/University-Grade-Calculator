@@ -10,3 +10,10 @@ alembic==1.12.1
 pydantic>=2.0.0
 pydantic-settings>=2.0.0
 requests>=2.28.0
+
+# Testing dependencies
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-asyncio==0.21.1
+httpx==0.25.2
+python-jose==3.3.0

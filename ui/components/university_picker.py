@@ -1,9 +1,17 @@
 import json
 import os
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QLineEdit, QLabel
-from PyQt6.QtCore import Qt
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "universities.json")
+from PyQt6.QtWidgets import (
+    QComboBox,
+    QLineEdit,
+    QVBoxLayout,
+    QWidget,
+)
+
+DATA_PATH = os.path.join(
+    os.path.dirname(__file__), "..", "..", "data", "universities.json"
+)
+
 
 class UniversityPicker(QWidget):
     def __init__(self):
@@ -34,7 +42,9 @@ class UniversityPicker(QWidget):
         self.combo_box.addItem("Select your university...", userData=None)
         try:
             with open(DATA_PATH, "r") as f:
-                self._universities = json.load(f)  # expects [{"id": 1, "name": "..."}]
+                self._universities = json.load(
+                    f
+                )  # expects [{"id": 1, "name": "..."}]
             for uni in self._universities:
                 self.combo_box.addItem(uni["name"], userData=uni["id"])
         except FileNotFoundError:
@@ -73,7 +83,6 @@ class UniversityPicker(QWidget):
     def reload_dropdown(self):
         """Reload the dropdown with latest data from JSON."""
         self.combo_box.blockSignals(True)
-        current_index = self.combo_box.currentIndex()
         self.combo_box.clear()
         self._load_dropdown()
         self.combo_box.setCurrentIndex(0)  # Reset to placeholder
