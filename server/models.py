@@ -1,10 +1,7 @@
-<<<<<<< HEAD
 from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship
-=======
 from __future__ import annotations
 
->>>>>>> origin/dev
 from datetime import datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
