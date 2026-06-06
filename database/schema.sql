@@ -66,3 +66,4 @@ CREATE TABLE IF NOT EXISTS grades (
     score REAL,
     UNIQUE(assessment_id)
 );
+

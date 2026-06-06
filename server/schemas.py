@@ -122,3 +122,26 @@ class UpdateProfileRequest(BaseModel):
     major_id: Optional[int] = None
 
 UpdateUserProfile = UpdateProfileRequest
+
+# Dashboard
+class LeaderboardEntry(BaseModel):
+    rank: int
+    user_id: int
+    display_name: str
+    university_short: str
+    year_level: int
+    weighted_avg: float
+    credits: int
+    is_current_user: bool
+
+class LeaderboardResponse(BaseModel):
+    entries: List[LeaderboardEntry]
+    current_user_visible: bool
+    filter_university: Optional[str] = None
+    filter_major: Optional[str] = None
+
+class VisibilityUpdate(BaseModel):
+    visible: bool
+
+class VisibilityResponse(BaseModel):
+    visible: bool

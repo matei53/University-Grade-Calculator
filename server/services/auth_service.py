@@ -36,6 +36,10 @@ class AuthService:
     
     @staticmethod
     def sign_up(db: Session, username: str, password: str, num_years: int = 3, credit_requirements: list = None) -> UserResponse:
+        # # Guarantee fallback value 
+        # if num_years is None or num_years <= 0:
+        #     num_years = 3
+            
         # Check if user exists
         existing_user = db.query(User).filter(User.username == username).first()
         if existing_user:
@@ -43,7 +47,13 @@ class AuthService:
         
         # Create user
         password_hash = AuthService.hash_password(password)
-        user = User(username=username, password_hash=password_hash)
+
+        user = User(
+            username=username, 
+            password_hash=password_hash,
+            leaderboard_visible=True
+        )
+
         db.add(user)
         db.flush()  # Get the user ID
         

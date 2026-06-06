@@ -288,3 +288,70 @@ AUTH_STYLE = f"""
         font-weight: bold;
     }}
 """
+LEADERBOARD_STYLE = f"""
+    QWidget {{
+        background-color: {CREAM_BONE};
+        font-family: 'Segoe UI', sans-serif;
+        color: {MIDNIGHT};
+    }}
+    QLabel#PageTitle {{
+        font-size: 28px;
+        font-weight: bold;
+        color: {MIDNIGHT};
+    }}
+    QLabel#PageSubtitle {{
+        color: {STONE_GREY};
+        font-size: 13px;
+    }}
+    QFrame#PodiumCard {{
+        background-color: white;
+        border: 1px solid #E8E4DF;
+        border-radius: 16px;
+        padding: 16px;
+    }}
+    QLabel#PodiumRank {{
+        font-size: 22px;
+        color: {FOREST_GREEN};
+    }}
+    QLabel#PodiumAvg {{
+        font-size: 28px;
+        font-weight: bold;
+        color: {MIDNIGHT};
+    }}
+    QLabel#PodiumCredits {{
+        color: {STONE_GREY};
+        font-size: 12px;
+    }}
+    QFrame#LeaderRow {{
+        background-color: white;
+        border-radius: 8px;
+        padding: 12px 16px;
+    }}
+    QFrame#LeaderRow[is_me="true"] {{
+        background-color: {SAGE_GREEN};
+        border-left: 4px solid {FOREST_GREEN};
+    }}
+    QLabel#RowAvgMe {{
+        color: {FOREST_GREEN};
+        font-weight: bold;
+        font-size: 15px;
+    }}
+    QLabel#TableHeader {{
+        color: {STONE_GREY};
+        font-size: 11px;
+        font-weight: bold;
+    }}
+    QCheckBox#VisibilityToggle {{
+        spacing: 8px;
+        color: {MIDNIGHT};
+    }}
+    QCheckBox#VisibilityToggle::indicator {{
+        width: 44px;
+        height: 24px;
+        border-radius: 12px;
+        background: {STONE_GREY};
+    }}
+    QCheckBox#VisibilityToggle::indicator:checked {{
+        background: {FOREST_GREEN};
+    }}
+"""

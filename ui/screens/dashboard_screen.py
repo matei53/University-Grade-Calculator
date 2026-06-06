@@ -37,6 +37,12 @@ class DashboardScreen(QWidget):
         header_layout.addLayout(title_container)
         header_layout.addStretch()
 
+        # leaderboard 
+        clasament_btn = QPushButton("Clasament")
+        clasament_btn.setFixedWidth(100)
+        clasament_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
+        clasament_btn.clicked.connect(lambda: self.router.navigate("leaderboard"))
+
         # Buton Adaugă Materie (Singura acțiune principală conform cerinței)
         add_subject_btn = QPushButton("+ Adaugă Materie")
         add_subject_btn.setFixedWidth(140)
@@ -48,6 +54,7 @@ class DashboardScreen(QWidget):
         logout_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
         logout_btn.clicked.connect(self._handle_logout)
         
+        header_layout.addWidget(clasament_btn)  
         header_layout.addWidget(add_subject_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
@@ -195,3 +202,4 @@ class DashboardScreen(QWidget):
     def _handle_logout(self):
         Session.logout()
         self.router.navigate("login")
+

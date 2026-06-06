@@ -38,7 +38,7 @@ class DashboardService:
                     
                     all_data[year_num]["subjects"].append({
                         'name': subject["name"],
-                        'credits': subject["credit_value"],
+                        'credits': int(subject.get("credit_value") or 0), 
                         'grade': round(total_grade, 2) if has_grades else None,
                         'semester': subject.get("semester_index", 1),
                         'passing_grade': subject.get("passing_grade", 5.0)
@@ -59,7 +59,7 @@ class DashboardService:
             if year_num <= up_to_year:
                 for subject in year_data['subjects']:
                     grade = subject.get('grade')
-                    credits = subject.get('credits', 0)
+                    credits = int(subject.get('credits') or 0)  
                     subj_passing_grade = subject.get('passing_grade', passing_grade)
                     
                     if grade is not None:
@@ -71,7 +71,7 @@ class DashboardService:
         weighted_avg = total_weighted_points / total_credits_with_grades if total_credits_with_grades > 0 else 0.0
         
         return {
-            "weighted_avg": weighted_avg,
+            "weighted_avg": round(weighted_avg, 2),  
             "credits": total_credits_earned,
             "progress": int((total_credits_earned / total_program_credits) * 100) if total_program_credits > 0 else 0
         }

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -28,6 +28,8 @@ class User(Base):
     university_id = Column(Integer, ForeignKey("universities.id"), nullable=True)
     major_id = Column(Integer, ForeignKey("majors.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    leaderboard_visible = Column(Boolean, nullable=False, default=True)
     
     university = relationship("University", back_populates="users")
     major = relationship("Major", back_populates="users")

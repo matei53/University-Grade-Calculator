@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database import engine, Base, SessionLocal, get_db
 from models import University, Major, User, AcademicYear, Subject
-from routers import auth, profile, subjects, assessments
+from routers import auth, profile, subjects, assessments, leaderboard
 from dependencies import get_current_user
 import json
 import os
@@ -58,6 +58,7 @@ app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(subjects.router)
 app.include_router(assessments.router)
+app.include_router(leaderboard.router)  
 
 @app.get("/debug/user-data")
 def debug_user_data(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):

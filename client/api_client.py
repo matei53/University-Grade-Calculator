@@ -103,6 +103,32 @@ class APIClient:
             raise ValueError(f"Get profile error ({response.status_code}): {error_detail}")
         return response.json()
     
+    def get_leaderboard(self) -> Dict[str, Any]:
+        response = requests.get(
+            f"{self.base_url}/leaderboard",
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Leaderboard error: {response.text}")
+        return response.json()
+
+    def get_leaderboard_visibility(self) -> bool:
+        response = requests.get(
+            f"{self.base_url}/leaderboard/visibility",
+            headers=self._get_headers(),
+        )
+        response.raise_for_status()
+        return response.json()["visible"]
+
+    def set_leaderboard_visibility(self, visible: bool) -> bool:
+        response = requests.patch(
+            f"{self.base_url}/leaderboard/visibility",
+            json={"visible": visible},
+            headers=self._get_headers(),
+        )
+        response.raise_for_status()
+        return response.json()["visible"]
+        
     def update_profile(self, university_id: Optional[int] = None, major_id: Optional[int] = None) -> Dict[str, Any]:
         """Update user profile"""
         payload = {}
