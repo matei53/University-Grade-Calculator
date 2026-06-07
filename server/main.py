@@ -6,7 +6,7 @@ from typing import Any
 from dependencies import get_current_user
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import assessments, auth, profile, subjects
+from routers import assessments, auth, graduation, profile, subjects
 from sqlalchemy.orm import Session
 
 from database import Base, SessionLocal, engine, get_db
@@ -63,6 +63,7 @@ app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(subjects.router)
 app.include_router(assessments.router)
+app.include_router(graduation.router)
 
 
 @app.get("/debug/user-data")

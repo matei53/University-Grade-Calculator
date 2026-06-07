@@ -140,3 +140,56 @@ class UpdateProfileRequest(BaseModel):
 
 
 UpdateUserProfile = UpdateProfileRequest
+
+
+# Graduation
+class GraduationSettingsResponse(BaseModel):
+    id: int
+    subject_average_weight: float
+    max_grade: float
+
+    class Config:
+        from_attributes = True
+
+
+class GraduationSettingsUpdate(BaseModel):
+    subject_average_weight: float
+    max_grade: float = 10.0
+
+
+class FinalAssessmentGradeResponse(BaseModel):
+    id: int
+    score: Optional[float]
+
+    class Config:
+        from_attributes = True
+
+
+class FinalAssessmentResponse(BaseModel):
+    id: int
+    name: str
+    weight: float
+    max_score: float
+    passing_grade: float
+    grade: Optional[FinalAssessmentGradeResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+class FinalAssessmentRequest(BaseModel):
+    name: str
+    weight: float
+    max_score: float = 10.0
+    passing_grade: float = 5.0
+
+
+class FinalAssessmentUpdate(BaseModel):
+    name: Optional[str] = None
+    weight: Optional[float] = None
+    max_score: Optional[float] = None
+    passing_grade: Optional[float] = None
+
+
+class FinalAssessmentGradeUpdate(BaseModel):
+    score: Optional[float] = None

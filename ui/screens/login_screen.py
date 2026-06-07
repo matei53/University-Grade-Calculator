@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -12,11 +12,29 @@ from services.auth_service import AuthService
 from ui.styles import AUTH_STYLE
 
 
+class _LoginWorker(QThread):
+    success = pyqtSignal(dict)
+    failure = pyqtSignal(str)
+
+    def __init__(self, username: str, password: str):
+        super().__init__()
+        self._username = username
+        self._password = password
+
+    def run(self):
+        try:
+            user = AuthService().login(self._username, self._password)
+            self.success.emit(user)
+        except ValueError as e:
+            self.failure.emit(str(e))
+
+
 class LoginScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
         self.auth_service = AuthService()
+        self._worker = None
         self.setStyleSheet(AUTH_STYLE)
         self._build_ui()
 
@@ -66,26 +84,38 @@ class LoginScreen(QWidget):
         self.main_layout.addSpacing(10)
 
         # Buttons
-        login_btn = QPushButton("Log In")
-        login_btn.setObjectName("PrimaryButton")
-        login_btn.setFixedWidth(300)
-        login_btn.clicked.connect(self._handle_login)
+        self.login_btn = QPushButton("Log In")
+        self.login_btn.setObjectName("PrimaryButton")
+        self.login_btn.setFixedWidth(300)
+        self.login_btn.clicked.connect(self._handle_login)
 
         signup_btn = QPushButton("Don't have an account? Sign Up")
         signup_btn.setObjectName("SecondaryLink")
         signup_btn.clicked.connect(lambda: self.router.navigate("signup"))
 
-        self.main_layout.addWidget(login_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(self.login_btn, alignment=Qt.AlignmentFlag.AlignCenter)
         self.main_layout.addWidget(signup_btn, alignment=Qt.AlignmentFlag.AlignCenter)
         self.main_layout.addStretch()
 
     def _handle_login(self):
         username = self.username_input.text().strip()
         password = self.password_input.text().strip()
-        try:
-            user = self.auth_service.login(username, password)
-            Session.login(user)
-            self.error_label.setText("")
-            self.router.navigate("dashboard")
-        except ValueError as e:
-            self.error_label.setText(str(e))
+        self.error_label.setText("")
+        self.login_btn.setEnabled(False)
+        self.login_btn.setText("Logging in...")
+
+        self._worker = _LoginWorker(username, password)
+        self._worker.success.connect(self._on_login_success)
+        self._worker.failure.connect(self._on_login_failure)
+        self._worker.start()
+
+    def _on_login_success(self, user: dict):
+        Session.login(user)
+        self.login_btn.setEnabled(True)
+        self.login_btn.setText("Log In")
+        self.router.navigate("dashboard")
+
+    def _on_login_failure(self, message: str):
+        self.error_label.setText(message)
+        self.login_btn.setEnabled(True)
+        self.login_btn.setText("Log In")

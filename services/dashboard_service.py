@@ -1,3 +1,5 @@
+from typing import Optional
+
 from client.api_client import APIClient
 
 
@@ -97,3 +99,38 @@ class DashboardService:
                 else 0
             ),
         }
+
+    @staticmethod
+    def calculate_graduation_grade(
+        overall_avg: Optional[float],
+        settings: dict,
+        final_assessments: list[dict],
+    ) -> Optional[float]:
+        """
+        Compute the final graduation grade.
+
+        Formula:
+          final = (subject_average_weight/100) × overall_avg
+                + Σ [(fa_weight/100) × (fa_score/fa_max_score) × max_grade]
+
+        Returns None when there are no grades at all to base a result on.
+        """
+        if overall_avg is None and not final_assessments:
+            return None
+
+        max_grade = float(settings.get("max_grade", 10.0))
+        subj_weight = float(settings.get("subject_average_weight", 100.0))
+
+        total = (subj_weight / 100.0) * (overall_avg or 0.0)
+
+        for fa in final_assessments:
+            grade_obj = fa.get("grade")
+            if grade_obj is None or grade_obj.get("score") is None:
+                continue
+            score = float(grade_obj["score"])
+            fa_max = float(fa.get("max_score", 10.0))
+            weight = float(fa.get("weight", 0.0))
+            if fa_max > 0:
+                total += (weight / 100.0) * (score / fa_max) * max_grade
+
+        return round(total, 2)

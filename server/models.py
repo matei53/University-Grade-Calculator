@@ -44,6 +44,15 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    graduation_settings: Mapped[GraduationSettings | None] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+    final_assessments: Mapped[list[FinalAssessment]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class AcademicYear(Base):
@@ -131,3 +140,49 @@ class Grade(Base):
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     assessment: Mapped[Assessment] = relationship(back_populates="grades")
+
+
+class GraduationSettings(Base):
+    __tablename__ = "graduation_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False, unique=True
+    )
+    subject_average_weight: Mapped[float] = mapped_column(Float, default=100.0)
+    max_grade: Mapped[float] = mapped_column(Float, default=10.0)
+
+    user: Mapped[User] = relationship(back_populates="graduation_settings")
+
+
+class FinalAssessment(Base):
+    __tablename__ = "final_assessments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    max_score: Mapped[float] = mapped_column(Float, default=10.0)
+    passing_grade: Mapped[float] = mapped_column(Float, default=5.0)
+
+    user: Mapped[User] = relationship(back_populates="final_assessments")
+    grade: Mapped[FinalAssessmentGrade | None] = relationship(
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class FinalAssessmentGrade(Base):
+    __tablename__ = "final_assessment_grades"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    final_assessment_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("final_assessments.id"),
+        nullable=False,
+        unique=True,
+    )
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    assessment: Mapped[FinalAssessment] = relationship(back_populates="grade")

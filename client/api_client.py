@@ -187,6 +187,115 @@ class APIClient:
                     ({response.status_code}): {error_detail}")
         return response.json()
 
+    # Graduation endpoints
+    def get_graduation_settings(self) -> Dict[str, Any]:
+        """Get graduation settings (subject_average_weight, max_grade)"""
+        response = requests.get(
+            f"{self.base_url}/graduation/settings",
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Get graduation settings error ({response.status_code})")
+        return response.json()
+
+    def update_graduation_settings(
+        self,
+        subject_average_weight: float,
+        max_grade: float = 10.0,
+    ) -> Dict[str, Any]:
+        """Update graduation settings"""
+        response = requests.put(
+            f"{self.base_url}/graduation/settings",
+            json={"subject_average_weight": subject_average_weight, "max_grade": max_grade},
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Update graduation settings error ({response.status_code})")
+        return response.json()
+
+    def get_final_assessments(self) -> List[Dict[str, Any]]:
+        """Get all final assessments with their grades"""
+        response = requests.get(
+            f"{self.base_url}/graduation/assessments",
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Get final assessments error ({response.status_code})")
+        return response.json()
+
+    def add_final_assessment(
+        self,
+        name: str,
+        weight: float,
+        max_score: float = 10.0,
+        passing_grade: float = 5.0,
+    ) -> Dict[str, Any]:
+        """Add a final assessment"""
+        response = requests.post(
+            f"{self.base_url}/graduation/assessments",
+            json={
+                "name": name,
+                "weight": weight,
+                "max_score": max_score,
+                "passing_grade": passing_grade,
+            },
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Add final assessment error ({response.status_code})")
+        return response.json()
+
+    def update_final_assessment(
+        self,
+        assessment_id: int,
+        name: Optional[str] = None,
+        weight: Optional[float] = None,
+        max_score: Optional[float] = None,
+        passing_grade: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        """Update a final assessment"""
+        payload: Dict[str, Any] = {}
+        if name is not None:
+            payload["name"] = name
+        if weight is not None:
+            payload["weight"] = weight
+        if max_score is not None:
+            payload["max_score"] = max_score
+        if passing_grade is not None:
+            payload["passing_grade"] = passing_grade
+        response = requests.put(
+            f"{self.base_url}/graduation/assessments/{assessment_id}",
+            json=payload,
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Update final assessment error ({response.status_code})")
+        return response.json()
+
+    def delete_final_assessment(self, assessment_id: int) -> None:
+        """Delete a final assessment"""
+        response = requests.delete(
+            f"{self.base_url}/graduation/assessments/{assessment_id}",
+            headers=self._get_headers(),
+        )
+        if response.status_code not in (200, 204):
+            raise ValueError(f"Delete final assessment error ({response.status_code})")
+
+    def set_final_assessment_grade(
+        self,
+        assessment_id: int,
+        score: Optional[float],
+    ) -> Dict[str, Any]:
+        """Set or update the grade for a final assessment"""
+        response = requests.put(
+            f"{self.base_url}/graduation/assessments/{assessment_id}/grade",
+            json={"score": score},
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Set final assessment grade error ({response.status_code})")
+        return response.json()
+
     # Assessment endpoints
     def add_assessment(
         self,

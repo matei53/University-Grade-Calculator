@@ -12,6 +12,7 @@ from PyQt6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QSizePolicy,
@@ -23,6 +24,21 @@ from PyQt6.QtWidgets import (
 from agents.grade_simulator import run_simulation
 from agents.tools import set_api_client
 from ui.styles import DASHBOARD_STYLE
+
+
+class _YearsLoadWorker(QThread):
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
+
+    def __init__(self, api_client):
+        super().__init__()
+        self._api_client = api_client
+
+    def run(self):
+        try:
+            self.finished.emit(self._api_client.get_academic_years())
+        except Exception as e:
+            self.error.emit(str(e))
 
 
 class SimulatorWorker(QThread):
@@ -77,6 +93,7 @@ class SimulatorScreen(QWidget):
         #                         "existing_score": float | None}
         self.assessment_row_info: dict[int, dict] = {}
         self._simulation_ids: set[int] = set()
+        self._years_worker = None
         self.worker_thread = None
         self.setStyleSheet(DASHBOARD_STYLE)
         self._build_ui()
@@ -558,6 +575,22 @@ class SimulatorScreen(QWidget):
     # ------------------------------------------------------------------ #
 
     def _go_back(self):
+        if self.worker_thread and self.worker_thread.isRunning():
+            reply = QMessageBox.question(
+                self,
+                "Simulation in progress",
+                "The simulation is still running. Cancel it and go back?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+            try:
+                self.worker_thread.result_ready.disconnect(self._on_result_ready)
+            except Exception:
+                pass
+            self._set_controls_enabled(True)
+            self.response_label.clear()
         self.router.navigate("dashboard")
 
     def on_screen_shown(self):
@@ -565,6 +598,30 @@ class SimulatorScreen(QWidget):
         self.notes_edit.clear()
         self.target_spinbox.setValue(7.0)
         self.selected_year_id = None
-        self._load_years_data()
+
+        if self.api_client is None:
+            self.years_data = []
+            self._populate_year_buttons()
+            self._rebuild_subjects_display()
+            return
+
+        if self._years_worker and self._years_worker.isRunning():
+            try:
+                self._years_worker.finished.disconnect()
+                self._years_worker.error.disconnect()
+            except Exception:
+                pass
+        self._years_worker = _YearsLoadWorker(self.api_client)
+        self._years_worker.finished.connect(self._on_years_loaded)
+        self._years_worker.error.connect(self._on_years_error)
+        self._years_worker.start()
+
+    def _on_years_loaded(self, years: list):
+        self.years_data = years
+        self._populate_year_buttons()
+        self._rebuild_subjects_display()
+
+    def _on_years_error(self, _: str):
+        self.years_data = []
         self._populate_year_buttons()
         self._rebuild_subjects_display()

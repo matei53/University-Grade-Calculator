@@ -8,6 +8,7 @@ from client.api_client import APIClient
 # Internal Imports
 from ui.app import AppRouter
 from ui.screens.dashboard_screen import DashboardScreen
+from ui.screens.graduation_screen import GraduationScreen
 from ui.screens.login_screen import LoginScreen
 from ui.screens.signup_screen import SignupScreen
 from ui.screens.simulator_screen import SimulatorScreen
@@ -57,6 +58,7 @@ def main():
     dashboard = DashboardScreen(router)
     subject_setup = SubjectScreen(router)
     simulator = SimulatorScreen(router)
+    graduation = GraduationScreen(router)
 
     # Inject API client into simulator
     simulator.set_api_client_instance(api_client)
@@ -67,6 +69,7 @@ def main():
     router.register("dashboard", dashboard)
     router.register("subject_setup", subject_setup)
     router.register("simulator", simulator)
+    router.register("graduation", graduation)
 
     # Initial View
     router.navigate("login")

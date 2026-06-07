@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QDoubleSpinBox,
@@ -19,12 +19,25 @@ from services.grade_service import GradeService
 from ui.components.assessment_row import AssessmentRow
 
 
+class _YearsLoadWorker(QThread):
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
+
+    def run(self):
+        try:
+            years = APIClient().get_academic_years()
+            self.finished.emit(years)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class SubjectScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
         self.assessment_rows = []
         self.api_client = APIClient()
+        self._years_worker = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -175,21 +188,36 @@ class SubjectScreen(QWidget):
         self.add_assessment_row()
 
     def on_screen_shown(self):
-        # Create fresh API client to ensure we have the current user's token
         self.api_client = APIClient()
-
         self.year_combo.clear()
-        try:
-            years = self.api_client.get_academic_years()
+        self.year_combo.addItem("Loading...")
+        self.year_combo.setEnabled(False)
 
-            if years:
-                for y in years:
-                    self.year_combo.addItem(f"Year {y['order_index']}")
-            else:
-                self.year_combo.addItems(["Year 1", "Year 2", "Year 3"])
-        except Exception as e:
-            print(f"Error loading academic years: {e}")
+        if self._years_worker and self._years_worker.isRunning():
+            try:
+                self._years_worker.finished.disconnect()
+                self._years_worker.error.disconnect()
+            except Exception:
+                pass
+        self._years_worker = _YearsLoadWorker()
+        self._years_worker.finished.connect(self._on_years_loaded)
+        self._years_worker.error.connect(self._on_years_error)
+        self._years_worker.start()
+
+    def _on_years_loaded(self, years: list):
+        self.year_combo.clear()
+        self.year_combo.setEnabled(True)
+        if years:
+            for y in years:
+                self.year_combo.addItem(f"Year {y['order_index']}")
+        else:
             self.year_combo.addItems(["Year 1", "Year 2", "Year 3"])
+
+    def _on_years_error(self, error_msg: str):
+        print(f"Error loading academic years: {error_msg}")
+        self.year_combo.clear()
+        self.year_combo.setEnabled(True)
+        self.year_combo.addItems(["Year 1", "Year 2", "Year 3"])
 
     def add_assessment_row(self):
         row = AssessmentRow()
