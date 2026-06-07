@@ -6,6 +6,10 @@ spawning) with all external services mocked. A QApplication is required for
 PyQt6 signals to work and is provided by the session-scoped fixture in conftest.py.
 """
 
+import pytest
+
+pytest.importorskip("PyQt6")
+
 from unittest.mock import patch
 
 from ui.screens.signup_screen import _SignupWorker
