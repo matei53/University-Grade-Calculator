@@ -47,9 +47,7 @@ class SubjectService:
         )
 
         if not semester:
-            raise ValueError(
-                f"Semester {semester_index} not found for year {year_level}"
-            )
+            raise ValueError(f"Semester {semester_index} not found for year {year_level}")
 
         # Create subject
         subject = Subject(

@@ -42,10 +42,8 @@ class SubjectScreen(QWidget):
 
         self.title = QLabel("Add New Subject")
         self.title.setObjectName("HeaderTitle")
-        self.title.setStyleSheet(
-            "font-size: 20px; font-weight: bold; color: #2D4B1D; \
-            margin-top: 10px;"
-        )
+        self.title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2D4B1D; \
+            margin-top: 10px;")
 
         header_area.addWidget(self.back_btn)
         header_area.addWidget(self.title)
@@ -59,17 +57,13 @@ class SubjectScreen(QWidget):
         card_layout.setSpacing(15)
 
         detail_title = QLabel("SUBJECT DETAILS")
-        detail_title.setStyleSheet(
-            "color: #2D4B1D; font-weight: bold; font-size: 11px; \
-            letter-spacing: 1px;"
-        )
+        detail_title.setStyleSheet("color: #2D4B1D; font-weight: bold; font-size: 11px; \
+            letter-spacing: 1px;")
         card_layout.addWidget(detail_title)
 
         self.name_input = QLineEdit()
         self.name_input.setObjectName("AuthInput")
-        self.name_input.setPlaceholderText(
-            "Subject Name (e.g. Data Structures)"
-        )
+        self.name_input.setPlaceholderText("Subject Name (e.g. Data Structures)")
         card_layout.addWidget(self.name_input)
 
         # --- Exact Alignment Grid ---
@@ -106,9 +100,7 @@ class SubjectScreen(QWidget):
             3,
             Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter,
         )
-        grid_layout.addWidget(
-            self.credits_input, 0, 4, Qt.AlignmentFlag.AlignVCenter
-        )
+        grid_layout.addWidget(self.credits_input, 0, 4, Qt.AlignmentFlag.AlignVCenter)
         grid_layout.setColumnStretch(5, 1)  # Spacer after credits
 
         # Right Column (Grades)
@@ -116,9 +108,7 @@ class SubjectScreen(QWidget):
         self.subject_max_grade.setObjectName("AuthInput")
         self.subject_max_grade.setRange(1.0, 100.0)
         self.subject_max_grade.setValue(10.0)
-        self.subject_max_grade.valueChanged.connect(
-            self.update_average_display
-        )
+        self.subject_max_grade.valueChanged.connect(self.update_average_display)
 
         self.subject_passing_grade = QDoubleSpinBox()
         self.subject_passing_grade.setObjectName("AuthInput")
@@ -138,15 +128,11 @@ class SubjectScreen(QWidget):
         assessment_header_layout.setSpacing(2)
 
         self.assessments_label = QLabel("ASSESSMENTS")
-        self.assessments_label.setStyleSheet(
-            "color: #2D4B1D; font-weight: bold; font-size: 11px; \
-            letter-spacing: 1px; margin-top: 10px;"
-        )
+        self.assessments_label.setStyleSheet("color: #2D4B1D; font-weight: bold; font-size: 11px; \
+            letter-spacing: 1px; margin-top: 10px;")
 
         self.weight_rule_label = QLabel("Total weight must equal 100%")
-        self.weight_rule_label.setStyleSheet(
-            "color: #A8C686; font-size: 10px; font-weight: bold;"
-        )
+        self.weight_rule_label.setStyleSheet("color: #A8C686; font-size: 10px; font-weight: bold;")
 
         assessment_header_layout.addWidget(self.assessments_label)
         assessment_header_layout.addWidget(self.weight_rule_label)
@@ -170,9 +156,7 @@ class SubjectScreen(QWidget):
         )
 
         self.average_label = QLabel("Current Average: 0.00")
-        self.average_label.setStyleSheet(
-            "font-weight: bold; font-size: 13px; color: #2D4B1D;"
-        )
+        self.average_label.setStyleSheet("font-weight: bold; font-size: 13px; color: #2D4B1D;")
 
         status_layout.addWidget(self.weight_status_label)
         status_layout.addStretch()
@@ -244,9 +228,7 @@ class SubjectScreen(QWidget):
             )
 
     def update_weight_status(self):
-        total_weight = sum(
-            float(row.get_data()["weight"]) for row in self.assessment_rows
-        )
+        total_weight = sum(float(row.get_data()["weight"]) for row in self.assessment_rows)
         self.weight_status_label.setText(f"Total Weight: {total_weight:.1f}%")
         color = "#2D4B1D" if total_weight == 100.0 else "#D32F2F"
         self.weight_status_label.setStyleSheet(
@@ -310,9 +292,7 @@ class SubjectScreen(QWidget):
                     passing_grade=a["passing_grade"],
                 )
 
-            QMessageBox.information(
-                self, "Success", "Subject added successfully!"
-            )
+            QMessageBox.information(self, "Success", "Subject added successfully!")
             self.exit_to_dashboard()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Failed to save: {str(e)}")

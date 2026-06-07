@@ -110,9 +110,7 @@ class TestAuthRoutes:
 
     def test_verify_token_via_query_param(self, client, registered_user):
         """Test token verification via query parameter."""
-        response = client.post(
-            f"/auth/verify-token?token={registered_user['token']}"
-        )
+        response = client.post(f"/auth/verify-token?token={registered_user['token']}")
 
         assert response.status_code == status.HTTP_200_OK
 

@@ -60,12 +60,8 @@ class APIClient:
             headers=self._get_headers(),
         )
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
-            raise ValueError(
-                f"Registration error ({response.status_code}): {error_detail}"
-            )
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Registration error ({response.status_code}): {error_detail}")
         return response.json()
 
     def login(self, username: str, password: str) -> str:
@@ -76,12 +72,8 @@ class APIClient:
             headers=self._get_headers(),
         )
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
-            raise ValueError(
-                f"Login error ({response.status_code}): {error_detail}"
-            )
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Login error ({response.status_code}): {error_detail}")
         data = response.json()
         self.token = data["access_token"]
 
@@ -112,12 +104,8 @@ class APIClient:
         headers = self._get_headers()
         response = requests.get(f"{self.base_url}/profile", headers=headers)
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
-            raise ValueError(
-                f"Get profile error ({response.status_code}): {error_detail}"
-            )
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Get profile error ({response.status_code}): {error_detail}")
         return response.json()
 
     def update_profile(
@@ -133,13 +121,9 @@ class APIClient:
             payload["major_id"] = major_id
 
         headers = self._get_headers()
-        response = requests.put(
-            f"{self.base_url}/profile", json=payload, headers=headers
-        )
+        response = requests.put(f"{self.base_url}/profile", json=payload, headers=headers)
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
+            error_detail = response.json() if response.text else "No response body"
             raise ValueError(f"Update profile error \
                     ({response.status_code}): {error_detail}")
         return response.json()
@@ -151,9 +135,7 @@ class APIClient:
             headers=self._get_headers(),
         )
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
+            error_detail = response.json() if response.text else "No response body"
             raise ValueError(f"Get universities error \
                     ({response.status_code}): {error_detail}")
         return response.json()
@@ -165,12 +147,8 @@ class APIClient:
             headers=self._get_headers(),
         )
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
-            raise ValueError(
-                f"Get majors error ({response.status_code}): {error_detail}"
-            )
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Get majors error ({response.status_code}): {error_detail}")
         return response.json()
 
     # Subject endpoints
@@ -193,28 +171,18 @@ class APIClient:
             "max_grade": max_grade,
         }
         headers = self._get_headers()
-        response = requests.post(
-            f"{self.base_url}/subjects", json=payload, headers=headers
-        )
+        response = requests.post(f"{self.base_url}/subjects", json=payload, headers=headers)
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
-            raise ValueError(
-                f"Add subject error ({response.status_code}): {error_detail}"
-            )
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Add subject error ({response.status_code}): {error_detail}")
         return response.json()
 
     def get_academic_years(self) -> List[Dict[str, Any]]:
         """Get user's academic years"""
         headers = self._get_headers()
-        response = requests.get(
-            f"{self.base_url}/subjects/years", headers=headers
-        )
+        response = requests.get(f"{self.base_url}/subjects/years", headers=headers)
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
+            error_detail = response.json() if response.text else "No response body"
             raise ValueError(f"Get academic years error \
                     ({response.status_code}): {error_detail}")
         return response.json()
@@ -244,9 +212,7 @@ class APIClient:
             headers=headers,
         )
         if response.status_code != 200:
-            error_detail = (
-                response.json() if response.text else "No response body"
-            )
+            error_detail = response.json() if response.text else "No response body"
             raise ValueError(f"Add assessment error \
                     ({response.status_code}): {error_detail}")
         return response.json()

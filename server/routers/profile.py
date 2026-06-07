@@ -25,11 +25,7 @@ def get_profile(
     major_name = None
 
     if profile.university_id:
-        university = (
-            db.query(University)
-            .filter(University.id == profile.university_id)
-            .first()
-        )
+        university = db.query(University).filter(University.id == profile.university_id).first()
         university_name = university.name if university else None
 
     if profile.major_id:

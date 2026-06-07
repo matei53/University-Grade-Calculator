@@ -52,19 +52,13 @@ class AssessmentRow(QWidget):
 
         # --- NOU: Constrângeri Dinamice ---
         self.max_score_input.valueChanged.connect(self._update_limits)
-        self._update_limits(
-            self.max_score_input.value()
-        )  # Inițializare limite la creare
+        self._update_limits(self.max_score_input.value())  # Inițializare limite la creare
 
         # Buton ștergere
         self.remove_btn = QPushButton("X")
-        self.remove_btn.setStyleSheet(
-            "background-color: #ffcccc; font-weight: bold; \
-            border-radius: 4px; padding: 4px 8px;"
-        )
-        self.remove_btn.clicked.connect(
-            lambda: self.remove_requested.emit(self)
-        )
+        self.remove_btn.setStyleSheet("background-color: #ffcccc; font-weight: bold; \
+            border-radius: 4px; padding: 4px 8px;")
+        self.remove_btn.clicked.connect(lambda: self.remove_requested.emit(self))
 
         layout.addWidget(self.name_input)
         layout.addWidget(self.weight_input)

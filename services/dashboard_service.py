@@ -35,16 +35,11 @@ class DashboardService:
                                 max_score = assessment.get("max_score", 10.0)
                                 # Normalize and weight the score
                                 normalized_score = (
-                                    (float(score) / float(max_score))
-                                    if float(max_score) > 0
-                                    else 0
+                                    (float(score) / float(max_score)) if float(max_score) > 0 else 0
                                 )
                                 total_grade += (
                                     normalized_score
-                                    * (
-                                        float(assessment.get("weight", 0))
-                                        / 100.0
-                                    )
+                                    * (float(assessment.get("weight", 0)) / 100.0)
                                     * float(subject_max)
                                 )
 
@@ -52,9 +47,7 @@ class DashboardService:
                         {
                             "name": subject["name"],
                             "credits": subject["credit_value"],
-                            "grade": (
-                                round(total_grade, 2) if has_grades else None
-                            ),
+                            "grade": (round(total_grade, 2) if has_grades else None),
                             "semester": subject.get("semester_index", 1),
                             "passing_grade": subject.get("passing_grade", 5.0),
                         }
@@ -81,9 +74,7 @@ class DashboardService:
                 for subject in year_data["subjects"]:
                     grade = subject.get("grade")
                     credits = subject.get("credits", 0)
-                    subj_passing_grade = subject.get(
-                        "passing_grade", passing_grade
-                    )
+                    subj_passing_grade = subject.get("passing_grade", passing_grade)
 
                     if grade is not None:
                         total_weighted_points += grade * credits

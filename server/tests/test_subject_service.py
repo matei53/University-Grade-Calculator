@@ -167,18 +167,12 @@ class TestAssessmentService:
         )
 
         # Reload and check
-        db_assessment = (
-            test_db.query(Assessment)
-            .filter(Assessment.id == assessment.id)
-            .first()
-        )
+        db_assessment = test_db.query(Assessment).filter(Assessment.id == assessment.id).first()
 
         assert len(db_assessment.grades) > 0
         assert db_assessment.grades[0].score == 7.5
 
-    def test_add_assessment_with_default_values(
-        self, test_db, subject_with_user
-    ):
+    def test_add_assessment_with_default_values(self, test_db, subject_with_user):
         """Test assessment creation with default values."""
         assessment = AssessmentService.add_assessment(
             test_db,
@@ -192,9 +186,7 @@ class TestAssessmentService:
         assert assessment.max_score == 10.0
         assert assessment.passing_grade == 5.0
 
-    def test_add_assessment_multiple_same_subject(
-        self, test_db, subject_with_user
-    ):
+    def test_add_assessment_multiple_same_subject(self, test_db, subject_with_user):
         """Test adding multiple assessments to same subject."""
         assessment1 = AssessmentService.add_assessment(
             test_db,

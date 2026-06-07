@@ -109,9 +109,7 @@ class SubjectRepo:
         Adaugă o materie. Creează anul automat dacă e nevoie prin fallback.
         """
         with get_connection() as conn:
-            year_id = SubjectRepo._ensure_year_and_semesters_exist(
-                conn, user_id, year_level
-            )
+            year_id = SubjectRepo._ensure_year_and_semesters_exist(conn, user_id, year_level)
             cursor = conn.cursor()
 
             sem_row = cursor.execute(

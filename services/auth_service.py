@@ -13,16 +13,12 @@ class AuthService:
         credit_requirements: list = None,
     ) -> dict:
         try:
-            user = self.client.register(
-                username, password, num_years, credit_requirements
-            )
+            user = self.client.register(username, password, num_years, credit_requirements)
             return user
         except ValueError as e:
             raise ValueError(str(e))
         except Exception as e:
-            raise ValueError(
-                f"Registration failed: {type(e).__name__}: {str(e)}"
-            )
+            raise ValueError(f"Registration failed: {type(e).__name__}: {str(e)}")
 
     def login(self, username: str, password: str) -> dict:
         try:

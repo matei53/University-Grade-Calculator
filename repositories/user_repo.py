@@ -12,9 +12,7 @@ class UserRepo:
 
     def find_by_username(self, username: str):
         with get_connection() as conn:
-            return conn.execute(
-                "SELECT * FROM users WHERE username = ?", (username,)
-            ).fetchone()
+            return conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
 
     def update_university(self, user_id: int, university_id: int):
         with get_connection() as conn:

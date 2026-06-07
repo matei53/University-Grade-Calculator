@@ -55,19 +55,23 @@ class DashboardScreen(QWidget):
             "background-color: #A8C686; color: #0A0D08; font-weight: bold; \
             border-radius: 6px; padding: 6px;"
         )
-        add_subject_btn.clicked.connect(
-            lambda: self.router.navigate("subject_setup")
-        )
+        add_subject_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
+
+        # Grade Simulator button
+        simulator_btn = QPushButton("Grade Simulator")
+        simulator_btn.setFixedWidth(140)
+        simulator_btn.setStyleSheet("background-color: #A8C686; color: #0A0D08; font-weight: bold; \
+            border-radius: 6px; padding: 6px;")
+        simulator_btn.clicked.connect(lambda: self.router.navigate("simulator"))
 
         logout_btn = QPushButton("Log Out")
         logout_btn.setFixedWidth(90)
-        logout_btn.setStyleSheet(
-            "background-color: #ffffff; border: 1px solid #ccc; \
-            border-radius: 6px; padding: 6px;"
-        )
+        logout_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; \
+            border-radius: 6px; padding: 6px;")
         logout_btn.clicked.connect(self._handle_logout)
 
         header_layout.addWidget(add_subject_btn)
+        header_layout.addWidget(simulator_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
 
@@ -209,12 +213,8 @@ class DashboardScreen(QWidget):
             comp.setVisible(y <= up_to_yr)
 
         # 5. Update UI labels
-        self.media_card.findChild(QLabel, "CardValue").setText(
-            f"{stats['weighted_avg']:.2f}"
-        )
-        self.credits_card.findChild(QLabel, "CardValue").setText(
-            str(stats["credits"])
-        )
+        self.media_card.findChild(QLabel, "CardValue").setText(f"{stats['weighted_avg']:.2f}")
+        self.credits_card.findChild(QLabel, "CardValue").setText(str(stats["credits"]))
 
         p = int(stats["progress"])
         self.progress_card.findChild(QLabel, "CardValue").setText(f"{p}%")

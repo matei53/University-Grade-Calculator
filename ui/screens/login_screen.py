@@ -29,15 +29,11 @@ class LoginScreen(QWidget):
         # Title
         title = QLabel("UniGrade")
         title.setObjectName("AuthTitle")
-        self.main_layout.addWidget(
-            title, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
 
         subtitle = QLabel("Log In")
         subtitle.setObjectName("AuthSubtitle")
-        self.main_layout.addWidget(
-            subtitle, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(subtitle, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.main_layout.addSpacing(20)
 
@@ -65,9 +61,7 @@ class LoginScreen(QWidget):
         # Error label
         self.error_label = QLabel("")
         self.error_label.setObjectName("ErrorLabel")
-        self.main_layout.addWidget(
-            self.error_label, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(self.error_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.main_layout.addSpacing(10)
 
@@ -81,12 +75,8 @@ class LoginScreen(QWidget):
         signup_btn.setObjectName("SecondaryLink")
         signup_btn.clicked.connect(lambda: self.router.navigate("signup"))
 
-        self.main_layout.addWidget(
-            login_btn, alignment=Qt.AlignmentFlag.AlignCenter
-        )
-        self.main_layout.addWidget(
-            signup_btn, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(login_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(signup_btn, alignment=Qt.AlignmentFlag.AlignCenter)
         self.main_layout.addStretch()
 
     def _handle_login(self):

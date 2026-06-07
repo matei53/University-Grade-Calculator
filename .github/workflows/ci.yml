@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.13']
-    
+
     services:
       postgres:
         image: postgres:15
@@ -42,25 +42,6 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install -r server/requirements.txt
-        pip install flake8 black isort
-
-    - name: Lint with flake8 (entire project)
-      run: |
-        # Stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --ignore=migrations
-        # Exit-zero treats all errors as warnings
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=100 --statistics --ignore=migrations
-      continue-on-error: true
-
-    - name: Check formatting with black (entire project)
-      run: |
-        black --check . --exclude=venv,.git
-      continue-on-error: true
-
-    - name: Check import sorting with isort (entire project)
-      run: |
-        isort --check-only . --skip=venv,.git
-      continue-on-error: true
 
     - name: Run tests with pytest
       env:
@@ -84,9 +65,86 @@ jobs:
         name: coverage-report-py${{ matrix.python-version }}
         path: htmlcov/
 
+  client-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.13']
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install client dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run client tests
+      # Slow tests (TestGradeSimulatorAgent) require a local Ollama instance and are
+      # excluded from CI. Run them locally with: pytest tests/ -v
+      run: |
+        pytest tests/ -m "not slow" -v --tb=short \
+          --cov=agents --cov=services --cov=models --cov=client \
+          --cov-report=xml --cov-report=term-missing
+
+    - name: Upload client coverage
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: client-coverage-py${{ matrix.python-version }}
+        path: coverage.xml
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+        cache: 'pip'
+
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 black isort
+
+    - name: flake8 — critical errors (syntax errors, undefined names)
+      # Fails the build. Config read from root .flake8
+      run: |
+        flake8 . --select=E9,F63,F7,F82 --show-source --count
+
+    - name: flake8 — style warnings
+      # Does not fail the build
+      run: |
+        flake8 . --exit-zero --max-complexity=10 --statistics --count
+      continue-on-error: true
+
+    - name: black — formatting check
+      # Does not fail the build
+      run: |
+        black --check .
+      continue-on-error: true
+
+    - name: isort — import order check
+      # Does not fail the build
+      run: |
+        isort --check-only .
+      continue-on-error: true
+
   type-check:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -110,7 +168,7 @@ jobs:
 
   security-scan:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -137,18 +195,24 @@ jobs:
       continue-on-error: true
 
   test-summary:
-    needs: [test]
+    needs: [test, client-tests, lint]
     runs-on: ubuntu-latest
     if: always()
-    
+
     steps:
     - name: Test status
-      if: ${{ needs.test.result == 'failure' }}
+      if: >-
+        ${{ needs.test.result == 'failure' ||
+            needs.client-tests.result == 'failure' ||
+            needs.lint.result == 'failure' }}
       run: |
-        echo "Tests failed or were skipped"
+        echo "One or more required checks failed"
         exit 1
-    
+
     - name: Success
-      if: ${{ needs.test.result == 'success' }}
+      if: >-
+        ${{ needs.test.result == 'success' &&
+            needs.client-tests.result == 'success' &&
+            needs.lint.result == 'success' }}
       run: |
-        echo "All tests passed successfully!"
+        echo "All checks passed successfully!"

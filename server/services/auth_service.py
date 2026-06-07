@@ -22,8 +22,7 @@ class AuthService:
     def create_access_token(user_id: int) -> str:
         payload = {
             "sub": str(user_id),
-            "exp": datetime.utcnow()
-            + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         }
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -47,9 +46,7 @@ class AuthService:
         credit_requirements: list = None,
     ) -> UserResponse:
         # Check if user exists
-        existing_user = (
-            db.query(User).filter(User.username == username).first()
-        )
+        existing_user = db.query(User).filter(User.username == username).first()
         if existing_user:
             raise ValueError("Username already exists")
 
@@ -98,9 +95,7 @@ class AuthService:
     def login(db: Session, username: str, password: str) -> UserResponse:
         user = db.query(User).filter(User.username == username).first()
 
-        if not user or not AuthService.verify_password(
-            password, user.password_hash
-        ):
+        if not user or not AuthService.verify_password(password, user.password_hash):
             raise ValueError("Invalid username or password")
 
         return UserResponse.from_orm(user)

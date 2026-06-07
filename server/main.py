@@ -3,13 +3,13 @@ import os
 from contextlib import asynccontextmanager
 from typing import Any
 
+from dependencies import get_current_user
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import assessments, auth, profile, subjects
 from sqlalchemy.orm import Session
 
 from database import Base, SessionLocal, engine, get_db
-from dependencies import get_current_user
 from models import AcademicYear, Major, Subject, University, User
 
 # Create tables
@@ -73,11 +73,7 @@ def debug_user_data(
     """Debug endpoint to see user's data"""
     user = db.query(User).filter(User.id == current_user.id).first()
 
-    academic_years = (
-        db.query(AcademicYear)
-        .filter(AcademicYear.user_id == current_user.id)
-        .all()
-    )
+    academic_years = db.query(AcademicYear).filter(AcademicYear.user_id == current_user.id).all()
 
     result: dict[str, Any] = {
         "user_id": user.id,
@@ -95,9 +91,7 @@ def debug_user_data(
             "subjects": [],
         }
 
-        subjects = (
-            db.query(Subject).filter(Subject.academic_year_id == year.id).all()
-        )
+        subjects = db.query(Subject).filter(Subject.academic_year_id == year.id).all()
 
         for subject in subjects:
             year_data["subjects"].append(

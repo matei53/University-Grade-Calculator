@@ -19,9 +19,7 @@ class YearSetupScreen(QWidget):
         layout = QVBoxLayout()
 
         self.title = QLabel("Set Up Academic Year")
-        self.title.setStyleSheet(
-            "color: #2D4B1D; font-size: 18px; font-weight: bold;"
-        )
+        self.title.setStyleSheet("color: #2D4B1D; font-size: 18px; font-weight: bold;")
 
         self.year_name_input = QLineEdit()
         self.year_name_input.setPlaceholderText("ex: Anul 1")
@@ -36,9 +34,7 @@ class YearSetupScreen(QWidget):
 
         # Buton pentru a merge la adaugare subiecte
         self.next_btn = QPushButton("Mergi la Subiecte")
-        self.next_btn.clicked.connect(
-            lambda: self.router.navigate("subject_setup")
-        )
+        self.next_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
 
         layout.addWidget(self.title)
         layout.addWidget(self.year_name_input)
