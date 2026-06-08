@@ -60,12 +60,13 @@ class AssessmentRow(QWidget):
             border-radius: 4px; padding: 4px 8px;")
         self.remove_btn.clicked.connect(lambda: self.remove_requested.emit(self))
 
-        layout.addWidget(self.name_input)
-        layout.addWidget(self.weight_input)
-        layout.addWidget(self.score_input)
-        layout.addWidget(self.max_score_input)
-        layout.addWidget(self.passing_grade_input)
-        layout.addWidget(self.remove_btn)
+        # Stretch: name gets more space; controls keep compact widths
+        layout.addWidget(self.name_input, 3)
+        layout.addWidget(self.weight_input, 1)
+        layout.addWidget(self.score_input, 1)
+        layout.addWidget(self.max_score_input, 1)
+        layout.addWidget(self.passing_grade_input, 1)
+        layout.addWidget(self.remove_btn, 0)
         self.setLayout(layout)
 
     def _update_limits(self, max_val):

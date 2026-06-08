@@ -142,3 +142,11 @@ class TestProfileRoutes:
             status.HTTP_200_OK,
             status.HTTP_404_NOT_FOUND,
         ]
+
+    def test_delete_profile(self, client, authenticated_headers):
+        response = client.delete("/profile", headers=authenticated_headers)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+        # Once deleted, the token should no longer resolve to a user
+        follow_response = client.get("/profile", headers=authenticated_headers)
+        assert follow_response.status_code == status.HTTP_401_UNAUTHORIZED

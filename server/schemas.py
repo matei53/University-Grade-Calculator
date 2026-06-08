@@ -77,6 +77,15 @@ class SubjectRequest(BaseModel):
     max_grade: float = 10.0
 
 
+class SubjectUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    credits: Optional[int] = None
+    semester_index: Optional[int] = None
+    year_level: Optional[int] = None
+    passing_grade: Optional[float] = None
+    max_grade: Optional[float] = None
+
+
 class SubjectResponse(BaseModel):
     id: int
     name: str
@@ -112,12 +121,23 @@ class AssessmentRequest(BaseModel):
     passing_grade: float = 5.0
 
 
+class AssessmentUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    weight: Optional[float] = None
+    max_score: Optional[float] = None
+    passing_grade: Optional[float] = None
+
+
 class GradeResponse(BaseModel):
     id: int
     score: Optional[float]
 
     class Config:
         from_attributes = True
+
+
+class UpdateGradeRequest(BaseModel):
+    score: Optional[float] = None
 
 
 class AssessmentResponse(BaseModel):

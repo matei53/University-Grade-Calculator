@@ -60,6 +60,15 @@ def update_profile(
     return {"message": "Profile updated"}
 
 
+@router.delete("", status_code=204)
+def delete_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db.delete(current_user)
+    db.commit()
+
+
 @router.get("/universities", response_model=list[UniversityResponse])
 def get_universities(db: Session = Depends(get_db)):
     return db.query(University).all()

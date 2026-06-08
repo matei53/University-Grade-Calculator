@@ -1,6 +1,6 @@
 from dependencies import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import AssessmentRequest, AssessmentResponse
+from schemas import AssessmentRequest, AssessmentResponse, AssessmentUpdateRequest
 from sqlalchemy.orm import Session
 
 from database import get_db
@@ -39,3 +39,37 @@ def add_assessment(
         return assessment
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.put("/{assessment_id}", response_model=AssessmentResponse)
+def update_assessment(
+    assessment_id: int,
+    assessment_data: AssessmentUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        updated = AssessmentService.update_assessment(
+            db,
+            current_user.id,
+            assessment_id,
+            name=assessment_data.name,
+            weight=assessment_data.weight,
+            max_score=assessment_data.max_score,
+            passing_grade=assessment_data.passing_grade,
+        )
+        return updated
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@router.delete("/{assessment_id}", status_code=204)
+def delete_assessment(
+    assessment_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    try:
+        AssessmentService.delete_assessment(db, current_user.id, assessment_id)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
