@@ -35,10 +35,10 @@ def _filter_years(years_data: list[dict], year_id: Optional[int]) -> list[dict]:
 
 def _assessment_score(assessment: dict) -> Optional[float]:
     """Return the assessment score if one exists."""
-    grades = assessment.get("grades", [])
-    if not grades:
+    grade_obj = assessment.get("grade")
+    if grade_obj is None:
         return None
-    score = grades[0].get("score")
+    score = grade_obj.get("score")
     return float(score) if score is not None else None
 
 

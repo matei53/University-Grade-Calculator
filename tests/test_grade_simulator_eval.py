@@ -50,13 +50,12 @@ def _subject(name, credits, assessments, max_grade=10.0):
 
 
 def _assessment(aid, weight, score=None, max_score=10.0):
-    grades = [{"score": score}] if score is not None else []
     return {
         "id": aid,
         "name": f"Assessment {aid}",
         "weight": weight,
         "max_score": max_score,
-        "grades": grades,
+        "grade": {"score": score} if score is not None else None,
     }
 
 

@@ -82,11 +82,11 @@ def _compute_subject_grade(
         a_id = a.get("id")
         weight = float(a.get("weight", 0))
         max_score_a = float(a.get("max_score", 10.0))
-        grades = a.get("grades", [])
+        grade_obj = a.get("grade")
 
         score: Optional[float] = None
-        if grades and grades[0].get("score") is not None:
-            score = float(grades[0]["score"])
+        if grade_obj is not None and grade_obj.get("score") is not None:
+            score = float(grade_obj["score"])
 
         if a_id in available_ids:
             score = available_score  # None → skip; float → override
@@ -238,10 +238,10 @@ def _build_data_prompt(  # noqa: C901
                 a_id = a.get("id")
                 weight = a.get("weight", 0)
                 max_score = float(a.get("max_score", 10.0))
-                grades = a.get("grades", [])
+                grade_obj = a.get("grade")
                 score: Optional[float] = None
-                if grades and grades[0].get("score") is not None:
-                    score = float(grades[0]["score"])
+                if grade_obj is not None and grade_obj.get("score") is not None:
+                    score = float(grade_obj["score"])
 
                 available = "YES" if a_id in available_ids else "NO"
                 grade_str = str(score) if score is not None else "no grade"

@@ -169,8 +169,8 @@ class TestAssessmentService:
         # Reload and check
         db_assessment = test_db.query(Assessment).filter(Assessment.id == assessment.id).first()
 
-        assert len(db_assessment.grades) > 0
-        assert db_assessment.grades[0].score == 7.5
+        assert db_assessment.grade is not None
+        assert db_assessment.grade.score == 7.5
 
     def test_add_assessment_with_default_values(self, test_db, subject_with_user):
         """Test assessment creation with default values."""
@@ -217,7 +217,7 @@ class TestAssessmentService:
             score=10.0,
         )
 
-        assert assessment.grades[0].score == 10.0
+        assert assessment.grade.score == 10.0
 
     def test_add_assessment_zero_score(self, test_db, subject_with_user):
         """Test assessment with zero score."""
@@ -229,4 +229,4 @@ class TestAssessmentService:
             score=0.0,
         )
 
-        assert assessment.grades[0].score == 0.0
+        assert assessment.grade.score == 0.0

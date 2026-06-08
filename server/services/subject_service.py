@@ -79,9 +79,8 @@ class SubjectService:
             for subject in year.subjects:
                 # Access assessments for each subject
                 for assessment in subject.assessments:
-                    # Access grades for each assessment
-                    for grade in assessment.grades:
-                        pass
+                    # Access grade for each assessment to trigger loading
+                    _ = assessment.grade
 
         return years
 

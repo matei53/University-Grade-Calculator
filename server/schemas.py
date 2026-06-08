@@ -127,7 +127,7 @@ class AssessmentResponse(BaseModel):
     weight: float
     max_score: float
     passing_grade: float
-    grades: List[GradeResponse] = []
+    grade: Optional[GradeResponse] = None
 
     class Config:
         from_attributes = True

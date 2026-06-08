@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
@@ -22,7 +22,7 @@ class AuthService:
     def create_access_token(user_id: int) -> str:
         payload = {
             "sub": str(user_id),
-            "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         }
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

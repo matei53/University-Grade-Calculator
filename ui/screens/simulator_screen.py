@@ -365,10 +365,10 @@ class SimulatorScreen(QWidget):
         assessment_id = assessment.get("id")
         a_name = assessment.get("name", "Assessment")
         weight = assessment.get("weight", 0)
-        grades = assessment.get("grades", [])
+        grade_obj = assessment.get("grade")
         existing_score: Optional[float] = None
-        if grades:
-            s = grades[0].get("score")
+        if grade_obj is not None:
+            s = grade_obj.get("score")
             if s is not None:
                 existing_score = float(s)
 
@@ -444,10 +444,10 @@ class SimulatorScreen(QWidget):
         return "All Years"
 
     def _assessment_has_grade(self, assessment: dict) -> bool:
-        grades = assessment.get("grades", [])
-        if not grades:
+        grade_obj = assessment.get("grade")
+        if grade_obj is None:
             return False
-        return grades[0].get("score") is not None
+        return grade_obj.get("score") is not None
 
     def _collect_assessment_ids(self) -> list[int]:
         """Return IDs of assessments that are ungraded or marked as retakeable."""

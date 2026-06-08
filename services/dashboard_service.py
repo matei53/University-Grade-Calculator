@@ -29,9 +29,9 @@ class DashboardService:
                     subject_max = subject.get("max_grade", 10.0)
 
                     for assessment in assessments:
-                        grades = assessment.get("grades", [])
-                        if grades and len(grades) > 0:
-                            score = grades[0].get("score")
+                        grade_obj = assessment.get("grade")
+                        if grade_obj is not None:
+                            score = grade_obj.get("score")
                             if score is not None:
                                 has_grades = True
                                 max_score = assessment.get("max_score", 10.0)

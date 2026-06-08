@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -36,7 +36,7 @@ class User(Base):
         Integer, ForeignKey("universities.id"), nullable=True
     )
     major_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("majors.id"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     university: Mapped[University | None] = relationship(back_populates="users")
     major: Mapped[Major | None] = relationship(back_populates="users")
@@ -121,9 +121,10 @@ class Assessment(Base):
     passing_grade: Mapped[float] = mapped_column(Float, default=5.0)
 
     subject: Mapped[Subject] = relationship(back_populates="assessments")
-    grades: Mapped[list[Grade]] = relationship(
+    grade: Mapped[Grade | None] = relationship(
         back_populates="assessment",
         cascade="all, delete-orphan",
+        uselist=False,
     )
 
 
@@ -139,7 +140,7 @@ class Grade(Base):
     )
     score: Mapped[float | None] = mapped_column(Float, nullable=True)
 
-    assessment: Mapped[Assessment] = relationship(back_populates="grades")
+    assessment: Mapped[Assessment] = relationship(back_populates="grade")
 
 
 class GraduationSettings(Base):
