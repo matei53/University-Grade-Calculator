@@ -12,14 +12,11 @@ from sqlalchemy.orm import Session
 from database import Base, SessionLocal, engine, get_db
 from models import AcademicYear, Major, Subject, University, User
 
-# Create tables
-Base.metadata.create_all(bind=engine)
-
-
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Manage startup and shutdown events"""
     # Startup
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         # Check if universities exist
