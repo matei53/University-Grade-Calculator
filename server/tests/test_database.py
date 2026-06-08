@@ -320,9 +320,7 @@ class TestGradeModel:
         test_db.commit()
         test_db.refresh(subject)
 
-        assessment = Assessment(
-            subject_id=subject.id, name="Midterm", weight=0.4
-        )
+        assessment = Assessment(subject_id=subject.id, name="Midterm", weight=0.4)
         test_db.add(assessment)
         test_db.commit()
         test_db.refresh(assessment)

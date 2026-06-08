@@ -29,7 +29,7 @@ class SubjectService:
         if not academic_year:
             academic_year = AcademicYear(
                 user_id=user_id,
-                label=f"Anul {year_level}",
+                label=f"Year {year_level}",
                 order_index=year_level,
                 credit_requirement=60,
             )
@@ -47,9 +47,7 @@ class SubjectService:
         )
 
         if not semester:
-            raise ValueError(
-                f"Semester {semester_index} not found for year {year_level}"
-            )
+            raise ValueError(f"Semester {semester_index} not found for year {year_level}")
 
         # Create subject
         subject = Subject(
@@ -81,9 +79,8 @@ class SubjectService:
             for subject in year.subjects:
                 # Access assessments for each subject
                 for assessment in subject.assessments:
-                    # Access grades for each assessment
-                    for grade in assessment.grades:
-                        pass
+                    # Access grade for each assessment to trigger loading
+                    _ = assessment.grade
 
         return years
 

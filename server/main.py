@@ -3,23 +3,20 @@ import os
 from contextlib import asynccontextmanager
 from typing import Any
 
+from dependencies import get_current_user
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import assessments, auth, profile, subjects
+from routers import assessments, auth, graduation, profile, subjects
 from sqlalchemy.orm import Session
 
 from database import Base, SessionLocal, engine, get_db
-from dependencies import get_current_user
 from models import AcademicYear, Major, Subject, University, User
 
-# Create tables
-Base.metadata.create_all(bind=engine)
-
-
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Manage startup and shutdown events"""
     # Startup
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
         # Check if universities exist
@@ -63,6 +60,7 @@ app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(subjects.router)
 app.include_router(assessments.router)
+app.include_router(graduation.router)
 
 
 @app.get("/debug/user-data")
@@ -73,11 +71,7 @@ def debug_user_data(
     """Debug endpoint to see user's data"""
     user = db.query(User).filter(User.id == current_user.id).first()
 
-    academic_years = (
-        db.query(AcademicYear)
-        .filter(AcademicYear.user_id == current_user.id)
-        .all()
-    )
+    academic_years = db.query(AcademicYear).filter(AcademicYear.user_id == current_user.id).all()
 
     result: dict[str, Any] = {
         "user_id": user.id,
@@ -95,9 +89,7 @@ def debug_user_data(
             "subjects": [],
         }
 
-        subjects = (
-            db.query(Subject).filter(Subject.academic_year_id == year.id).all()
-        )
+        subjects = db.query(Subject).filter(Subject.academic_year_id == year.id).all()
 
         for subject in subjects:
             year_data["subjects"].append(
