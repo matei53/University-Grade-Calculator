@@ -290,7 +290,6 @@ AUTH_STYLE = f"""
         font-weight: bold;
     }}
 """
-<<<<<<< HEAD
 LEADERBOARD_STYLE = f"""
     QWidget {{
         background-color: {CREAM_BONE};
@@ -358,5 +357,3 @@ LEADERBOARD_STYLE = f"""
         background: {FOREST_GREEN};
     }}
 """
-=======
->>>>>>> origin/dev

@@ -5,14 +5,21 @@ from services.subject_service import SubjectService
 def _university_short(name: str | None) -> str:
     if not name:
         return "—"
+    
     if name.upper() == name and len(name) <= 6:
         return name
-    mapping = {
-        "Universitatea din Bucuresti": "UBB",
-        "Universitatea Politehnica": "UPB",
-        "UBB": "UBB",
-    }
-    return mapping.get(name, name[:4].upper())
+        
+    capitalized_words = [word for word in name.split() if word and word[0].isupper()]
+    
+    if len(capitalized_words) > 1:
+        abbreviation = "".join(word[0] for word in capitalized_words)
+        
+        if abbreviation == "UDB": 
+            return "UB"
+            
+        return abbreviation
+        
+    return name[:4].upper()
 
 def _subject_grade(subject) -> float | None:
     total = 0.0
