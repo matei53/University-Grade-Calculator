@@ -1,13 +1,20 @@
 from PyQt6.QtCore import Qt
+from PyQt6.QtCore import QTimer
 from PyQt6.QtWidgets import (
     QComboBox,
+    QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QLabel,
     QMessageBox,
     QPushButton,
     QVBoxLayout,
     QWidget,
+    QTextEdit,
 )
+
+import threading
+import requests
 
 from client.api_client import APIClient
 from models.session import Session
@@ -54,16 +61,28 @@ class ProfileScreen(QWidget):
         self.major_combo = QComboBox()
         self.major_combo.setObjectName("AuthInput")
 
-        self.main_layout.addWidget(QLabel("Select University"))
-        self.main_layout.addWidget(self.university_combo)
-        self.main_layout.addWidget(QLabel("Select Major"))
-        self.main_layout.addWidget(self.major_combo)
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+        form_layout.setSpacing(10)
+        form_layout.setRowWrapPolicy(QFormLayout.RowWrapPolicy.DontWrapRows)
+
+        university_label = QLabel("Select University:")
+        university_label.setStyleSheet("font-weight: 600; color: #2D4B1D;")
+        major_label = QLabel("Select Major:")
+        major_label.setStyleSheet("font-weight: 600; color: #2D4B1D;")
+
+        form_layout.addRow(university_label, self.university_combo)
+        form_layout.addRow(major_label, self.major_combo)
+
+        self.main_layout.addLayout(form_layout)
 
         self.update_btn = QPushButton("Update Profile")
         self.update_btn.setObjectName("PrimaryButton")
         self.update_btn.setFixedHeight(45)
         self.update_btn.clicked.connect(self._handle_update_profile)
         self.main_layout.addWidget(self.update_btn)
+
+        self.main_layout.addSpacing(25)
 
         self.delete_btn = QPushButton("Delete Account")
         self.delete_btn.setObjectName("DangerButton")
@@ -74,12 +93,96 @@ class ProfileScreen(QWidget):
         self.delete_btn.clicked.connect(self._handle_delete_account)
         self.main_layout.addWidget(self.delete_btn)
 
+        self.main_layout.addSpacing(30)
+        self._build_career_advisor_section()
+        self.main_layout.addWidget(self.ai_group_box)
+
         self.main_layout.addStretch()
 
     def on_screen_shown(self):
         self.api_client = APIClient()
         self._load_profile_info()
         self._load_select_options()
+
+    def _build_career_advisor_section(self):
+        advisor_group = QGroupBox("")
+        advisor_group.setStyleSheet(
+            "QGroupBox { border: 1px solid #cfe8e0; border-radius: 10px; margin-top: 10px; background: #f7fbf9; }"
+            "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 12px; padding: 0 0px; background: transparent; color: #0f4f36; font-weight: bold; }"
+        )
+
+        advisor_layout = QVBoxLayout()
+        advisor_layout.setContentsMargins(16, 16, 16, 16)
+        advisor_layout.setSpacing(12)
+
+        advisor_label = QLabel(
+            "Get personalized career path and elective suggestions based on your subjects and grades."
+        )
+        advisor_label.setWordWrap(True)
+        advisor_label.setStyleSheet("color: #3f5a4b; font-size: 12px;")
+
+        self.career_button = QPushButton("Generate Career Guidance")
+        self.career_button.setFixedHeight(44)
+        self.career_button.setStyleSheet(
+            "background-color: #2e7d32; color: white; border-radius: 8px; font-weight: bold;"
+        )
+        self.career_button.clicked.connect(self._handle_generate_career_guidance)
+
+        self.career_output = QTextEdit()
+        self.career_output.setReadOnly(True)
+        self.career_output.setMarkdown("### Career guidance will appear here after you click the button.")
+        self.career_output.setMinimumHeight(220)
+        self.career_output.setStyleSheet(
+            "background-color: #ffffff; border: 1px solid #cbded8; border-radius: 10px; padding: 12px;"
+        )
+
+        advisor_layout.addWidget(advisor_label)
+        advisor_layout.addWidget(self.career_button)
+        advisor_layout.addWidget(self.career_output)
+        advisor_group.setLayout(advisor_layout)
+
+        self.ai_group_box = advisor_group
+
+    def _set_career_output(self, text: str):
+        self.career_output.setMarkdown(text)
+
+    def _handle_generate_career_guidance(self):
+        self.career_button.setEnabled(False)
+        self.career_button.setText("Analyzing your performance...")
+        self.career_output.setMarkdown("*Fetching guidance from the AI advisor...*")
+
+        def request_guidance():
+            try:
+                headers = self.api_client._get_headers()
+                response = requests.get(
+                    f"{self.api_client.base_url}/profile/career-guidance",
+                    headers=headers,
+                    timeout=20,
+                )
+                if response.status_code != 200:
+                    raise ValueError(
+                        f"Server returned {response.status_code}: {response.text}"
+                    )
+                guidance = response.text
+                QTimer.singleShot(0, lambda: self._set_career_output(guidance))
+            except Exception as error:
+                QTimer.singleShot(
+                    0,
+                    lambda: QMessageBox.critical(
+                        self,
+                        "Career Guidance Failed",
+                        f"Unable to fetch career guidance: {error}",
+                    ),
+                )
+                QTimer.singleShot(0, lambda: self.career_output.setMarkdown("**Failed to load career guidance.**"))
+            finally:
+                QTimer.singleShot(0, self._career_button_ready)
+
+        threading.Thread(target=request_guidance, daemon=True).start()
+
+    def _career_button_ready(self):
+        self.career_button.setEnabled(True)
+        self.career_button.setText("Generate Career Guidance")
 
     def _load_profile_info(self):
         try:
