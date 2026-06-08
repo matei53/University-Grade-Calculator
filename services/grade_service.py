@@ -20,10 +20,10 @@ class GradeService:
             max_score = a.get("max_score", 10.0)
 
             if score is not None:
-                # 1. Normalizăm nota la o fracție (ex: 45 / 100 = 0.45)
+                # 1. Normalize the grade to a fraction (e.g.: 45 / 100 = 0.45)
                 normalized_score = (float(score) / float(max_score)) if float(max_score) > 0 else 0
 
-                # 2. Aplicăm ponderea și scalăm la nota maximă a materiei
+                # 2. Apply the weight and scale to the subject's maximum grade
                 # (ex: 0.45 * 1.0 * 10 = 4.5)
                 weighted_portion = (
                     normalized_score * (float(weight) / 100.0) * float(subject_max_grade)

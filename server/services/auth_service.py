@@ -70,7 +70,7 @@ class AuthService:
 
             academic_year = AcademicYear(
                 user_id=user.id,
-                label=f"Anul {year_index}",
+                label=f"Year {year_index}",
                 order_index=year_index,
                 credit_requirement=credit_req,
             )
@@ -81,7 +81,7 @@ class AuthService:
             for sem_index in range(1, 3):
                 semester = Semester(
                     academic_year_id=academic_year.id,
-                    label=f"Semestrul {sem_index}",
+                    label=f"Semester {sem_index}",
                     order_index=sem_index,
                 )
                 db.add(semester)

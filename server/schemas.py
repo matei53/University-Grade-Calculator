@@ -139,9 +139,6 @@ class UpdateProfileRequest(BaseModel):
     major_id: Optional[int] = None
 
 
-UpdateUserProfile = UpdateProfileRequest
-
-
 # Graduation
 class GraduationSettingsResponse(BaseModel):
     id: int

@@ -29,7 +29,7 @@ class SubjectService:
         if not academic_year:
             academic_year = AcademicYear(
                 user_id=user_id,
-                label=f"Anul {year_level}",
+                label=f"Year {year_level}",
                 order_index=year_level,
                 credit_requirement=60,
             )

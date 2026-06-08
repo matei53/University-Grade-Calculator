@@ -108,7 +108,7 @@ class DashboardScreen(QWidget):
         header_layout.addLayout(title_container)
         header_layout.addStretch()
 
-        add_subject_btn = QPushButton("+ Adaugă Materie")
+        add_subject_btn = QPushButton("+ Add Subject")
         add_subject_btn.setFixedWidth(140)
         add_subject_btn.setStyleSheet(
             "background-color: #A8C686; color: #0A0D08; font-weight: bold; "
@@ -305,7 +305,7 @@ class DashboardScreen(QWidget):
         self.filter_layout.addWidget(filter_label)
 
         for y in sorted(self.all_data.keys()):
-            btn = QPushButton(f"Anul {y}")
+            btn = QPushButton(f"Year {y}")
             btn.setObjectName("FilterButton")
             btn.setCheckable(True)
             btn.clicked.connect(lambda ch, yr=y: self.update_dashboard(yr))
@@ -326,7 +326,7 @@ class DashboardScreen(QWidget):
 
         self.year_components = {}
         for y, data in self.all_data.items():
-            comp = CollapsibleYear(f"Anul {y}")
+            comp = CollapsibleYear(f"Year {y}")
             comp.set_subjects(data["subjects"], data["target_credits"])
             comp.toggle_button.setChecked(True)
             comp._toggle()
@@ -341,7 +341,7 @@ class DashboardScreen(QWidget):
         self._total_mode = False
 
         for b in self.year_buttons:
-            is_active = b.text() == f"Anul {up_to_yr}"
+            is_active = b.text() == f"Year {up_to_yr}"
             b.setProperty("active", is_active)
             b.style().unpolish(b)
             b.style().polish(b)
