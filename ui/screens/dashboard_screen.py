@@ -49,13 +49,13 @@ class DashboardScreen(QWidget):
         header_layout.addStretch()
 
         # leaderboard 
-        clasament_btn = QPushButton("Clasament")
-        clasament_btn.setFixedWidth(100)
-        clasament_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
-        clasament_btn.clicked.connect(lambda: self.router.navigate("leaderboard"))
+        leaderboard_btn = QPushButton("Leaderboard")
+        leaderboard_btn.setFixedWidth(100)
+        leaderboard_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
+        leaderboard_btn.clicked.connect(lambda: self.router.navigate("leaderboard"))
 
-        # Buton Adaugă Materie (Singura acțiune principală conform cerinței)
-        add_subject_btn = QPushButton("+ Adaugă Materie")
+        # Add Subject button
+        add_subject_btn = QPushButton("+ Add Subject")
         add_subject_btn.setFixedWidth(140)
         add_subject_btn.setStyleSheet(
             "background-color: #A8C686; color: #0A0D08; font-weight: bold; \
@@ -73,7 +73,7 @@ class DashboardScreen(QWidget):
         )
         logout_btn.clicked.connect(self._handle_logout)
         
-        header_layout.addWidget(clasament_btn)  
+        header_layout.addWidget(leaderboard_btn)  
         header_layout.addWidget(add_subject_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
@@ -211,7 +211,6 @@ class DashboardScreen(QWidget):
         )
 
         # 4. Handle Visibility of Year Components
-        # This ensures if you filter "Up to Year 2", Year 3 disappears
         for y, comp in self.year_components.items():
             comp.setVisible(y <= up_to_yr)
 
@@ -230,7 +229,3 @@ class DashboardScreen(QWidget):
     def _handle_logout(self):
         Session.logout()
         self.router.navigate("login")
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/dev

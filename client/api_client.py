@@ -120,9 +120,21 @@ class APIClient:
             )
         return response.json()
     
-    def get_leaderboard(self) -> Dict[str, Any]:
+    def get_leaderboard(
+        self,
+        year_level: Optional[int] = None,
+        search: Optional[str] = None,
+        page: int = 1,
+        page_size: int = 2,
+    ) -> Dict[str, Any]:
+        params: Dict[str, Any] = {"page": page, "page_size": page_size}
+        if year_level is not None:
+            params["year_level"] = year_level
+        if search:
+            params["search"] = search
         response = requests.get(
             f"{self.base_url}/leaderboard",
+            params=params,
             headers=self._get_headers(),
         )
         if response.status_code != 200:
