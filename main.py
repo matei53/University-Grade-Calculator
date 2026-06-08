@@ -23,7 +23,7 @@ def check_server_connection():
         import requests
 
         # Try accessing a public endpoint (uni list doesn't require auth)
-        response = requests.get("http://localhost:8000/profile/universities", timeout=2)
+        response = requests.get("http://localhost:8000/health", timeout=2)
         return response.status_code == 200
     except Exception:
         # Server is likely not running

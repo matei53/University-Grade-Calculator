@@ -151,6 +151,30 @@ class APIClient:
             raise ValueError(f"Get majors error ({response.status_code}): {error_detail}")
         return response.json()
 
+    def create_university(self, name: str) -> Dict[str, Any]:
+        """Create a new university"""
+        response = requests.post(
+            f"{self.base_url}/profile/universities",
+            json={"name": name},
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Create university error ({response.status_code}): {error_detail}")
+        return response.json()
+
+    def create_major(self, name: str) -> Dict[str, Any]:
+        """Create a new major"""
+        response = requests.post(
+            f"{self.base_url}/profile/majors",
+            json={"name": name},
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Create major error ({response.status_code}): {error_detail}")
+        return response.json()
+
     # Subject endpoints
     def add_subject(
         self,

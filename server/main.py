@@ -1,5 +1,3 @@
-import json
-import os
 from contextlib import asynccontextmanager
 from typing import Any
 
@@ -12,6 +10,27 @@ from sqlalchemy.orm import Session
 from database import Base, SessionLocal, engine, get_db
 from models import AcademicYear, Major, Subject, University, User
 
+_SEED_UNIVERSITIES = [
+    "University of Bucharest",
+    "Polytechnic University",
+    "UBB",
+]
+
+_SEED_MAJORS = [
+    "Computer Science",
+    "Law",
+    "Medicine",
+    "Economics",
+    "Mathematics",
+    "Physics",
+    "Psychology",
+    "Architecture",
+    "Political Science",
+    "Business Administration",
+    "Geography",
+]
+
+
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     """Manage startup and shutdown events"""
@@ -19,29 +38,19 @@ async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # Check if universities exist
         if db.query(University).count() == 0:
-            data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-            with open(os.path.join(data_dir, "universities.json"), "r") as f:
-                universities = json.load(f)
-            for uni in universities:
-                db.add(University(name=uni["name"]))
+            for name in _SEED_UNIVERSITIES:
+                db.add(University(name=name))
 
-        # Check if majors exist
         if db.query(Major).count() == 0:
-            data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-            with open(os.path.join(data_dir, "majors.json"), "r") as f:
-                majors = json.load(f)
-            for major in majors:
-                db.add(Major(name=major["name"]))
+            for name in _SEED_MAJORS:
+                db.add(Major(name=name))
 
         db.commit()
     finally:
         db.close()
 
     yield
-
-    # Shutdown (if needed, add cleanup code here)
 
 
 app = FastAPI(title="UniGrade API", version="1.0.0", lifespan=lifespan)

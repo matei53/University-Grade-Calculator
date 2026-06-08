@@ -42,6 +42,14 @@ class UserProfile(BaseModel):
 
 
 # University/Major
+class CreateUniversityRequest(BaseModel):
+    name: str
+
+
+class CreateMajorRequest(BaseModel):
+    name: str
+
+
 class UniversityResponse(BaseModel):
     id: int
     name: str
