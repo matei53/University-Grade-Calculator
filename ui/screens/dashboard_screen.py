@@ -148,7 +148,7 @@ class DashboardScreen(QWidget):
         self.filter_layout.addWidget(filter_label)
 
         for y in sorted(self.all_data.keys()):
-            btn = QPushButton(f"Anul {y}")
+            btn = QPushButton(f"Year {y}")
             btn.setObjectName("FilterButton")
             btn.setCheckable(True)
             btn.clicked.connect(lambda ch, yr=y: self.update_dashboard(yr))
@@ -164,7 +164,7 @@ class DashboardScreen(QWidget):
 
         self.year_components = {}
         for y, data in self.all_data.items():
-            comp = CollapsibleYear(f"Anul {y}")
+            comp = CollapsibleYear(f"Year {y}")
             comp.set_subjects(data["subjects"], data["target_credits"])
 
             # Deschidem cardul automat pentru vizibilitate instantă
@@ -189,7 +189,7 @@ class DashboardScreen(QWidget):
     def update_dashboard(self, up_to_yr):
 
         for b in self.year_buttons:
-            is_active = b.text() == f"Anul {up_to_yr}"
+            is_active = b.text() == f"Year {up_to_yr}"
             b.setProperty("active", is_active)
             b.style().unpolish(b)
             b.style().polish(b)

@@ -55,7 +55,7 @@ class LeaderboardScreen(QWidget):
         header.addLayout(left_header)
         header.addStretch()
 
-        self.visibility_toggle = QCheckBox("Vizibil")
+        self.visibility_toggle = QCheckBox("Visible")
         self.visibility_toggle.setObjectName("VisibilityToggle")
         self.visibility_toggle.toggled.connect(self._on_visibility_changed)
         header.addWidget(self.visibility_toggle)
@@ -113,12 +113,12 @@ class LeaderboardScreen(QWidget):
         student_h.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         headers.addWidget(student_h, 5)
 
-        media_h = QLabel("MEDIA")
+        media_h = QLabel("AVERAGE")
         media_h.setObjectName("TableHeader")
         media_h.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         headers.addWidget(media_h, 2)
 
-        credite_h = QLabel("CREDITE")
+        credite_h = QLabel("CREDITS")
         credite_h.setObjectName("TableHeader")
         credite_h.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         headers.addWidget(credite_h, 2)
@@ -145,13 +145,13 @@ class LeaderboardScreen(QWidget):
 
         pagination = QHBoxLayout()
         pagination.setContentsMargins(0, 8, 0, 4)
-        self.prev_btn = QPushButton("← Anterior")
+        self.prev_btn = QPushButton("← Previous")
         self.prev_btn.setObjectName("NavButton")
         self.prev_btn.clicked.connect(self._prev_page)
         self.page_label = QLabel("")
         self.page_label.setObjectName("HeaderSubtitle")
         self.page_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.next_btn = QPushButton("Următor →")
+        self.next_btn = QPushButton("Next →")
         self.next_btn.setObjectName("NavButton")
         self.next_btn.clicked.connect(self._next_page)
         pagination.addWidget(self.prev_btn)
@@ -254,7 +254,7 @@ class LeaderboardScreen(QWidget):
         year = data.get("filter_year_level") or "—"
         total = data.get("total", 0)
         self.filter_label.setText(
-            f"{uni} · {major} · Anul {year} · {total} studenți"
+            f"{uni} · {major} · Year {year} · {total} students"
         )
 
         podium = data.get("podium", [])
@@ -292,9 +292,9 @@ class LeaderboardScreen(QWidget):
         page = data.get("page", 1)
         self._current_page = page
         self.page_label.setText(
-            f"Pagina {page} din {max(total_pages, 1)}"
+            f"Page {page} of {max(total_pages, 1)}"
             if total_pages
-            else "Pagina 1"
+            else "Page 1"
         )
         self.prev_btn.setEnabled(page > 1)
         self.next_btn.setEnabled(total_pages > 0 and page < total_pages)
@@ -306,7 +306,7 @@ class LeaderboardScreen(QWidget):
         self.year_selector.blockSignals(True)
         self.year_selector.clear()
         for level in levels:
-            self.year_selector.addItem(f"Anul {level}", level)
+            self.year_selector.addItem(f"Year {level}", level)
         idx = self.year_selector.findData(current)
         if idx >= 0:
             self.year_selector.setCurrentIndex(idx)
@@ -346,7 +346,7 @@ class LeaderboardScreen(QWidget):
 
         name_text = entry["display_name"]
         if is_me:
-            name_text += " (Tu)"
+            name_text += " (You)"
         name = QLabel(name_text)
         name.setStyleSheet("font-weight: bold; font-size: 14px;")
         name.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -390,10 +390,10 @@ class LeaderboardScreen(QWidget):
         student_col.setSpacing(2)
         name_text = entry["display_name"]
         if is_me:
-            name_text += " (Tu)"
+            name_text += " (You)"
         name = QLabel(name_text)
         name.setStyleSheet("font-weight: bold;")
-        meta = QLabel(f"{entry['university_short']} · Anul {entry['year_level']}")
+        meta = QLabel(f"{entry['university_short']} · Year {entry['year_level']}")
         meta.setObjectName("CardSub")
         student_col.addWidget(name)
         student_col.addWidget(meta)
