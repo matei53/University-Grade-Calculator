@@ -57,9 +57,7 @@ class TestSubjectRoutes:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_add_subject_with_custom_grades(
-        self, client, authenticated_headers
-    ):
+    def test_add_subject_with_custom_grades(self, client, authenticated_headers):
         """Test adding subject with custom grade boundaries."""
         response = client.post(
             "/subjects",
@@ -94,9 +92,7 @@ class TestSubjectRoutes:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_add_subject_with_added_subject(
-        self, client, authenticated_headers
-    ):
+    def test_add_subject_with_added_subject(self, client, authenticated_headers):
         """Test that subjects appear in years endpoint."""
         # Add a subject
         client.post(
@@ -166,9 +162,7 @@ class TestAssessmentRoutes:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_add_assessment_nonexistent_subject(
-        self, client, authenticated_headers
-    ):
+    def test_add_assessment_nonexistent_subject(self, client, authenticated_headers):
         """Test adding assessment to nonexistent subject."""
         response = client.post(
             "/assessments/9999",
@@ -212,9 +206,7 @@ class TestAssessmentRoutes:
         assert response2.status_code == status.HTTP_200_OK
         assert response1.json()["name"] != response2.json()["name"]
 
-    def test_add_assessment_appears_in_subject(
-        self, client, authenticated_headers
-    ):
+    def test_add_assessment_appears_in_subject(self, client, authenticated_headers):
         """Test that assessment appears when retrieving subject details."""
         # Add subject
         subject_response = client.post(

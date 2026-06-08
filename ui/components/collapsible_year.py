@@ -34,13 +34,9 @@ class CollapsibleYear(QWidget):
         # We include the font-size here to kill the PointSize error
         self.toggle_button.setStyleSheet("font-size: 15px; text-align: left;")
 
-        self.toggle_button.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed
-        )
+        self.toggle_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.toggle_button.setArrowType(Qt.ArrowType.RightArrow)
-        self.toggle_button.setToolButtonStyle(
-            Qt.ToolButtonStyle.ToolButtonTextBesideIcon
-        )
+        self.toggle_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
 
         # 2. Content Area (Hidden by default)
         self.content_area = QFrame()
@@ -69,13 +65,9 @@ class CollapsibleYear(QWidget):
         l_.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         lbl = QLabel(label)
-        lbl.setStyleSheet(
-            "font-size: 10px; color: #666; text-transform: uppercase;"
-        )
+        lbl.setStyleSheet("font-size: 10px; color: #666; text-transform: uppercase;")
         val = QLabel(value)
-        val.setStyleSheet(
-            "font-weight: bold; font-size: 16px; color: #2D4B1D;"
-        )
+        val.setStyleSheet("font-weight: bold; font-size: 16px; color: #2D4B1D;")
 
         l_.addWidget(lbl, alignment=Qt.AlignmentFlag.AlignCenter)
         l_.addWidget(val, alignment=Qt.AlignmentFlag.AlignCenter)
@@ -95,9 +87,7 @@ class CollapsibleYear(QWidget):
                 item.widget().deleteLater()
 
         if not subjects:
-            self.content_layout.addWidget(
-                QLabel("No data recorded for this academic year.")
-            )
+            self.content_layout.addWidget(QLabel("No data recorded for this academic year."))
             return
 
         # --- 1. Year Statistics Summary ---
@@ -108,9 +98,7 @@ class CollapsibleYear(QWidget):
 
         # FIX 2: Only sum credits for subjects that are actually PASSED
         total_passed_creds = sum(
-            s["credits"]
-            for s in graded_list
-            if s["grade"] >= s.get("passing_grade", passing_grade)
+            s["credits"] for s in graded_list if s["grade"] >= s.get("passing_grade", passing_grade)
         )
 
         # We still want to see total credits Attempted vs Earned?
@@ -118,14 +106,8 @@ class CollapsibleYear(QWidget):
         weighted_sum = sum(s["grade"] * s["credits"] for s in graded_list)
         total_graded_creds = sum(s["credits"] for s in graded_list)
 
-        avg_weighted = (
-            weighted_sum / total_graded_creds if total_graded_creds > 0 else 0
-        )
-        avg_simple = (
-            sum(s["grade"] for s in graded_list) / len(graded_list)
-            if graded_list
-            else 0
-        )
+        avg_weighted = weighted_sum / total_graded_creds if total_graded_creds > 0 else 0
+        avg_simple = sum(s["grade"] for s in graded_list) / len(graded_list) if graded_list else 0
 
         # Update mini cards to show passed credits
         stats_row.addWidget(
@@ -134,17 +116,9 @@ class CollapsibleYear(QWidget):
                 f"{total_passed_creds}/{year_target_credits}",
             )
         )
-        stats_row.addWidget(
-            self._create_mini_card("Weighted Avg", f"{avg_weighted:.2f}")
-        )
-        stats_row.addWidget(
-            self._create_mini_card("Simple Avg", f"{avg_simple:.2f}")
-        )
-        stats_row.addWidget(
-            self._create_mini_card(
-                "Graded", f"{len(graded_list)}/{len(subjects)}"
-            )
-        )
+        stats_row.addWidget(self._create_mini_card("Weighted Avg", f"{avg_weighted:.2f}"))
+        stats_row.addWidget(self._create_mini_card("Simple Avg", f"{avg_simple:.2f}"))
+        stats_row.addWidget(self._create_mini_card("Graded", f"{len(graded_list)}/{len(subjects)}"))
         self.content_layout.addLayout(stats_row)
 
         # --- 2. Year Progress Bar ---
@@ -154,15 +128,11 @@ class CollapsibleYear(QWidget):
         prog_v.setContentsMargins(14, 15, 14, 10)
 
         progress_percentage = (
-            int((total_passed_creds / year_target_credits) * 100)
-            if year_target_credits > 0
-            else 0
+            int((total_passed_creds / year_target_credits) * 100) if year_target_credits > 0 else 0
         )
 
         prog_label = QLabel(f"Annual Progress: {progress_percentage}%")
-        prog_label.setStyleSheet(
-            "font-size: 11px; color: #444; font-weight: bold;"
-        )
+        prog_label.setStyleSheet("font-size: 11px; color: #444; font-weight: bold;")
 
         bar = QProgressBar()
         bar.setFixedHeight(12)
@@ -184,9 +154,7 @@ class CollapsibleYear(QWidget):
                 # Sort subjects: highest grades first, 'None' grades last
                 sorted_subs = sorted(
                     sem_subs,
-                    key=lambda x: (
-                        x["grade"] if x["grade"] is not None else -1
-                    ),
+                    key=lambda x: (x["grade"] if x["grade"] is not None else -1),
                     reverse=True,
                 )
 
@@ -214,10 +182,8 @@ class CollapsibleYear(QWidget):
 
                     c = QLabel(credit_text)
                     # Turn credit text red only if failed
-                    c.setStyleSheet(
-                        f"color: {'#cc0000' if is_failed else '#888'}; \
-                        font-size: 11px;"
-                    )
+                    c.setStyleSheet(f"color: {'#cc0000' if is_failed else '#888'}; \
+                        font-size: 11px;")
 
                     name_info.addWidget(n)
                     name_info.addWidget(c)
@@ -232,10 +198,8 @@ class CollapsibleYear(QWidget):
                         g.setText(f"{grade_val:.2f}")
                         # Green if passed, Red if failed
                         grade_color = "#2D4B1D" if not is_failed else "#cc0000"
-                        g.setStyleSheet(
-                            f"font-weight: bold; color: {grade_color}; \
-                                font-size: 14px;"
-                        )
+                        g.setStyleSheet(f"font-weight: bold; color: {grade_color}; \
+                                font-size: 14px;")
                     else:
                         # CASE: NOT GRADED (Smaller and subtle)
                         g.setText("Not Graded")

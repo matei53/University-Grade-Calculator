@@ -19,12 +19,10 @@ class YearSetupScreen(QWidget):
         layout = QVBoxLayout()
 
         self.title = QLabel("Set Up Academic Year")
-        self.title.setStyleSheet(
-            "color: #2D4B1D; font-size: 18px; font-weight: bold;"
-        )
+        self.title.setStyleSheet("color: #2D4B1D; font-size: 18px; font-weight: bold;")
 
         self.year_name_input = QLineEdit()
-        self.year_name_input.setPlaceholderText("e.g. Year 1")
+        self.year_name_input.setPlaceholderText("e.g.: Year 1")
 
         self.target_credits_label = QLabel("Target Credits:")
         self.target_credits_input = QSpinBox()
@@ -68,4 +66,4 @@ class YearSetupScreen(QWidget):
                     Please add subjects instead.",
             )
         except Exception as e:
-            QMessageBox.critical(self, "DB Error", str(e))
+            QMessageBox.critical(self, "Database Error", str(e))

@@ -87,11 +87,7 @@ class TestAuthServiceSignUp:
         assert user.id is not None
 
         # Verify user was actually saved to database
-        db_user = (
-            test_db.query(User)
-            .filter(User.username == test_user_data["username"])
-            .first()
-        )
+        db_user = test_db.query(User).filter(User.username == test_user_data["username"]).first()
         assert db_user is not None
 
     def test_sign_up_creates_academic_years(self, test_db, test_user_data):
@@ -131,9 +127,7 @@ class TestAuthServiceSignUp:
 
     def test_sign_up_default_credit_requirements(self, test_db):
         """Test signup with default credit requirements."""
-        user = AuthService.sign_up(
-            test_db, "newuser", "password123", num_years=2
-        )
+        user = AuthService.sign_up(test_db, "newuser", "password123", num_years=2)
 
         db_user = test_db.query(User).filter(User.id == user.id).first()
         years = db_user.academic_years
@@ -175,9 +169,7 @@ class TestAuthServiceLogin:
         )
 
         with pytest.raises(ValueError, match="Invalid username or password"):
-            AuthService.login(
-                test_db, test_user_data["username"], "wrong_password"
-            )
+            AuthService.login(test_db, test_user_data["username"], "wrong_password")
 
     def test_login_nonexistent_user(self, test_db):
         """Test login with nonexistent user."""

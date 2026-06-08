@@ -8,9 +8,7 @@ from PyQt6.QtWidgets import (
     QWidget,
 )
 
-DATA_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "data", "universities.json"
-)
+DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "universities.json")
 
 
 class UniversityPicker(QWidget):
@@ -42,9 +40,7 @@ class UniversityPicker(QWidget):
         self.combo_box.addItem("Select your university...", userData=None)
         try:
             with open(DATA_PATH, "r") as f:
-                self._universities = json.load(
-                    f
-                )  # expects [{"id": 1, "name": "..."}]
+                self._universities = json.load(f)  # expects [{"id": 1, "name": "..."}]
             for uni in self._universities:
                 self.combo_box.addItem(uni["name"], userData=uni["id"])
         except FileNotFoundError:

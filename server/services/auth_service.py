@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
@@ -22,8 +22,7 @@ class AuthService:
     def create_access_token(user_id: int) -> str:
         payload = {
             "sub": str(user_id),
-            "exp": datetime.utcnow()
-            + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
         }
         return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -47,9 +46,7 @@ class AuthService:
         credit_requirements: list = None,
     ) -> UserResponse:
         # Check if user exists
-        existing_user = (
-            db.query(User).filter(User.username == username).first()
-        )
+        existing_user = db.query(User).filter(User.username == username).first()
         if existing_user:
             raise ValueError("Username already exists")
 
@@ -79,7 +76,7 @@ class AuthService:
 
             academic_year = AcademicYear(
                 user_id=user.id,
-                label=f"Anul {year_index}",
+                label=f"Year {year_index}",
                 order_index=year_index,
                 credit_requirement=credit_req,
             )
@@ -90,7 +87,7 @@ class AuthService:
             for sem_index in range(1, 3):
                 semester = Semester(
                     academic_year_id=academic_year.id,
-                    label=f"Semestrul {sem_index}",
+                    label=f"Semester {sem_index}",
                     order_index=sem_index,
                 )
                 db.add(semester)
@@ -104,9 +101,7 @@ class AuthService:
     def login(db: Session, username: str, password: str) -> UserResponse:
         user = db.query(User).filter(User.username == username).first()
 
-        if not user or not AuthService.verify_password(
-            password, user.password_hash
-        ):
+        if not user or not AuthService.verify_password(password, user.password_hash):
             raise ValueError("Invalid username or password")
 
         return UserResponse.from_orm(user)

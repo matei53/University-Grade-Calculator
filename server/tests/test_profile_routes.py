@@ -8,9 +8,7 @@ from fastapi import status
 class TestProfileRoutes:
     """Test profile API endpoints."""
 
-    def test_get_profile_success(
-        self, client, authenticated_headers, registered_user
-    ):
+    def test_get_profile_success(self, client, authenticated_headers, registered_user):
         """Test getting user profile."""
         response = client.get("/profile", headers=authenticated_headers)
 
@@ -43,9 +41,7 @@ class TestProfileRoutes:
         assert data["university_name"] is None
         assert data["major_name"] is None
 
-    def test_update_profile_university(
-        self, client, authenticated_headers, test_university
-    ):
+    def test_update_profile_university(self, client, authenticated_headers, test_university):
         """Test updating user profile with university."""
         response = client.put(
             "/profile",
@@ -63,9 +59,7 @@ class TestProfileRoutes:
         profile = get_response.json()
         assert profile["university_name"] == test_university.name
 
-    def test_update_profile_major(
-        self, client, authenticated_headers, test_major
-    ):
+    def test_update_profile_major(self, client, authenticated_headers, test_major):
         """Test updating user profile with major."""
         response = client.put(
             "/profile",
@@ -105,9 +99,7 @@ class TestProfileRoutes:
         assert profile["university_name"] == test_university.name
         assert profile["major_name"] == test_major.name
 
-    def test_update_profile_partial(
-        self, client, authenticated_headers, test_university
-    ):
+    def test_update_profile_partial(self, client, authenticated_headers, test_university):
         """Test partial profile update (only university)."""
         # First set both
         client.put(
@@ -126,23 +118,17 @@ class TestProfileRoutes:
 
     def test_update_profile_missing_auth(self, client, test_university):
         """Test updating profile without authentication."""
-        response = client.put(
-            "/profile", json={"university_id": test_university.id}
-        )
+        response = client.put("/profile", json={"university_id": test_university.id})
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_update_profile_empty(self, client, authenticated_headers):
         """Test updating profile with empty data."""
-        response = client.put(
-            "/profile", json={}, headers=authenticated_headers
-        )
+        response = client.put("/profile", json={}, headers=authenticated_headers)
 
         assert response.status_code == status.HTTP_200_OK
 
-    def test_update_profile_invalid_university(
-        self, client, authenticated_headers
-    ):
+    def test_update_profile_invalid_university(self, client, authenticated_headers):
         """Test updating profile with non-existent university."""
         # This might succeed but the university won't exist
         response = client.put(

@@ -3,9 +3,7 @@ import os
 
 from PyQt6.QtWidgets import QComboBox, QLineEdit, QVBoxLayout, QWidget
 
-DATA_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "data", "majors.json"
-)
+DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "majors.json")
 
 
 class MajorPicker(QWidget):

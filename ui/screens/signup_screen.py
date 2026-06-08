@@ -1,5 +1,5 @@
 # ui/screens/signup_screen.py
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QLabel,
     QLineEdit,
@@ -18,11 +18,75 @@ from ui.components.university_picker import UniversityPicker
 from ui.styles import AUTH_STYLE
 
 
+class _SignupWorker(QThread):
+    success = pyqtSignal(str, bool, bool)  # token, used_custom_uni, used_custom_major
+    failure = pyqtSignal(str)
+
+    def __init__(  # noqa: PLR0913
+        self,
+        username,
+        password,
+        num_years,
+        credit_requirements,
+        university_id,
+        major_id,
+        custom_university,
+        custom_major,
+    ):
+        super().__init__()
+        self._username = username
+        self._password = password
+        self._num_years = num_years
+        self._credits = credit_requirements
+        self._uni_id = university_id
+        self._major_id = major_id
+        self._custom_uni = custom_university
+        self._custom_major = custom_major
+
+    def run(self):  # noqa: C901
+        try:
+            auth = AuthService()
+
+            if self._custom_uni:
+                try:
+                    self._uni_id = DataService.add_university(self._custom_uni)
+                except ValueError as e:
+                    self.failure.emit(f"Error adding university: {e}")
+                    return
+
+            if self._custom_major:
+                try:
+                    self._major_id = DataService.add_major(self._custom_major)
+                except ValueError as e:
+                    self.failure.emit(f"Error adding major: {e}")
+                    return
+
+            response = auth.sign_up(self._username, self._password, self._num_years, self._credits)
+            token = response.get("access_token", "")
+            if token:
+                auth.client.token = token
+
+            if self._uni_id or self._major_id:
+                auth.client.update_profile(
+                    university_id=self._uni_id or None,
+                    major_id=self._major_id or None,
+                )
+
+            user_profile = auth.client.get_profile()
+            Session.login(
+                {"id": user_profile.get("id"), "username": self._username, "token": token}
+            )
+            self.success.emit(token, bool(self._custom_uni), bool(self._custom_major))
+        except ValueError as e:
+            self.failure.emit(str(e))
+
+
 class SignupScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
         self.auth_service = AuthService()
+        self._worker = None
         self.setStyleSheet(AUTH_STYLE)
         self.credit_requirement_inputs = []
         self._build_ui()
@@ -36,15 +100,11 @@ class SignupScreen(QWidget):
         # Title
         title = QLabel("UniGrade")
         title.setObjectName("AuthTitle")
-        self.main_layout.addWidget(
-            title, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(title, alignment=Qt.AlignmentFlag.AlignCenter)
 
         subtitle = QLabel("Create Account")
         subtitle.setObjectName("AuthSubtitle")
-        self.main_layout.addWidget(
-            subtitle, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(subtitle, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.main_layout.addSpacing(20)
 
@@ -100,22 +160,14 @@ class SignupScreen(QWidget):
             self.password_input,
             alignment=Qt.AlignmentFlag.AlignCenter,
         )
-        scroll_layout.addWidget(
-            self.confirm_input, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        scroll_layout.addWidget(self.confirm_input, alignment=Qt.AlignmentFlag.AlignCenter)
         scroll_layout.addWidget(
             self.university_picker,
             alignment=Qt.AlignmentFlag.AlignCenter,
         )
-        scroll_layout.addWidget(
-            self.major_picker, alignment=Qt.AlignmentFlag.AlignCenter
-        )
-        scroll_layout.addWidget(
-            years_label, alignment=Qt.AlignmentFlag.AlignCenter
-        )
-        scroll_layout.addWidget(
-            self.years_spinbox, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        scroll_layout.addWidget(self.major_picker, alignment=Qt.AlignmentFlag.AlignCenter)
+        scroll_layout.addWidget(years_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        scroll_layout.addWidget(self.years_spinbox, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Container for credit requirement inputs
         self.credit_container = QWidget()
@@ -136,28 +188,22 @@ class SignupScreen(QWidget):
         # Error label
         self.error_label = QLabel("")
         self.error_label.setObjectName("ErrorLabel")
-        self.main_layout.addWidget(
-            self.error_label, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(self.error_label, alignment=Qt.AlignmentFlag.AlignCenter)
 
         self.main_layout.addSpacing(10)
 
         # Buttons
-        signup_btn = QPushButton("Sign Up")
-        signup_btn.setObjectName("PrimaryButton")
-        signup_btn.setFixedWidth(300)
-        signup_btn.clicked.connect(self._handle_signup)
+        self.signup_btn = QPushButton("Sign Up")
+        self.signup_btn.setObjectName("PrimaryButton")
+        self.signup_btn.setFixedWidth(300)
+        self.signup_btn.clicked.connect(self._handle_signup)
 
         back_btn = QPushButton("Already have an account? Log In")
         back_btn.setObjectName("SecondaryLink")
         back_btn.clicked.connect(lambda: self.router.navigate("login"))
 
-        self.main_layout.addWidget(
-            signup_btn, alignment=Qt.AlignmentFlag.AlignCenter
-        )
-        self.main_layout.addWidget(
-            back_btn, alignment=Qt.AlignmentFlag.AlignCenter
-        )
+        self.main_layout.addWidget(self.signup_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.main_layout.addWidget(back_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
         # Initialize credit inputs
         self._update_credit_inputs()
@@ -185,12 +231,8 @@ class SignupScreen(QWidget):
             spinbox.setValue(60)
             spinbox.setFixedWidth(300)
 
-            self.credit_layout.addWidget(
-                year_label, alignment=Qt.AlignmentFlag.AlignCenter
-            )
-            self.credit_layout.addWidget(
-                spinbox, alignment=Qt.AlignmentFlag.AlignCenter
-            )
+            self.credit_layout.addWidget(year_label, alignment=Qt.AlignmentFlag.AlignCenter)
+            self.credit_layout.addWidget(spinbox, alignment=Qt.AlignmentFlag.AlignCenter)
             self.credit_requirement_inputs.append(spinbox)
 
     def _handle_signup(self):
@@ -201,74 +243,45 @@ class SignupScreen(QWidget):
         major_id = self.major_picker.selected_id()
         custom_university = self.university_picker.custom_input_value()
         custom_major = self.major_picker.custom_input_value()
-        num_years = self.years_spinbox.value()
-        credit_requirements = [
-            spinbox.value() for spinbox in self.credit_requirement_inputs
-        ]
 
         if password != confirm:
             self.error_label.setText("Passwords do not match.")
             return
-
-        # Validate that user selected or inputted a university and major
         if not university_id and not custom_university:
             self.error_label.setText("Please select or enter a university.")
             return
-
         if not major_id and not custom_major:
             self.error_label.setText("Please select or enter a major.")
             return
 
-        try:
-            # Handle custom university input
-            if custom_university:
-                try:
-                    university_id = DataService.add_university(
-                        custom_university
-                    )
-                    self.university_picker.reload_dropdown()
-                except ValueError as e:
-                    self.error_label.setText(
-                        f"Error adding university: {str(e)}"
-                    )
-                    return
+        self.error_label.setText("")
+        self.signup_btn.setEnabled(False)
+        self.signup_btn.setText("Creating account...")
 
-            # Handle custom major input
-            if custom_major:
-                try:
-                    major_id = DataService.add_major(custom_major)
-                    self.major_picker.reload_dropdown()
-                except ValueError as e:
-                    self.error_label.setText(f"Error adding major: {str(e)}")
-                    return
+        self._worker = _SignupWorker(
+            username,
+            password,
+            self.years_spinbox.value(),
+            [s.value() for s in self.credit_requirement_inputs],
+            university_id,
+            major_id,
+            custom_university,
+            custom_major,
+        )
+        self._worker.success.connect(self._on_signup_success)
+        self._worker.failure.connect(self._on_signup_failure)
+        self._worker.start()
 
-            # Sign up the user - this returns {"access_token": "..."}
-            response = self.auth_service.sign_up(
-                username, password, num_years, credit_requirements
-            )
+    def _on_signup_success(self, _token: str, used_custom_uni: bool, used_custom_major: bool):
+        if used_custom_uni:
+            self.university_picker.reload_dropdown()
+        if used_custom_major:
+            self.major_picker.reload_dropdown()
+        self.signup_btn.setEnabled(True)
+        self.signup_btn.setText("Sign Up")
+        self.router.navigate("dashboard")
 
-            # Extract and store the token
-            token = response.get("access_token")
-            if token:
-                self.auth_service.client.token = token
-
-            # Update user with university and major
-            if university_id or major_id:
-                self.auth_service.client.update_profile(
-                    university_id=(university_id if university_id else None),
-                    major_id=major_id if major_id else None,
-                )
-
-            # Store session info
-            user_profile = self.auth_service.client.get_profile()
-            Session.login(
-                {
-                    "id": user_profile.get("id"),
-                    "username": username,
-                    "token": token,
-                }
-            )
-            self.error_label.setText("")
-            self.router.navigate("dashboard")
-        except ValueError as e:
-            self.error_label.setText(str(e))
+    def _on_signup_failure(self, message: str):
+        self.error_label.setText(message)
+        self.signup_btn.setEnabled(True)
+        self.signup_btn.setText("Sign Up")

@@ -4,12 +4,8 @@ import sqlite3
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "..", "app.db")
 SCHEMA_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
-UNIVERSITIES_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "data", "universities.json"
-)
-MAJORS_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "data", "majors.json"
-)
+UNIVERSITIES_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "universities.json")
+MAJORS_PATH = os.path.join(os.path.dirname(__file__), "..", "data", "majors.json")
 
 
 def get_connection() -> sqlite3.Connection:
