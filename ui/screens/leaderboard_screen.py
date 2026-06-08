@@ -1,4 +1,4 @@
-from PyQt6.QtCore import Qt, QTimer
+from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -16,6 +16,38 @@ from client.api_client import APIClient
 from ui.styles import LEADERBOARD_STYLE
 
 
+class _LeaderboardLoadWorker(QThread):
+    finished = pyqtSignal(dict, object)  # data, visibility (None if not fetched)
+    error = pyqtSignal(str)
+
+    def __init__(self, api, year_level, search, page, page_size, fetch_visibility=False):
+        super().__init__()
+        self.api = api
+        self.year_level = year_level
+        self.search = search
+        self.page = page
+        self.page_size = page_size
+        self.fetch_visibility = fetch_visibility
+
+    def run(self):
+        try:
+            visibility = None
+            if self.fetch_visibility:
+                try:
+                    visibility = self.api.get_leaderboard_visibility()
+                except Exception:
+                    pass
+            data = self.api.get_leaderboard(
+                year_level=self.year_level,
+                search=self.search,
+                page=self.page,
+                page_size=self.page_size,
+            )
+            self.finished.emit(data, visibility)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class LeaderboardScreen(QWidget):
     PAGE_SIZE = 2
 
@@ -25,6 +57,7 @@ class LeaderboardScreen(QWidget):
         self.api = APIClient()
         self._current_page = 1
         self._selected_year: int | None = None
+        self._worker: _LeaderboardLoadWorker | None = None
         self._search_timer = QTimer(self)
         self._search_timer.setSingleShot(True)
         self._search_timer.setInterval(350)
@@ -185,14 +218,7 @@ class LeaderboardScreen(QWidget):
         self.search_input.blockSignals(True)
         self.search_input.clear()
         self.search_input.blockSignals(False)
-        try:
-            visible = self.api.get_leaderboard_visibility()
-            self.visibility_toggle.blockSignals(True)
-            self.visibility_toggle.setChecked(visible)
-            self.visibility_toggle.blockSignals(False)
-        except Exception as e:
-            print(f"Visibility error: {e}")
-        self._load_leaderboard(reset_year=True)
+        self._load_leaderboard(reset_year=True, fetch_visibility=True)
 
     def _on_visibility_changed(self, checked: bool):
         try:
@@ -230,17 +256,33 @@ class LeaderboardScreen(QWidget):
         self._current_page += 1
         self._load_leaderboard()
 
-    def _load_leaderboard(self, reset_year: bool = False):
-        try:
-            data = self.api.get_leaderboard(
-                year_level=self._selected_year,
-                search=self.search_input.text().strip() or None,
-                page=self._current_page,
-                page_size=self.PAGE_SIZE,
-            )
-        except Exception as e:
-            print(f"Leaderboard error: {e}")
-            return
+    def _load_leaderboard(self, reset_year: bool = False, fetch_visibility: bool = False):
+        if self._worker and self._worker.isRunning():
+            try:
+                self._worker.finished.disconnect()
+                self._worker.error.disconnect()
+            except Exception:
+                pass
+
+        self._worker = _LeaderboardLoadWorker(
+            self.api,
+            year_level=self._selected_year,
+            search=self.search_input.text().strip() or None,
+            page=self._current_page,
+            page_size=self.PAGE_SIZE,
+            fetch_visibility=fetch_visibility,
+        )
+        self._worker.finished.connect(
+            lambda data, vis: self._on_load_finished(data, vis, reset_year, fetch_visibility)
+        )
+        self._worker.error.connect(self._on_load_error)
+        self._worker.start()
+
+    def _on_load_finished(self, data: dict, visibility, reset_year: bool, had_visibility: bool):
+        if had_visibility and visibility is not None:
+            self.visibility_toggle.blockSignals(True)
+            self.visibility_toggle.setChecked(visibility)
+            self.visibility_toggle.blockSignals(False)
 
         if reset_year or self._selected_year is None:
             self._selected_year = data.get("filter_year_level") or data.get(
@@ -298,6 +340,9 @@ class LeaderboardScreen(QWidget):
         )
         self.prev_btn.setEnabled(page > 1)
         self.next_btn.setEnabled(total_pages > 0 and page < total_pages)
+
+    def _on_load_error(self, error_msg: str):
+        print(f"Leaderboard error: {error_msg}")
 
     def _populate_year_selector(self, data: dict, reset: bool):
         levels = data.get("available_year_levels") or [1]

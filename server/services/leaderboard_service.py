@@ -42,9 +42,9 @@ def _subject_grade(subject) -> float | None:
     has = False
     subject_max = float(subject.max_grade or 10.0)
     for assessment in subject.assessments:
-        if not assessment.grades:
+        if not assessment.grade:
             continue
-        score = assessment.grades[0].score
+        score = assessment.grade.score
         if score is None:
             continue
         has = True
