@@ -72,12 +72,8 @@ class DashboardScreen(QWidget):
             border-radius: 6px; padding: 6px;"
         )
         logout_btn.clicked.connect(self._handle_logout)
-<<<<<<< HEAD
         
         header_layout.addWidget(clasament_btn)  
-=======
-
->>>>>>> origin/dev
         header_layout.addWidget(add_subject_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
