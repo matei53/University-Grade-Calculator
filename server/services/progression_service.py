@@ -160,8 +160,7 @@ class ProgressionService:
                     if average_score >= subject.passing_grade:
                         credits_earned += subject.credit_value
 
-        year_total = academic_year.credit_requirement if academic_year.credit_requirement else total_credits
-        return credits_earned, year_total
+        return credits_earned, total_credits
 
     @staticmethod
     def calculate_cumulative_credits(db: Session, user_id: int, up_to_year: int) -> tuple[int, int]:

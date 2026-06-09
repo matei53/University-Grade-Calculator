@@ -5,17 +5,31 @@ credit passing percentage: Uses in-memory SQLite via the test_db fixture from co
 """
 
 # credit passing percentage: sys/os path manipulation removed — conftest.py handles it centrally
+import importlib
 import sys
 from unittest.mock import MagicMock
 import pytest
-from PyQt6.QtWidgets import QApplication, QMessageBox
-from ui.screens.progression_settings_screen import ProgressionSettingsScreen
-from models import AcademicYear, Assessment, Grade, Semester, Subject, User
-from services.progression_service import ProgressionService
+from server.models import AcademicYear, Assessment, Grade, Semester, Subject, User
+from server.services.progression_service import ProgressionService
+
+
+def _load_qt_widgets():
+    pytest.importorskip("PyQt6")
+    from PyQt6.QtWidgets import QApplication, QMessageBox
+
+    return QApplication, QMessageBox
+
+
+def _load_progression_settings_screen():
+    pytest.importorskip("PyQt6")
+    module = importlib.import_module("ui.screens.progression_settings_screen")
+    return module.ProgressionSettingsScreen
+
 
 # credit passing percentage: Define local qapp fixture for UI testing fallback
 @pytest.fixture(scope="session")
 def qapp():
+    QApplication, _ = _load_qt_widgets()
     app = QApplication.instance()
     if app is None:
         app = QApplication(sys.argv)
@@ -262,12 +276,14 @@ class TestProgressionSettingsScreen:
     # credit passing percentage: Suppress all QMessageBox dialogs so tests don't block waiting for user input
     @pytest.fixture(autouse=True)
     def disable_message_boxes(self, monkeypatch):
+        _, QMessageBox = _load_qt_widgets()
         monkeypatch.setattr(QMessageBox, "information", lambda *args, **kwargs: None)
         monkeypatch.setattr(QMessageBox, "warning", lambda *args, **kwargs: None)
         monkeypatch.setattr(QMessageBox, "critical", lambda *args, **kwargs: None)
 
     def test_load_eligibility_data_creates_requirement_cards(self, qapp):
         router = DummyRouter()
+        ProgressionSettingsScreen = _load_progression_settings_screen()
         screen = ProgressionSettingsScreen(router)
         mock_client = MagicMock()
         mock_client.get_all_year_eligibility.return_value = [
@@ -293,6 +309,7 @@ class TestProgressionSettingsScreen:
 
     def test_save_all_requirements_calls_api_and_refreshes(self, qapp):
         router = DummyRouter()
+        ProgressionSettingsScreen = _load_progression_settings_screen()
         screen = ProgressionSettingsScreen(router)
         mock_client = MagicMock()
         mock_client.get_all_year_eligibility.return_value = [
@@ -326,6 +343,7 @@ class TestProgressionSettingsScreen:
 
     def test_exit_to_dashboard_uses_router(self, qapp):
         router = DummyRouter()
+        ProgressionSettingsScreen = _load_progression_settings_screen()
         screen = ProgressionSettingsScreen(router)
 
         screen.exit_to_dashboard()
@@ -335,6 +353,7 @@ class TestProgressionSettingsScreen:
     # credit passing percentage: Extra test: partial API failure should still call load_eligibility_data
     def test_save_partial_failure_still_refreshes(self, qapp):
         router = DummyRouter()
+        ProgressionSettingsScreen = _load_progression_settings_screen()
         screen = ProgressionSettingsScreen(router)
         mock_client = MagicMock()
         mock_client.get_all_year_eligibility.return_value = [
