@@ -92,13 +92,16 @@ class DashboardScreen(QWidget):
         self._grad_worker: Optional[_GradDataWorker] = None
         self._dash_worker: Optional[_DashboardLoadWorker] = None
         self._grad_data_loaded: bool = False
-        # credit passing percentage: Store eligibility data for display
+        
+        self._eligibility_worker: Optional[QThread] = None
         self.eligibility_data: list = []
+        
         self.api_client = APIClient()
         self._grad_service = GraduationService()
         self.setStyleSheet(DASHBOARD_STYLE)
         self._build_ui()
 
+    
     # ------------------------------------------------------------------
     # UI construction
     # ------------------------------------------------------------------
@@ -131,7 +134,7 @@ class DashboardScreen(QWidget):
         add_subject_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
 
         # credit passing percentage: Add progression settings button
-        progression_btn = QPushButton("📊 Progression")
+        progression_btn = QPushButton("Progression")
         progression_btn.setFixedWidth(140)
         progression_btn.setStyleSheet(
             "background-color: #A8C686; color: #0A0D08; font-weight: bold; "
