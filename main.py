@@ -9,6 +9,7 @@ from ui.app import AppRouter
 from ui.screens.dashboard_screen import DashboardScreen
 from ui.screens.graduation_screen import GraduationScreen
 from ui.screens.login_screen import LoginScreen
+from ui.screens.profile_screen import ProfileScreen
 from ui.screens.signup_screen import SignupScreen
 from ui.screens.simulator_screen import SimulatorScreen
 from ui.screens.subject_screen import SubjectScreen
@@ -23,7 +24,7 @@ def check_server_connection():
         import requests
 
         # Try accessing a public endpoint (uni list doesn't require auth)
-        response = requests.get("http://localhost:8000/profile/universities", timeout=2)
+        response = requests.get("http://localhost:8000/health", timeout=2)
         return response.status_code == 200
     except Exception:
         # Server is likely not running
@@ -59,8 +60,7 @@ def main():
     subject_setup = SubjectScreen(router)
     simulator = SimulatorScreen(router)
     graduation = GraduationScreen(router)
-    # credit passing percentage: Create progression settings screen
-    progression_settings = ProgressionSettingsScreen(router)
+    profile = ProfileScreen(router)
 
     # Inject API client into simulator
     simulator.set_api_client_instance(api_client)
@@ -72,8 +72,7 @@ def main():
     router.register("subject_setup", subject_setup)
     router.register("simulator", simulator)
     router.register("graduation", graduation)
-    # credit passing percentage: Register progression settings route
-    router.register("progression_settings", progression_settings)
+    router.register("profile", profile)
 
     # Initial View
     router.navigate("login")

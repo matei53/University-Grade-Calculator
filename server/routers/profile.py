@@ -1,15 +1,18 @@
-from dependencies import get_current_user
+from server.dependencies import get_current_user
 from fastapi import APIRouter, Depends
-from schemas import (
+from server.schemas import (
+    CreateMajorRequest,
+    CreateUniversityRequest,
     MajorResponse,
     UniversityResponse,
     UpdateProfileRequest,
     UserProfile,
 )
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Major, University, User
+from server.database import get_db
+from server.models import Major, University, User
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
@@ -60,11 +63,50 @@ def update_profile(
     return {"message": "Profile updated"}
 
 
+@router.delete("", status_code=204)
+def delete_profile(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    db.delete(current_user)
+    db.commit()
+
+
 @router.get("/universities", response_model=list[UniversityResponse])
 def get_universities(db: Session = Depends(get_db)):
     return db.query(University).all()
 
 
+@router.post("/universities", response_model=UniversityResponse)
+def create_university(
+    data: CreateUniversityRequest,
+    db: Session = Depends(get_db),
+):
+    existing = db.query(University).filter(func.lower(University.name) == func.lower(data.name)).first()
+    if existing:
+        return existing
+    university = University(name=data.name)
+    db.add(university)
+    db.commit()
+    db.refresh(university)
+    return university
+
+
 @router.get("/majors", response_model=list[MajorResponse])
 def get_majors(db: Session = Depends(get_db)):
     return db.query(Major).all()
+
+
+@router.post("/majors", response_model=MajorResponse)
+def create_major(
+    data: CreateMajorRequest,
+    db: Session = Depends(get_db),
+):
+    existing = db.query(Major).filter(func.lower(Major.name) == func.lower(data.name)).first()
+    if existing:
+        return existing
+    major = Major(name=data.name)
+    db.add(major)
+    db.commit()
+    db.refresh(major)
+    return major

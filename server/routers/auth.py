@@ -1,11 +1,11 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from schemas import Token, UserLogin, UserRegister
+from server.schemas import Token, UserLogin, UserRegister
 from sqlalchemy.orm import Session
 
-from database import get_db
-from services.auth_service import AuthService
+from server.database import get_db
+from server.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

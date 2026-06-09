@@ -42,6 +42,14 @@ class UserProfile(BaseModel):
 
 
 # University/Major
+class CreateUniversityRequest(BaseModel):
+    name: str
+
+
+class CreateMajorRequest(BaseModel):
+    name: str
+
+
 class UniversityResponse(BaseModel):
     id: int
     name: str
@@ -77,6 +85,15 @@ class SubjectRequest(BaseModel):
     max_grade: float = 10.0
 
 
+class SubjectUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    credits: Optional[int] = None
+    semester_index: Optional[int] = None
+    year_level: Optional[int] = None
+    passing_grade: Optional[float] = None
+    max_grade: Optional[float] = None
+
+
 class SubjectResponse(BaseModel):
     id: int
     name: str
@@ -107,9 +124,16 @@ class AcademicYearResponse(BaseModel):
 class AssessmentRequest(BaseModel):
     name: str
     weight: float
-    score: float
+    score: Optional[float] = None
     max_score: float = 10.0
     passing_grade: float = 5.0
+
+
+class AssessmentUpdateRequest(BaseModel):
+    name: Optional[str] = None
+    weight: Optional[float] = None
+    max_score: Optional[float] = None
+    passing_grade: Optional[float] = None
 
 
 class GradeResponse(BaseModel):
@@ -118,6 +142,10 @@ class GradeResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class UpdateGradeRequest(BaseModel):
+    score: Optional[float] = None
 
 
 class AssessmentResponse(BaseModel):

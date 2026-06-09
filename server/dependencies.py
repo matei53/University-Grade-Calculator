@@ -3,9 +3,9 @@ from typing import Optional
 from fastapi import Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import User
-from services.auth_service import AuthService
+from server.database import get_db
+from server.models import User
+from server.services.auth_service import AuthService
 
 
 async def get_current_user(
