@@ -20,7 +20,7 @@ This project follows a clean, layered architecture separating the database model
 #### 🗄️ Database Environment Configuration
 * **Production Environment:** Built using a robust **PostgreSQL** database. 
 * **Testing & CI/CD Pipeline:** Used **SQLite** for testing. 
-* 
+
 <img width="1583" height="1087" alt="Class diagram 2" src="https://github.com/user-attachments/assets/c1918c53-4331-47de-a4cd-ad110ee01959" />
 
 ---
