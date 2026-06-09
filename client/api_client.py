@@ -381,7 +381,7 @@ class APIClient:
         subject_id: int,
         name: str,
         weight: float,
-        score: float,
+        score: Optional[float] = None,
         max_score: float = 10.0,
         passing_grade: float = 5.0,
     ) -> Dict[str, Any]:

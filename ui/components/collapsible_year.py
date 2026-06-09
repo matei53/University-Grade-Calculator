@@ -1,5 +1,4 @@
 from PyQt6.QtCore import Qt
-import threading
 from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
@@ -36,8 +35,8 @@ class EditSubjectDialog(QDialog):
         self.deleted_assessment_ids = []
         self.setWindowTitle("Edit Subject")
         # Increase dialog size to avoid cramped layout
-        self.setMinimumWidth(650)
-        self.resize(650, 500)
+        self.setMinimumWidth(720)
+        self.resize(720, 560)
 
         self._load_year_options()
 
@@ -80,25 +79,44 @@ class EditSubjectDialog(QDialog):
 
         layout.addLayout(form)
 
+        # "ASSESSMENTS" on the left, running weight total on the right
+        section_header_row = QHBoxLayout()
         assessment_header = QLabel("ASSESSMENTS")
         assessment_header.setStyleSheet(
             "color: #2D4B1D; font-weight: bold; font-size: 11px; letter-spacing: 1px;"
         )
-        layout.addWidget(assessment_header)
-
         self.weight_status_label = QLabel("Total Weight: 0.0%")
         self.weight_status_label.setStyleSheet("color: #D32F2F; font-weight: bold; font-size: 12px;")
-        layout.addWidget(self.weight_status_label)
+        section_header_row.addWidget(assessment_header)
+        section_header_row.addStretch()
+        section_header_row.addWidget(self.weight_status_label)
+        layout.addLayout(section_header_row)
+
+        # Column headers — widths mirror the fixed widths used in add_assessment_row
+        col_header_widget = QWidget()
+        col_header_layout = QHBoxLayout(col_header_widget)
+        col_header_layout.setContentsMargins(0, 0, 0, 0)
+        col_header_layout.setSpacing(6)
+        name_col_hdr = QLabel("Name")
+        name_col_hdr.setStyleSheet("color: #555; font-size: 10px; font-weight: bold;")
+        col_header_layout.addWidget(name_col_hdr, 1)
+        for col_text, col_w in [("Weight", 80), ("Grade", 80), ("Max Score", 80), ("Min. Pass", 80), ("", 30)]:
+            lbl = QLabel(col_text)
+            lbl.setStyleSheet("color: #555; font-size: 10px; font-weight: bold;")
+            lbl.setFixedWidth(col_w)
+            col_header_layout.addWidget(lbl)
+        layout.addWidget(col_header_widget)
 
         self.assessments_container = QScrollArea()
         self.assessments_container.setWidgetResizable(True)
-        self.assessments_container.setFixedHeight(220)
-        # Disable horizontal scrollbar to avoid awkward horizontal scrolling
+        self.assessments_container.setFixedHeight(200)
         self.assessments_container.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.assessments_container.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         assessments_widget = QWidget()
         self.assessments_layout = QVBoxLayout(assessments_widget)
-        self.assessments_layout.setContentsMargins(0, 0, 0, 0)
-        self.assessments_layout.setSpacing(10)
+        self.assessments_layout.setContentsMargins(0, 2, 0, 2)
+        self.assessments_layout.setSpacing(8)
+        self.assessments_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.assessments_container.setWidget(assessments_widget)
         layout.addWidget(self.assessments_container)
 
@@ -173,33 +191,29 @@ class EditSubjectDialog(QDialog):
     def add_assessment_row(self, assessment_data=None):
         row = AssessmentRow()
         row.name_input.setPlaceholderText("Name (e.g. Exam)")
-        row.weight_input.setPrefix("Weight: ")
+        # Clear verbose embedded prefixes — the column headers above provide context
+        row.weight_input.setPrefix("")
         row.weight_input.setSuffix(" %")
-        row.score_input.setPrefix("Grade: ")
-        row.max_score_input.setPrefix("Out of: ")
-        row.passing_grade_input.setPrefix("Min. score: ")
+        row.score_input.setPrefix("")
+        row.max_score_input.setPrefix("")
+        row.passing_grade_input.setPrefix("")
+        # Fixed widths keep every row's columns aligned under the headers
+        row.weight_input.setFixedWidth(80)
+        row.score_input.setFixedWidth(80)
+        row.max_score_input.setFixedWidth(80)
+        row.passing_grade_input.setFixedWidth(80)
+        row.remove_btn.setFixedWidth(30)
+        if row.layout():
+            row.layout().setSpacing(6)
         row.remove_requested.connect(self.remove_assessment_row)
         row.weight_changed.connect(self._update_weight_status)
         row.score_changed.connect(self._update_weight_status)
 
-        # Ensure name field is never compressed below a readable width
-        try:
-            row.name_input.setMinimumWidth(150)
-            # reduce internal spacing so numeric widgets don't push name out
-            if row.layout():
-                row.layout().setSpacing(6)
-            # constrain numeric spinboxes to compact widths
-            row.weight_input.setMaximumWidth(120)
-            row.score_input.setMaximumWidth(120)
-            row.max_score_input.setMaximumWidth(120)
-            row.passing_grade_input.setMaximumWidth(120)
-        except Exception:
-            pass
-
         if assessment_data:
             row.name_input.setText(assessment_data.get("name", ""))
             row.weight_input.setValue(float(assessment_data.get("weight", 0.0)))
-            row.score_input.setValue(float(assessment_data.get("grade_score") or 0.0))
+            grade_score = assessment_data.get("grade_score")
+            row.score_input.setValue(-1.0 if grade_score is None else float(grade_score))
             row.max_score_input.setValue(float(assessment_data.get("max_score", 10.0)))
             row.passing_grade_input.setValue(float(assessment_data.get("passing_grade", 5.0)))
             row.assessment_id = assessment_data.get("id")
@@ -249,7 +263,7 @@ class EditSubjectDialog(QDialog):
                     "grade_id": getattr(row, "grade_id", None),
                     "name": row.name_input.text().strip(),
                     "weight": float(row.weight_input.value()),
-                    "score": float(row.score_input.value()),
+                    "score": None if row.score_input.value() < 0 else float(row.score_input.value()),
                     "max_score": float(row.max_score_input.value()),
                     "passing_grade": float(row.passing_grade_input.value()),
                 }
@@ -342,18 +356,12 @@ class EditSubjectDialog(QDialog):
                 except Exception:
                     pass
 
-            # Trigger the heavier refresh asynchronously so the UI stays responsive.
             if self.refresh_callback:
                 try:
-                    threading.Thread(target=self.refresh_callback, daemon=True).start()
+                    self.refresh_callback()
                 except Exception:
-                    # fall back to calling it directly if threading fails
-                    try:
-                        self.refresh_callback()
-                    except Exception:
-                        pass
-                # prevent double-calling from closeEvent
-                self.refresh_callback = None
+                    pass
+                self.refresh_callback = None  # prevent double-call from closeEvent
 
             QMessageBox.information(self, "Deleted", "Subject has been deleted.")
             self.accept()

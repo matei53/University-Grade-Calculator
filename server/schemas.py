@@ -116,7 +116,7 @@ class AcademicYearResponse(BaseModel):
 class AssessmentRequest(BaseModel):
     name: str
     weight: float
-    score: float
+    score: Optional[float] = None
     max_score: float = 10.0
     passing_grade: float = 5.0
 

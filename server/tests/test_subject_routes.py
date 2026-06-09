@@ -359,3 +359,64 @@ class TestAssessmentRoutes:
         subject = years[0]["subjects"][0]
         assert len(subject["assessments"]) > 0
         assert subject["assessments"][0]["name"] == "Essay"
+
+    def test_add_assessment_without_score_creates_ungraded(self, client, authenticated_headers):
+        """Omitting score should create an assessment whose grade.score is null."""
+        subject_response = client.post(
+            "/subjects",
+            json={"name": "Statistics", "credits": 4, "semester_index": 1, "year_level": 1},
+            headers=authenticated_headers,
+        )
+        subject_id = subject_response.json()["id"]
+
+        response = client.post(
+            f"/assessments/{subject_id}",
+            json={"name": "Final Exam", "weight": 1.0},
+            headers=authenticated_headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["grade"]["score"] is None
+
+    def test_add_assessment_explicit_null_score_creates_ungraded(self, client, authenticated_headers):
+        """Explicitly passing score=null should also create an ungraded assessment."""
+        subject_response = client.post(
+            "/subjects",
+            json={"name": "Philosophy", "credits": 3, "semester_index": 1, "year_level": 1},
+            headers=authenticated_headers,
+        )
+        subject_id = subject_response.json()["id"]
+
+        response = client.post(
+            f"/assessments/{subject_id}",
+            json={"name": "Essay", "weight": 1.0, "score": None},
+            headers=authenticated_headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["grade"]["score"] is None
+
+    def test_update_grade_to_null_clears_score(self, client, authenticated_headers):
+        """Updating a grade with score=null should mark it ungraded."""
+        subject_response = client.post(
+            "/subjects",
+            json={"name": "Chemistry", "credits": 5, "semester_index": 1, "year_level": 1},
+            headers=authenticated_headers,
+        )
+        subject_id = subject_response.json()["id"]
+
+        assessment_response = client.post(
+            f"/assessments/{subject_id}",
+            json={"name": "Lab", "weight": 1.0, "score": 8.0},
+            headers=authenticated_headers,
+        )
+        grade_id = assessment_response.json()["grade"]["id"]
+
+        update_response = client.put(
+            f"/grades/{grade_id}",
+            json={"score": None},
+            headers=authenticated_headers,
+        )
+
+        assert update_response.status_code == status.HTTP_200_OK
+        assert update_response.json()["score"] is None

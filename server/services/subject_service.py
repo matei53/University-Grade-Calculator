@@ -163,7 +163,7 @@ class AssessmentService:
         subject_id: int,
         name: str,
         weight: float,
-        score: float,
+        score: Optional[float] = None,
         max_score: float = 10.0,
         passing_grade: float = 5.0,
     ) -> AssessmentResponse:
@@ -177,7 +177,7 @@ class AssessmentService:
         db.add(assessment)
         db.flush()
 
-        grade = Grade(assessment_id=assessment.id, score=score)
+        grade = Grade(assessment_id=assessment.id, score=score)  # score=None → ungraded
         db.add(grade)
         db.commit()
         db.refresh(assessment)
