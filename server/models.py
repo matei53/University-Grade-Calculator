@@ -1,95 +1,211 @@
-from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Text
-from sqlalchemy.orm import relationship
-from datetime import datetime
-from database import Base
+from __future__ import annotations
+
+from datetime import datetime, timezone
+
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from server.database import Base
+
 
 class University(Base):
     __tablename__ = "universities"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
-    
-    users = relationship("User", back_populates="university")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+
+    users: Mapped[list[User]] = relationship(back_populates="university")
+
 
 class Major(Base):
     __tablename__ = "majors"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, nullable=False)
-    
-    users = relationship("User", back_populates="major")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+
+    users: Mapped[list[User]] = relationship(back_populates="major")
+
 
 class User(Base):
     __tablename__ = "users"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, nullable=False, index=True)
-    password_hash = Column(String, nullable=False)
-    university_id = Column(Integer, ForeignKey("universities.id"), nullable=True)
-    major_id = Column(Integer, ForeignKey("majors.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
-    university = relationship("University", back_populates="users")
-    major = relationship("Major", back_populates="users")
-    academic_years = relationship("AcademicYear", back_populates="user", cascade="all, delete-orphan")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    username: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String, nullable=False)
+    university_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("universities.id"), nullable=True
+    )
+    major_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("majors.id"), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
+    leaderboard_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+
+    university: Mapped[University | None] = relationship(back_populates="users")
+    major: Mapped[Major | None] = relationship(back_populates="users")
+    academic_years: Mapped[list[AcademicYear]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    graduation_settings: Mapped[GraduationSettings | None] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+    final_assessments: Mapped[list[FinalAssessment]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+    # credit passing percentage
+    progression_requirements: Mapped[list[YearProgressionRequirement]] = relationship(
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
 
 class AcademicYear(Base):
     __tablename__ = "academic_years"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    label = Column(String, nullable=False)
-    order_index = Column(Integer, nullable=False)
-    credit_requirement = Column(Integer, nullable=True)
-    
-    user = relationship("User", back_populates="academic_years")
-    semesters = relationship("Semester", back_populates="academic_year", cascade="all, delete-orphan")
-    subjects = relationship("Subject", back_populates="academic_year", cascade="all, delete-orphan")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    label: Mapped[str] = mapped_column(String, nullable=False)
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    credit_requirement: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    user: Mapped[User] = relationship(back_populates="academic_years")
+    semesters: Mapped[list[Semester]] = relationship(
+        back_populates="academic_year",
+        cascade="all, delete-orphan",
+    )
+    subjects: Mapped[list[Subject]] = relationship(
+        back_populates="academic_year",
+        cascade="all, delete-orphan",
+    )
+
 
 class Semester(Base):
     __tablename__ = "semesters"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    academic_year_id = Column(Integer, ForeignKey("academic_years.id"), nullable=False)
-    label = Column(String, nullable=False)
-    order_index = Column(Integer, nullable=False)
-    
-    academic_year = relationship("AcademicYear", back_populates="semesters")
-    subjects = relationship("Subject", back_populates="semester")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    academic_year_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("academic_years.id"), nullable=False
+    )
+    label: Mapped[str] = mapped_column(String, nullable=False)
+    order_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
+    academic_year: Mapped[AcademicYear] = relationship(back_populates="semesters")
+    subjects: Mapped[list[Subject]] = relationship(back_populates="semester")
+
 
 class Subject(Base):
     __tablename__ = "subjects"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    semester_id = Column(Integer, ForeignKey("semesters.id"), nullable=False)
-    academic_year_id = Column(Integer, ForeignKey("academic_years.id"), nullable=False)
-    name = Column(String, nullable=False)
-    credit_value = Column(Integer, nullable=False)
-    passing_grade = Column(Float, default=5.0)
-    max_grade = Column(Float, default=10.0)
-    
-    semester = relationship("Semester", back_populates="subjects")
-    academic_year = relationship("AcademicYear", back_populates="subjects")
-    assessments = relationship("Assessment", back_populates="subject", cascade="all, delete-orphan")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    semester_id: Mapped[int] = mapped_column(Integer, ForeignKey("semesters.id"), nullable=False)
+    academic_year_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("academic_years.id"), nullable=False
+    )
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    credit_value: Mapped[int] = mapped_column(Integer, nullable=False)
+    passing_grade: Mapped[float] = mapped_column(Float, default=5.0)
+    max_grade: Mapped[float] = mapped_column(Float, default=10.0)
+
+    semester: Mapped[Semester] = relationship(back_populates="subjects")
+    academic_year: Mapped[AcademicYear] = relationship(back_populates="subjects")
+    assessments: Mapped[list[Assessment]] = relationship(
+        back_populates="subject",
+        cascade="all, delete-orphan",
+    )
+
 
 class Assessment(Base):
     __tablename__ = "assessments"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    subject_id = Column(Integer, ForeignKey("subjects.id"), nullable=False)
-    name = Column(String, nullable=False)
-    weight = Column(Float, nullable=False)
-    max_score = Column(Float, default=10.0)
-    passing_grade = Column(Float, default=5.0)
-    
-    subject = relationship("Subject", back_populates="assessments")
-    grades = relationship("Grade", back_populates="assessment", cascade="all, delete-orphan")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    subject_id: Mapped[int] = mapped_column(Integer, ForeignKey("subjects.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    weight: Mapped[float] = mapped_column(Float, nullable=False)
+    max_score: Mapped[float] = mapped_column(Float, default=10.0)
+    passing_grade: Mapped[float] = mapped_column(Float, default=5.0)
+
+    subject: Mapped[Subject] = relationship(back_populates="assessments")
+    grade: Mapped[Grade | None] = relationship(
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
 
 class Grade(Base):
     __tablename__ = "grades"
-    
-    id = Column(Integer, primary_key=True, index=True)
-    assessment_id = Column(Integer, ForeignKey("assessments.id"), nullable=False, unique=True)
-    score = Column(Float, nullable=True)
-    
-    assessment = relationship("Assessment", back_populates="grades")
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    assessment_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("assessments.id"),
+        nullable=False,
+        unique=True,
+    )
+    score: Mapped[float] = mapped_column(Float, nullable=True)
+
+    assessment: Mapped[Assessment] = relationship(back_populates="grade")
+
+
+class GraduationSettings(Base):
+    __tablename__ = "graduation_settings"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("users.id"), nullable=False, unique=True
+    )
+    subject_average_weight: Mapped[float] = mapped_column(Float, default=100.0)
+    max_grade: Mapped[float] = mapped_column(Float, default=10.0)
+
+    user: Mapped[User] = relationship(back_populates="graduation_settings")
+
+
+class FinalAssessment(Base):
+    __tablename__ = "final_assessments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    weight: Mapped[float] = mapped_column(Float, nullable=False, default=0.0)
+    max_score: Mapped[float] = mapped_column(Float, default=10.0)
+    passing_grade: Mapped[float] = mapped_column(Float, default=5.0)
+
+    user: Mapped[User] = relationship(back_populates="final_assessments")
+    grade: Mapped[FinalAssessmentGrade | None] = relationship(
+        back_populates="assessment",
+        cascade="all, delete-orphan",
+        uselist=False,
+    )
+
+
+class FinalAssessmentGrade(Base):
+    __tablename__ = "final_assessment_grades"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    final_assessment_id: Mapped[int] = mapped_column(
+        Integer,
+        ForeignKey("final_assessments.id"),
+        nullable=False,
+        unique=True,
+    )
+    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+
+    assessment: Mapped[FinalAssessment] = relationship(back_populates="grade")
+
+
+# credit passing percentage
+class YearProgressionRequirement(Base):
+    __tablename__ = "year_progression_requirements"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"), nullable=False)
+    target_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    credit_percentage: Mapped[float] = mapped_column(Float, default=70.0)
+    cumulative: Mapped[bool] = mapped_column(Boolean, default=False)
+
+    user: Mapped[User] = relationship(back_populates="progression_requirements")

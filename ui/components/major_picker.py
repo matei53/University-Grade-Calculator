@@ -1,9 +1,7 @@
-import json
-import os
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QComboBox, QLineEdit
-from PyQt6.QtCore import Qt
+from PyQt6.QtWidgets import QComboBox, QLineEdit, QVBoxLayout, QWidget
 
-DATA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "majors.json")
+from services.data_service import DataService
+
 
 class MajorPicker(QWidget):
     def __init__(self):
@@ -31,13 +29,8 @@ class MajorPicker(QWidget):
 
     def _load_dropdown(self):
         self.combo_box.addItem("Select your major...", userData=None)
-        try:
-            with open(DATA_PATH, "r") as f:
-                majors = json.load(f)
-            for major in majors:
-                self.combo_box.addItem(major["name"], userData=major["id"])
-        except FileNotFoundError:
-            pass
+        for major in DataService.get_majors():
+            self.combo_box.addItem(major["name"], userData=major["id"])
 
     def _on_combo_changed(self):
         """When dropdown selection changes, clear custom input."""
@@ -70,9 +63,8 @@ class MajorPicker(QWidget):
         return self._custom_input if self._custom_input else None
 
     def reload_dropdown(self):
-        """Reload the dropdown with latest data from JSON."""
+        """Reload the dropdown with latest data from the API."""
         self.combo_box.blockSignals(True)
-        current_index = self.combo_box.currentIndex()
         self.combo_box.clear()
         self._load_dropdown()
         self.combo_box.setCurrentIndex(0)  # Reset to placeholder

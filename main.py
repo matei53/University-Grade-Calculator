@@ -1,28 +1,37 @@
-import sys
 import os
+import sys
+
 from dotenv import load_dotenv
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
-# Internal Imports
-from ui.app import AppRouter
-from ui.screens.login_screen import LoginScreen
-from ui.screens.signup_screen import SignupScreen
-from ui.screens.dashboard_screen import DashboardScreen
-from ui.screens.subject_screen import SubjectScreen
+sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from client.api_client import APIClient
+from ui.app import AppRouter
+from ui.screens.dashboard_screen import DashboardScreen
+from ui.screens.graduation_screen import GraduationScreen
+from ui.screens.leaderboard_screen import LeaderboardScreen
+from ui.screens.login_screen import LoginScreen
+from ui.screens.profile_screen import ProfileScreen
+from ui.screens.progression_settings_screen import ProgressionSettingsScreen
+from ui.screens.signup_screen import SignupScreen
+from ui.screens.simulator_screen import SimulatorScreen
+from ui.screens.subject_screen import SubjectScreen
 
 load_dotenv()
+
 
 def check_server_connection():
     """Verify that the API server is running"""
     try:
         import requests
-        # Try to access a public endpoint (universities list doesn't require auth)
-        response = requests.get("http://localhost:8000/profile/universities", timeout=2)
+
+        # Try accessing a public endpoint (uni list doesn't require auth)
+        response = requests.get("http://localhost:8000/health", timeout=2)
         return response.status_code == 200
     except Exception:
         # Server is likely not running
         return False
+
 
 def main():
     # Check if server is running
@@ -35,31 +44,48 @@ def main():
             "Cannot connect to the API server.\n\n"
             "Make sure the FastAPI server is running:\n"
             "python server/main.py\n\n"
-            "Or run: uvicorn server.main:app --reload"
+            "Or run: uvicorn server.main:app --reload",
         )
         sys.exit(1)
-    
+
     app = QApplication(sys.argv)
     app.setApplicationName("UniGrade")
     router = AppRouter()
+
+    # Create shared API client
+    api_client = APIClient()
 
     # Screens
     login = LoginScreen(router)
     signup = SignupScreen(router)
     dashboard = DashboardScreen(router)
-    subject_setup = SubjectScreen(router) 
+    subject_setup = SubjectScreen(router)
+    leaderboard = LeaderboardScreen(router)
+    router.register("leaderboard", leaderboard)
+    progression_settings = ProgressionSettingsScreen(router)
+    router.register("progression_settings", progression_settings)
+    simulator = SimulatorScreen(router)
+    graduation = GraduationScreen(router)
+    profile = ProfileScreen(router)
+
+    # Inject API client into simulator
+    simulator.set_api_client_instance(api_client)
 
     # Routes
     router.register("login", login)
     router.register("signup", signup)
     router.register("dashboard", dashboard)
-    router.register("subject_setup", subject_setup) 
+    router.register("subject_setup", subject_setup)
+    router.register("simulator", simulator)
+    router.register("graduation", graduation)
+    router.register("profile", profile)
 
     # Initial View
     router.navigate("login")
-    
+
     router.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()

@@ -1,10 +1,17 @@
 from client.api_client import APIClient
 
+
 class AuthService:
     def __init__(self):
         self.client = APIClient()
 
-    def sign_up(self, username: str, password: str, num_years: int = 3, credit_requirements: list = None) -> dict:
+    def sign_up(
+        self,
+        username: str,
+        password: str,
+        num_years: int = 3,
+        credit_requirements: list = None,
+    ) -> dict:
         try:
             user = self.client.register(username, password, num_years, credit_requirements)
             return user
@@ -21,7 +28,7 @@ class AuthService:
             return {
                 "id": self.client.user_id,
                 "username": profile.get("username"),
-                "token": token
+                "token": token,
             }
         except ValueError as e:
             raise ValueError(str(e))

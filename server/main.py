@@ -1,46 +1,76 @@
+import os
+import sys
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Header, Depends
+from typing import Any
+
+# Ensure both the server directory and the repo root are on sys.path so that
+# this module can be imported as `server.main` (uvicorn) or as `main` (pytest).
+_SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR = os.path.abspath(os.path.join(_SERVER_DIR, ".."))
+for _p in (_SERVER_DIR, _ROOT_DIR):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
+
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from database import engine, Base, SessionLocal, get_db
-from models import University, Major, User, AcademicYear, Subject
-from routers import auth, profile, subjects, assessments
-from dependencies import get_current_user
-import json
-import os
 
-# Create tables
-Base.metadata.create_all(bind=engine)
+from server.database import Base, SessionLocal, engine, get_db
+from server.dependencies import get_current_user
+from server.models import AcademicYear, Major, Subject, University, User
+from server.routers import (
+    assessments,
+    auth,
+    grades,
+    graduation,
+    leaderboard,
+    profile,
+    progression,
+    subjects,
+)
+
+_SEED_UNIVERSITIES = [
+    "University of Bucharest",
+    "Polytechnic University",
+    "UBB",
+]
+
+_SEED_MAJORS = [
+    "Computer Science",
+    "Law",
+    "Medicine",
+    "Economics",
+    "Mathematics",
+    "Physics",
+    "Psychology",
+    "Architecture",
+    "Political Science",
+    "Business Administration",
+    "Geography",
+]
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(_app: FastAPI):
     """Manage startup and shutdown events"""
     # Startup
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # Check if universities exist
         if db.query(University).count() == 0:
-            data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-            with open(os.path.join(data_dir, "universities.json"), "r") as f:
-                universities = json.load(f)
-            for uni in universities:
-                db.add(University(name=uni["name"]))
-        
-        # Check if majors exist
+            for name in _SEED_UNIVERSITIES:
+                db.add(University(name=name))
+
         if db.query(Major).count() == 0:
-            data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-            with open(os.path.join(data_dir, "majors.json"), "r") as f:
-                majors = json.load(f)
-            for major in majors:
-                db.add(Major(name=major["name"]))
-        
+            for name in _SEED_MAJORS:
+                db.add(Major(name=name))
+
         db.commit()
     finally:
         db.close()
-    
+
     yield
-    
-    # Shutdown (if needed, add cleanup code here)
+
 
 app = FastAPI(title="UniGrade API", version="1.0.0", lifespan=lifespan)
 
@@ -53,60 +83,69 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(subjects.router)
 app.include_router(assessments.router)
+app.include_router(leaderboard.router)
+app.include_router(grades.router)
+app.include_router(graduation.router)
+app.include_router(progression.router)
+
 
 @app.get("/debug/user-data")
-def debug_user_data(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def debug_user_data(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """Debug endpoint to see user's data"""
     user = db.query(User).filter(User.id == current_user.id).first()
-    
-    academic_years = db.query(AcademicYear).filter(
-        AcademicYear.user_id == current_user.id
-    ).all()
-    
-    result = {
+
+    academic_years = db.query(AcademicYear).filter(AcademicYear.user_id == current_user.id).all()
+
+    result: dict[str, Any] = {
         "user_id": user.id,
         "username": user.username,
         "major_id": user.major_id,
         "university_id": user.university_id,
-        "academic_years": []
+        "academic_years": [],
     }
-    
+
     for year in academic_years:
-        year_data = {
+        year_data: dict[str, Any] = {
             "id": year.id,
             "order_index": year.order_index,
             "label": year.label,
-            "subjects": []
+            "subjects": [],
         }
-        
-        subjects = db.query(Subject).filter(
-            Subject.academic_year_id == year.id
-        ).all()
-        
+
+        subjects = db.query(Subject).filter(Subject.academic_year_id == year.id).all()
+
         for subject in subjects:
-            year_data["subjects"].append({
-                "id": subject.id,
-                "name": subject.name,
-                "credit_value": subject.credit_value
-            })
-        
+            year_data["subjects"].append(
+                {
+                    "id": subject.id,
+                    "name": subject.name,
+                    "credit_value": subject.credit_value,
+                }
+            )
+
         result["academic_years"].append(year_data)
-    
+
     return result
+
 
 @app.get("/health")
 def health_check():
     return {"status": "ok"}
 
+
 @app.get("/")
 def root():
     return {"message": "UniGrade API", "version": "1.0.0"}
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8000)
