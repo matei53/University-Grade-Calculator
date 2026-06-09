@@ -23,20 +23,20 @@ This project follows a clean, layered architecture separating the database model
 
 ## 🚀 How to Use the Application
 
-Once you launch the platform, you can navigate through the interface using the dedicated application tabs:
+Once you open UniGrade, you can easily navigate through your academic journey using the menu buttons at the top of the screen:
 
 ### 📊 Main Dashboard & Progress Tracking
-* 📊 **Monitor Credits:** View your ongoing credit totals against a live progress bar.
-* 📊 **Track Progression:** Check the application metrics to see if you have cleared the minimum credit thresholds required to advance to the next academic year (Year 2, Year 3, etc.).
-* 📊 **Check Graduation Status:** View a real-time summary of your remaining graduation requirements.
+* 📊 **Monitor Your Real Progress:** View your overall grade average and total credits on a live progress bar. **Crucial Rule:** Credits are only unlocked and added to your progress bar *after* you get a passing grade (5.0 or higher) in a subject!
+* 📊 **Track Year Progression:** Check your eligibility status at a glance. The dashboard displays a clear `✓ ELIGIBLE` or `✗ NOT ELIGIBLE` badge so you know if you have passed enough classes to advance to the next university year.
 
-### ⚙️ Academic Data Management
-* ⚙️ **Manage Subjects:** Use the input fields to add and edit subjects, including their custom name, credit value, and passing scale.
-* ⚙️ **Log Assessments:** Add evaluations (such as midterms, labs, or finals) to individual courses and modify weights to automatically compute final grades.
+### ⚙️ Academic Configuration & Data Management
+* ⚙️ **Manage Subjects:** Go to the **Add Subject** screen to add your courses, input their credit values, and set custom passing or maximum grade scales. 
+* ⚙️ **Log Assessments & Grades:** Break down each subject into individual components (like midterm exams, labs, or final projects). Assign percentage weights to each task, and the system will automatically calculate your final course average.
+* ⚙️ **Set Progression Requirements:** Open the **Progression** settings screen to customize your advancement rules. Here, you can change the minimum credit percentage required to pass each year and toggle between single-year metrics or cumulative (rolling multi-year) calculations.
 
-### 📊 Analytics & Community
-* 📊 **Leaderboard Tab:** Head over to the leaderboard to view class standings and see how your academic progression stacks up against fellow peers.
+### 📊 Analytics & Community Standings
+* 📊 **Leaderboard Tab:** Open the leaderboard to view class standings and see how your academic average stacks up against your peers. You can use the search bar to find friends, filter standings by university year, or toggle your own profile visibility on or off.
 
-### ⚙️ Interactive AI Agents
-* ⚙️ **Grade Simulator Tab:** Run predictive scoring scenarios to estimate exactly what marks you need on upcoming assignments to maintain or achieve your target GPA.
-* ⚙️ **Career Advisor Tab:** Chat with the integrated AI guidance counselor agent to receive personalized internship and career roadmap suggestions based on your completed courses and academic history.
+### ⚙️ Smart AI Assistants
+* ⚙️ **Grade Simulator Tab:** Run predictive "what-if" scenarios. Simply type in your target GPA, select which upcoming or retakeable assignments you want to calculate, and the AI agent will tell you the exact scores you need to hit your goal.
+* ⚙️ **Career Advisor Tab:** Head to your profile and click **Generate Career Guidance**. The built-in AI counselor will analyze your passed courses, strengths, and grades to build a personalized roadmap for your future internships and career choices.
