@@ -1,7 +1,13 @@
 import json
 import os
+import sys
 from contextlib import asynccontextmanager
 from typing import Any
+
+# Ensure the repository root is on sys.path when running this file directly.
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
 
 from server.dependencies import get_current_user
 from fastapi import Depends, FastAPI
