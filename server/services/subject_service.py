@@ -1,9 +1,9 @@
 from typing import Optional
 
-from schemas import AssessmentResponse, SubjectResponse
+from server.schemas import AssessmentResponse, SubjectResponse
 from sqlalchemy.orm import Session
 
-from models import AcademicYear, Assessment, Grade, Semester, Subject
+from server.models import AcademicYear, Assessment, Grade, Semester, Subject
 
 
 class SubjectService:

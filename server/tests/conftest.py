@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from database import Base, get_db
+from server.database import Base, get_db
 from server.main import app
 
 
@@ -68,7 +68,7 @@ def test_user_data():
 @pytest.fixture(scope="function")
 def test_university(test_db):
     """Create a test university."""
-    from models import University
+    from server.models import University
 
     university = University(name="Test University")
     test_db.add(university)
@@ -80,7 +80,7 @@ def test_university(test_db):
 @pytest.fixture(scope="function")
 def test_major(test_db):
     """Create a test major."""
-    from models import Major
+    from server.models import Major
 
     major = Major(name="Computer Science")
     test_db.add(major)

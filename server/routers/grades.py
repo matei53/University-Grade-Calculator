@@ -1,11 +1,11 @@
-from dependencies import get_current_user
+from server.dependencies import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import GradeResponse, UpdateGradeRequest
+from server.schemas import GradeResponse, UpdateGradeRequest
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Assessment, Grade, User
-from services.grade_service import GradeService
+from server.database import get_db
+from server.models import Assessment, Grade, User
+from server.services.grade_service import GradeService
 
 router = APIRouter(prefix="/grades", tags=["grades"])
 

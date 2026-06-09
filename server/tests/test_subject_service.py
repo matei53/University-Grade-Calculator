@@ -4,9 +4,9 @@ Tests for the subject and assessment services.
 
 import pytest
 
-from models import Assessment, User
-from services.auth_service import AuthService
-from services.subject_service import AssessmentService, SubjectService
+from server.models import Assessment, User
+from server.services.auth_service import AuthService
+from server.services.subject_service import AssessmentService, SubjectService
 
 
 class TestSubjectService:

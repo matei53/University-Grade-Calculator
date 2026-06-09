@@ -1,6 +1,6 @@
-from dependencies import get_current_user
+from server.dependencies import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
-from schemas import (
+from server.schemas import (
     AcademicYearResponse,
     SubjectRequest,
     SubjectResponse,
@@ -8,9 +8,9 @@ from schemas import (
 )
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import User
-from services.subject_service import SubjectService
+from server.database import get_db
+from server.models import User
+from server.services.subject_service import SubjectService
 
 router = APIRouter(prefix="/subjects", tags=["subjects"])
 

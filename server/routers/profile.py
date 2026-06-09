@@ -1,7 +1,7 @@
-from dependencies import get_current_user
+from server.dependencies import get_current_user
 from fastapi import APIRouter, Depends
 from fastapi.responses import PlainTextResponse
-from schemas import (
+from server.schemas import (
     MajorResponse,
     UniversityResponse,
     UpdateProfileRequest,
@@ -9,11 +9,11 @@ from schemas import (
 )
 from sqlalchemy.orm import Session
 
-from database import get_db
-from models import Major, University, User
+from server.database import get_db
+from server.models import Major, University, User
 
 # career advisor agent
-from agents.career_advisor import generate_career_guidance
+from server.agents.career_advisor import generate_career_guidance
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 

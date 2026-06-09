@@ -4,8 +4,8 @@ Tests for the authentication service.
 
 import pytest
 
-from models import User
-from services.auth_service import AuthService
+from server.models import User
+from server.services.auth_service import AuthService
 
 
 class TestAuthServicePasswordHashing:
