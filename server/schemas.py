@@ -218,3 +218,30 @@ class FinalAssessmentUpdate(BaseModel):
 
 class FinalAssessmentGradeUpdate(BaseModel):
     score: Optional[float] = None
+
+
+# credit passing percentage
+class YearProgressionRequirementResponse(BaseModel):
+    id: int
+    target_year: int
+    credit_percentage: float
+    cumulative: bool
+
+    class Config:
+        from_attributes = True
+
+
+class YearProgressionRequirementUpdate(BaseModel):
+    credit_percentage: float
+    cumulative: bool = False
+
+
+# credit passing percentage
+class YearEligibilityResponse(BaseModel):
+    target_year: int
+    is_eligible: bool
+    credits_earned: int
+    credits_required: int
+    current_percentage: float
+    required_percentage: float
+    cumulative: bool
