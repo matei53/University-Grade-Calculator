@@ -142,7 +142,7 @@ class TestProfileRoutes:
             status.HTTP_200_OK,
             status.HTTP_404_NOT_FOUND,
         ]
-
+        
     def test_delete_profile(self, client, authenticated_headers):
         response = client.delete("/profile", headers=authenticated_headers)
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -150,3 +150,68 @@ class TestProfileRoutes:
         # Once deleted, the token should no longer resolve to a user
         follow_response = client.get("/profile", headers=authenticated_headers)
         assert follow_response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestCreateUniversity:
+
+    def test_creates_new_university(self, client):
+        response = client.post("/profile/universities", json={"name": "MIT"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "MIT"
+        assert isinstance(data["id"], int)
+
+    def test_returns_existing_on_duplicate_name(self, client):
+        client.post("/profile/universities", json={"name": "Oxford"})
+        response = client.post("/profile/universities", json={"name": "Oxford"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["name"] == "Oxford"
+
+    def test_duplicate_check_is_case_insensitive(self, client):
+        first = client.post("/profile/universities", json={"name": "Cambridge"})
+        second = client.post("/profile/universities", json={"name": "cambridge"})
+
+        assert second.status_code == status.HTTP_200_OK
+        assert second.json()["id"] == first.json()["id"]
+
+    def test_new_university_appears_in_list(self, client):
+        client.post("/profile/universities", json={"name": "Sorbonne"})
+        response = client.get("/profile/universities")
+
+        names = [u["name"] for u in response.json()]
+        assert "Sorbonne" in names
+
+
+class TestCreateMajor:
+
+    def test_creates_new_major(self, client):
+        response = client.post("/profile/majors", json={"name": "Philosophy"})
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["name"] == "Philosophy"
+        assert isinstance(data["id"], int)
+
+    def test_returns_existing_on_duplicate_name(self, client):
+        client.post("/profile/majors", json={"name": "History"})
+        response = client.post("/profile/majors", json={"name": "History"})
+
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["name"] == "History"
+
+    def test_duplicate_check_is_case_insensitive(self, client):
+        first = client.post("/profile/majors", json={"name": "Biology"})
+        second = client.post("/profile/majors", json={"name": "BIOLOGY"})
+
+        assert second.status_code == status.HTTP_200_OK
+        assert second.json()["id"] == first.json()["id"]
+
+    def test_new_major_appears_in_list(self, client):
+        client.post("/profile/majors", json={"name": "Sociology"})
+        response = client.get("/profile/majors")
+
+        names = [m["name"] for m in response.json()]
+        assert "Sociology" in names
+        
