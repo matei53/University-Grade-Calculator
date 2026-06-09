@@ -13,7 +13,6 @@ import pytest
 
 from agents.career_advisor import generate_career_guidance, run_career_guidance
 
-
 # ---------------------------------------------------------------------------
 # Fixtures / data builders
 # ---------------------------------------------------------------------------
@@ -37,11 +36,7 @@ def _subject(name: str, grade_score) -> dict:
 
 
 def _student(*subjects: dict) -> dict:
-    return {
-        "years": [
-            {"id": 1, "label": "Year 1", "order_index": 1, "subjects": list(subjects)}
-        ]
-    }
+    return {"years": [{"id": 1, "label": "Year 1", "order_index": 1, "subjects": list(subjects)}]}
 
 
 # Representative datasets used across multiple test classes
@@ -184,8 +179,15 @@ class TestCareerAdvisorLLM:
         assert any(
             kw in result_lower
             for kw in (
-                "medicine", "medical", "health", "clinical", "doctor",
-                "physician", "pharmacist", "biology", "research",
+                "medicine",
+                "medical",
+                "health",
+                "clinical",
+                "doctor",
+                "physician",
+                "pharmacist",
+                "biology",
+                "research",
             )
         ), "LLM produced no health-related career terms for a medicine student"
         # Must not be a pure CS response with zero health context
@@ -201,6 +203,6 @@ class TestCareerAdvisorLLM:
         result = generate_career_guidance(MEDICINE_DATA)
         result_lower = result.lower()
         subject_names = ["anatomy", "physiology", "biochemistry", "clinical"]
-        assert any(name in result_lower for name in subject_names), (
-            "LLM output does not reference any of the student's actual subjects"
-        )
+        assert any(
+            name in result_lower for name in subject_names
+        ), "LLM output does not reference any of the student's actual subjects"

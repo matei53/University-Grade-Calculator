@@ -11,14 +11,23 @@ for _p in (_SERVER_DIR, _ROOT_DIR):
     if _p not in sys.path:
         sys.path.insert(0, _p)
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from server.database import engine, Base, SessionLocal, get_db
+from server.database import Base, SessionLocal, engine, get_db
 from server.dependencies import get_current_user
-from server.models import University, Major, User, AcademicYear, Subject
-from server.routers import auth, profile, subjects, assessments, leaderboard, grades, graduation, progression
+from server.models import AcademicYear, Major, Subject, University, User
+from server.routers import (
+    assessments,
+    auth,
+    grades,
+    graduation,
+    leaderboard,
+    profile,
+    progression,
+    subjects,
+)
 
 _SEED_UNIVERSITIES = [
     "University of Bucharest",
@@ -39,6 +48,7 @@ _SEED_MAJORS = [
     "Business Administration",
     "Geography",
 ]
+
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):

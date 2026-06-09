@@ -2,11 +2,11 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
-from server.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
-from server.schemas import UserResponse
 from sqlalchemy.orm import Session
 
+from server.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
 from server.models import AcademicYear, Semester, User
+from server.schemas import UserResponse
 
 
 class AuthService:
@@ -53,11 +53,7 @@ class AuthService:
         # Create user
         password_hash = AuthService.hash_password(password)
 
-        user = User(
-            username=username, 
-            password_hash=password_hash,
-            leaderboard_visible=True
-        )
+        user = User(username=username, password_hash=password_hash, leaderboard_visible=True)
 
         db.add(user)
         db.flush()  # Get the user ID

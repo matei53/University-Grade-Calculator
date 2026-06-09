@@ -71,9 +71,7 @@ class TestFinalAssessments:
 
     @pytest.fixture
     def assessment(self, test_db, user):
-        return GraduationService.add_final_assessment(
-            test_db, user.id, "Thesis", weight=0.5
-        )
+        return GraduationService.add_final_assessment(test_db, user.id, "Thesis", weight=0.5)
 
     def test_add_final_assessment_stores_fields(self, test_db, user):
         a = GraduationService.add_final_assessment(
@@ -117,9 +115,7 @@ class TestFinalAssessments:
 
     def test_update_final_assessment_partial_leaves_other_fields(self, test_db, user, assessment):
         original_weight = assessment.weight
-        GraduationService.update_final_assessment(
-            test_db, user.id, assessment.id, name="New Name"
-        )
+        GraduationService.update_final_assessment(test_db, user.id, assessment.id, name="New Name")
 
         result = GraduationService.get_final_assessments(test_db, user.id)[0]
         assert result.weight == original_weight

@@ -1,5 +1,10 @@
-from server.dependencies import get_current_user
 from fastapi import APIRouter, Depends
+from sqlalchemy import func
+from sqlalchemy.orm import Session
+
+from server.database import get_db
+from server.dependencies import get_current_user
+from server.models import Major, University, User
 from server.schemas import (
     CreateMajorRequest,
     CreateUniversityRequest,
@@ -8,11 +13,6 @@ from server.schemas import (
     UpdateProfileRequest,
     UserProfile,
 )
-from sqlalchemy import func
-from sqlalchemy.orm import Session
-
-from server.database import get_db
-from server.models import Major, University, User
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
@@ -82,7 +82,9 @@ def create_university(
     data: CreateUniversityRequest,
     db: Session = Depends(get_db),
 ):
-    existing = db.query(University).filter(func.lower(University.name) == func.lower(data.name)).first()
+    existing = (
+        db.query(University).filter(func.lower(University.name) == func.lower(data.name)).first()
+    )
     if existing:
         return existing
     university = University(name=data.name)

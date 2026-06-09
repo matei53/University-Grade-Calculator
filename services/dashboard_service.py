@@ -124,7 +124,7 @@ class DashboardService:
         )
 
         return {
-            "weighted_avg": round(weighted_avg, 2),  
+            "weighted_avg": round(weighted_avg, 2),
             "credits": total_credits_earned,
             "progress": (
                 int((total_credits_earned / total_program_credits) * 100)

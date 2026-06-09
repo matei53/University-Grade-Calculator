@@ -24,5 +24,8 @@ ignore =
 
 per-file-ignores =
     __init__.py: F401,F403
-    tests/*.py: F811
-    conftest.py: F401
+    tests/*.py: F811,E402
+    conftest.py: F401,E402
+    main.py: E402
+    server/main.py: E402
+    server/seed.py: E402

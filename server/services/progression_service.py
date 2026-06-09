@@ -7,7 +7,7 @@ credit passing percentage: Manages modifiable progression thresholds per user
 
 from sqlalchemy.orm import Session
 
-from server.models import AcademicYear, Subject, YearProgressionRequirement, User
+from server.models import AcademicYear, Subject, User, YearProgressionRequirement
 
 
 class ProgressionService:
@@ -18,7 +18,11 @@ class ProgressionService:
 
     @staticmethod
     def get_or_create_progression_requirement(
-        db: Session, user_id: int, target_year: int, credit_percentage: float = 70.0, cumulative: bool = False
+        db: Session,
+        user_id: int,
+        target_year: int,
+        credit_percentage: float = 70.0,
+        cumulative: bool = False,
     ) -> YearProgressionRequirement:
         """
         credit passing percentage: Get existing progression requirement or create default one
@@ -82,7 +86,11 @@ class ProgressionService:
 
     @staticmethod
     def update_progression_requirement(
-        db: Session, user_id: int, target_year: int, credit_percentage: float, cumulative: bool = False
+        db: Session,
+        user_id: int,
+        target_year: int,
+        credit_percentage: float,
+        cumulative: bool = False,
     ) -> YearProgressionRequirement:
         """
         credit passing percentage: Update progression requirement percentage for a target year
@@ -189,9 +197,7 @@ class ProgressionService:
         return total_earned, total_required
 
     @staticmethod
-    def check_year_eligibility(
-        db: Session, user_id: int, target_year: int
-    ) -> dict:
+    def check_year_eligibility(db: Session, user_id: int, target_year: int) -> dict:
         """
         credit passing percentage: Check if student is eligible to advance to target year
         credit passing percentage: Compares earned credits to required percentage threshold

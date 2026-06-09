@@ -52,6 +52,7 @@ def get_leaderboard(
 def get_visibility(current_user: User = Depends(get_current_user)):
     return VisibilityResponse(visible=bool(current_user.leaderboard_visible))
 
+
 @router.patch("/visibility", response_model=VisibilityResponse)
 def set_visibility(
     body: VisibilityUpdate,

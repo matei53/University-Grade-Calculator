@@ -1,10 +1,10 @@
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Header, HTTPException
-from server.schemas import Token, UserLogin, UserRegister
 from sqlalchemy.orm import Session
 
 from server.database import get_db
+from server.schemas import Token, UserLogin, UserRegister
 from server.services.auth_service import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])

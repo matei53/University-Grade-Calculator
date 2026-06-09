@@ -1,6 +1,6 @@
 from typing import Optional
 
-from PyQt6.QtCore import Qt, QThread, pyqtSignal
+from PyQt6.QtCore import QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QFormLayout,
@@ -9,9 +9,9 @@ from PyQt6.QtWidgets import (
     QLabel,
     QMessageBox,
     QPushButton,
+    QTextEdit,
     QVBoxLayout,
     QWidget,
-    QTextEdit,
 )
 
 from client.api_client import APIClient
@@ -45,6 +45,7 @@ class _CareerGuidanceWorker(QThread):
     def run(self):
         try:
             from agents.career_advisor import run_career_guidance
+
             self.result_ready.emit(run_career_guidance(self._api_client))
         except Exception as e:
             self.error.emit(str(e))
@@ -184,7 +185,9 @@ class ProfileScreen(QWidget):
 
         self.career_output = QTextEdit()
         self.career_output.setReadOnly(True)
-        self.career_output.setMarkdown("### Career guidance will appear here after you click the button.")
+        self.career_output.setMarkdown(
+            "### Career guidance will appear here after you click the button."
+        )
         self.career_output.setMinimumHeight(220)
         self.career_output.setStyleSheet(
             "background-color: #ffffff; border: 1px solid #cbded8; border-radius: 10px; padding: 12px;"
@@ -219,7 +222,9 @@ class ProfileScreen(QWidget):
         self._career_button_ready()
 
     def _on_career_guidance_error(self, error: str):
-        QMessageBox.critical(self, "Career Guidance Failed", f"Unable to fetch career guidance: {error}")
+        QMessageBox.critical(
+            self, "Career Guidance Failed", f"Unable to fetch career guidance: {error}"
+        )
         self.career_output.setMarkdown("**Failed to load career guidance.**")
         self._career_button_ready()
 
@@ -250,7 +255,9 @@ class ProfileScreen(QWidget):
             payload["major_id"] = major_id
 
         if not payload:
-            QMessageBox.information(self, "No changes", "Choose a new university or major before updating.")
+            QMessageBox.information(
+                self, "No changes", "Choose a new university or major before updating."
+            )
             return
 
         try:

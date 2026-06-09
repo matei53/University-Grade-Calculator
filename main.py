@@ -1,22 +1,21 @@
+import os
 import sys
-import os 
 
 from dotenv import load_dotenv
 from PyQt6.QtWidgets import QApplication, QMessageBox
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
 from client.api_client import APIClient
-
 from ui.app import AppRouter
 from ui.screens.dashboard_screen import DashboardScreen
 from ui.screens.graduation_screen import GraduationScreen
+from ui.screens.leaderboard_screen import LeaderboardScreen
 from ui.screens.login_screen import LoginScreen
 from ui.screens.profile_screen import ProfileScreen
+from ui.screens.progression_settings_screen import ProgressionSettingsScreen
 from ui.screens.signup_screen import SignupScreen
 from ui.screens.simulator_screen import SimulatorScreen
 from ui.screens.subject_screen import SubjectScreen
-from ui.screens.leaderboard_screen import LeaderboardScreen
-from ui.screens.progression_settings_screen import ProgressionSettingsScreen
 
 load_dotenv()
 
@@ -60,7 +59,7 @@ def main():
     login = LoginScreen(router)
     signup = SignupScreen(router)
     dashboard = DashboardScreen(router)
-    subject_setup = SubjectScreen(router) 
+    subject_setup = SubjectScreen(router)
     leaderboard = LeaderboardScreen(router)
     router.register("leaderboard", leaderboard)
     progression_settings = ProgressionSettingsScreen(router)

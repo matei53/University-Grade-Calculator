@@ -149,14 +149,14 @@ class LeaderboardScreen(QWidget):
         panel_layout.setSpacing(0)
 
         headers = QHBoxLayout()
-        headers.setContentsMargins(12, 0, 8, 0)  
+        headers.setContentsMargins(12, 0, 8, 0)
         headers.setSpacing(0)
-        
+
         rank_h = QLabel("Rank")
         rank_h.setObjectName("TableHeaderRank")
         rank_h.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         headers.addWidget(rank_h, 1)
-        
+
         student_h = QLabel("STUDENT")
         student_h.setObjectName("TableHeader")
         student_h.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
@@ -171,9 +171,9 @@ class LeaderboardScreen(QWidget):
         credite_h.setObjectName("TableHeader")
         credite_h.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter)
         headers.addWidget(credite_h, 2)
-        
+
         panel_layout.addLayout(headers)
-        
+
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setFrameShape(QFrame.Shape.NoFrame)
@@ -310,9 +310,7 @@ class LeaderboardScreen(QWidget):
         major = data.get("filter_major") or "—"
         year = data.get("filter_year_level") or "—"
         total = data.get("total", 0)
-        self.filter_label.setText(
-            f"{uni} · {major} · Year {year} · {total} students"
-        )
+        self.filter_label.setText(f"{uni} · {major} · Year {year} · {total} students")
 
         podium = data.get("podium", [])
         entries = data.get("entries", [])
@@ -349,9 +347,7 @@ class LeaderboardScreen(QWidget):
         page = data.get("page", 1)
         self._current_page = page
         self.page_label.setText(
-            f"Page {page} of {max(total_pages, 1)}"
-            if total_pages
-            else "Page 1"
+            f"Page {page} of {max(total_pages, 1)}" if total_pages else "Page 1"
         )
         self.prev_btn.setEnabled(page > 1)
         self.next_btn.setEnabled(total_pages > 0 and page < total_pages)

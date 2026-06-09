@@ -1,9 +1,9 @@
 from typing import Optional
 
-from server.schemas import AssessmentResponse, SubjectResponse
 from sqlalchemy.orm import Session
 
 from server.models import AcademicYear, Assessment, Grade, Semester, Subject
+from server.schemas import AssessmentResponse, SubjectResponse
 
 
 class SubjectService:
@@ -92,8 +92,12 @@ class SubjectService:
             subject.max_grade = max_grade
 
         if year_level is not None or semester_index is not None:
-            target_year_level = year_level if year_level is not None else subject.academic_year.order_index
-            target_semester_index = semester_index if semester_index is not None else subject.semester.order_index
+            target_year_level = (
+                year_level if year_level is not None else subject.academic_year.order_index
+            )
+            target_semester_index = (
+                semester_index if semester_index is not None else subject.semester.order_index
+            )
 
             target_year = (
                 db.query(AcademicYear)

@@ -169,6 +169,7 @@ class UpdateProfileRequest(BaseModel):
 
 UpdateUserProfile = UpdateProfileRequest
 
+
 # Leaderboard
 class LeaderboardEntry(BaseModel):
     rank: int
@@ -179,6 +180,7 @@ class LeaderboardEntry(BaseModel):
     weighted_avg: float
     credits: int
     is_current_user: bool
+
 
 class LeaderboardResponse(BaseModel):
     podium: List[LeaderboardEntry] = []
@@ -194,11 +196,15 @@ class LeaderboardResponse(BaseModel):
     current_user_year_level: int = 1
     available_year_levels: List[int] = []
 
+
 class VisibilityUpdate(BaseModel):
     visible: bool
 
+
 class VisibilityResponse(BaseModel):
     visible: bool
+
+
 # Graduation
 class GraduationSettingsResponse(BaseModel):
     id: int

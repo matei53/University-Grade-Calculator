@@ -2,6 +2,7 @@
 Career guidance agent — runs locally via ChatOllama, mirroring grade_simulator.py.
 Field-agnostic: works for any university programme, not just computer science.
 """
+
 from typing import Any, Dict
 
 try:
@@ -29,6 +30,7 @@ SYSTEM_PROMPT = (
 
 def _format_student_data(student_data: Dict[str, Any]) -> str:
     import json
+
     try:
         return json.dumps(student_data, indent=2)
     except Exception:
@@ -86,9 +88,7 @@ def generate_career_guidance(student_data: Dict[str, Any]) -> str:
             assessments = s.get("assessments", [])
             if assessments:
                 scores = [
-                    float(a["grade_score"])
-                    for a in assessments
-                    if a.get("grade_score") is not None
+                    float(a["grade_score"]) for a in assessments if a.get("grade_score") is not None
                 ]
                 if scores and (sum(scores) / len(scores)) >= 7.0:
                     strong_subjects.append(s.get("name", "Unknown"))

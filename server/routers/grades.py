@@ -1,10 +1,10 @@
-from server.dependencies import get_current_user
 from fastapi import APIRouter, Depends, HTTPException
-from server.schemas import GradeResponse, UpdateGradeRequest
 from sqlalchemy.orm import Session
 
 from server.database import get_db
+from server.dependencies import get_current_user
 from server.models import Assessment, Grade, User
+from server.schemas import GradeResponse, UpdateGradeRequest
 from server.services.grade_service import GradeService
 
 router = APIRouter(prefix="/grades", tags=["grades"])
@@ -22,9 +22,7 @@ def update_grade(
     if not grade:
         raise HTTPException(status_code=404, detail="Grade not found")
 
-    assessment = (
-        db.query(Assessment).filter(Assessment.id == grade.assessment_id).first()
-    )
+    assessment = db.query(Assessment).filter(Assessment.id == grade.assessment_id).first()
     if not assessment:
         raise HTTPException(status_code=404, detail="Assessment not found")
 
@@ -32,9 +30,7 @@ def update_grade(
         raise HTTPException(status_code=403, detail="Access denied")
 
     try:
-        updated_grade = GradeService.update_grade(
-            db, grade_id, score=grade_data.score
-        )
+        updated_grade = GradeService.update_grade(db, grade_id, score=grade_data.score)
         return updated_grade
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

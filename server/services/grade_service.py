@@ -7,9 +7,7 @@ from server.models import Grade
 
 class GradeService:
     @staticmethod
-    def update_grade(
-        db: Session, grade_id: int, score: Optional[float] = None
-    ) -> Grade:
+    def update_grade(db: Session, grade_id: int, score: Optional[float] = None) -> Grade:
         grade = db.query(Grade).filter(Grade.id == grade_id).first()
         if not grade:
             raise ValueError("Grade not found")

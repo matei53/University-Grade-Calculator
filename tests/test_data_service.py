@@ -1,7 +1,8 @@
 """Tests for services/data_service.py — APIClient mocked."""
 
-import pytest
 from unittest.mock import patch
+
+import pytest
 
 from services.data_service import DataService
 

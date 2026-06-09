@@ -11,14 +11,15 @@ Each user gets subjects, assessments, and grades covering 1, 2, or 3 years:
 Safe to re-run: skips anything that already exists.
 """
 
+import os
 import random
 import sys
-import os
 
 sys.path.insert(0, os.path.dirname(__file__))
 
 import bcrypt
 from database import Base, SessionLocal, engine
+
 from models import AcademicYear, Assessment, Grade, Major, Semester, Subject, University, User
 
 random.seed(42)
@@ -81,22 +82,51 @@ SUBJECTS = {
 
 # 20 CS users + 20 Maths users at University of Bucharest
 CS_USERS = [
-    "alice_pop", "bogdan_ion", "catalina_rus", "dan_marin", "elena_dima",
-    "florin_toma", "georgiana_vlad",
-    "horia_stan", "ioana_popa", "iulian_neag", "jana_cretu", "liviu_barbu",
-    "mihaela_enache", "nicu_stoica",
-    "oana_lungu", "petru_ciobanu", "raluca_gheorghe", "silviu_matei",
-    "teodora_anghel", "vasile_tudor",
+    "alice_pop",
+    "bogdan_ion",
+    "catalina_rus",
+    "dan_marin",
+    "elena_dima",
+    "florin_toma",
+    "georgiana_vlad",
+    "horia_stan",
+    "ioana_popa",
+    "iulian_neag",
+    "jana_cretu",
+    "liviu_barbu",
+    "mihaela_enache",
+    "nicu_stoica",
+    "oana_lungu",
+    "petru_ciobanu",
+    "raluca_gheorghe",
+    "silviu_matei",
+    "teodora_anghel",
+    "vasile_tudor",
 ]
 
 MATHS_USERS = [
-    "alex_balan", "bianca_fota", "cosmin_dragan", "diana_moldovan", "eugen_lazar",
-    "florentina_oprea", "gabriel_dinu",
-    "hana_dobre", "ion_cristea", "julia_roman", "kosta_ionescu", "laura_chiriac",
-    "marius_ciuraru", "nicoleta_stan",
-    "octavian_bratu", "paula_alexe", "razvan_stefan", "simona_ene",
-    "titus_filip", "ursula_mihu",
+    "alex_balan",
+    "bianca_fota",
+    "cosmin_dragan",
+    "diana_moldovan",
+    "eugen_lazar",
+    "florentina_oprea",
+    "gabriel_dinu",
+    "hana_dobre",
+    "ion_cristea",
+    "julia_roman",
+    "kosta_ionescu",
+    "laura_chiriac",
+    "marius_ciuraru",
+    "nicoleta_stan",
+    "octavian_bratu",
+    "paula_alexe",
+    "razvan_stefan",
+    "simona_ene",
+    "titus_filip",
+    "ursula_mihu",
 ]
+
 
 # How many years of grades each user gets (index matches position in user list)
 # users 0-6  → 1 year,  users 7-13 → 2 years,  users 14-19 → 3 years
@@ -116,6 +146,7 @@ CREDIT_REQUIREMENTS = [60, 60, 60]
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
@@ -226,6 +257,7 @@ def create_user(
 # ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
+
 
 def seed():
     print("Creating tables if they don't exist...")

@@ -10,6 +10,7 @@ import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 pytest.importorskip("langchain_core")
 
 from agents.grade_simulator import (

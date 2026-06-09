@@ -27,6 +27,7 @@ from server.main import app
 if _SERVER_DIR in sys.path:
     sys.path.remove(_SERVER_DIR)
 
+
 @pytest.fixture(scope="session")
 def test_db_url():
     """Create a temporary database for testing."""
@@ -123,6 +124,7 @@ def authenticated_headers(registered_user):
 
 try:
     from PyQt6.QtWidgets import QApplication
+
     _HAS_QT = True
 except ImportError:
     _HAS_QT = False

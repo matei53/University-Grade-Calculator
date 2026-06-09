@@ -58,6 +58,7 @@ class _GradDataWorker(QThread):
         except Exception as e:
             self.error.emit(str(e))
 
+
 class _EligibilityWorker(QThread):
     finished = pyqtSignal(list)
     error = pyqtSignal(str)
@@ -70,7 +71,8 @@ class _EligibilityWorker(QThread):
             self.finished.emit(data)
         except Exception as e:
             self.error.emit(str(e))
-            
+
+
 # ---------------------------------------------------------------------------
 # Dashboard screen
 # ---------------------------------------------------------------------------
@@ -92,16 +94,15 @@ class DashboardScreen(QWidget):
         self._grad_worker: Optional[_GradDataWorker] = None
         self._dash_worker: Optional[_DashboardLoadWorker] = None
         self._grad_data_loaded: bool = False
-        
+
         self._eligibility_worker: Optional[QThread] = None
         self.eligibility_data: list = []
-        
+
         self.api_client = APIClient()
         self._grad_service = GraduationService()
         self.setStyleSheet(DASHBOARD_STYLE)
         self._build_ui()
 
-    
     # ------------------------------------------------------------------
     # UI construction
     # ------------------------------------------------------------------
@@ -125,10 +126,12 @@ class DashboardScreen(QWidget):
         header_layout.addLayout(title_container)
         header_layout.addStretch()
 
-        # leaderboard 
+        # leaderboard
         leaderboard_btn = QPushButton("Leaderboard")
         leaderboard_btn.setFixedWidth(100)
-        leaderboard_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
+        leaderboard_btn.setStyleSheet(
+            "background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;"
+        )
         leaderboard_btn.clicked.connect(lambda: self.router.navigate("leaderboard"))
 
         # Add Subject button
@@ -172,8 +175,8 @@ class DashboardScreen(QWidget):
             "border-radius: 6px; padding: 6px;"
         )
         logout_btn.clicked.connect(self._handle_logout)
-        
-        header_layout.addWidget(leaderboard_btn)  
+
+        header_layout.addWidget(leaderboard_btn)
         header_layout.addWidget(add_subject_btn)
         # credit passing percentage: Add progression settings button to header
         header_layout.addWidget(progression_btn)
@@ -259,10 +262,10 @@ class DashboardScreen(QWidget):
         elig_title_bar = QHBoxLayout()
         elig_title = QLabel("YEAR PROGRESSION ELIGIBILITY")
         elig_title.setObjectName("CardTitle")
-        
+
         self.elig_loading_lbl = QLabel("Loading Status…")
         self.elig_loading_lbl.setObjectName("CardSub")
-        
+
         elig_title_bar.addWidget(elig_title)
         elig_title_bar.addWidget(self.elig_loading_lbl)
         elig_title_bar.addStretch()
@@ -516,7 +519,7 @@ class DashboardScreen(QWidget):
                 self._grad_worker.start()
 
         # --- Credit Passing Percentage ---
-        if hasattr(self, 'eligibility_data') and self.eligibility_data:
+        if hasattr(self, "eligibility_data") and self.eligibility_data:
             self.elig_loading_lbl.setVisible(False)
             self._rebuild_eligibility_list(self.eligibility_data)
         else:
@@ -639,7 +642,7 @@ class DashboardScreen(QWidget):
     # ------------------------------------------------------------------
     # Year Progression Eligibility
     # ------------------------------------------------------------------
- 
+
     def _load_eligibility_data(self):
         if self._eligibility_worker and self._eligibility_worker.isRunning():
             try:
@@ -647,44 +650,44 @@ class DashboardScreen(QWidget):
                 self._eligibility_worker.error.disconnect()
             except Exception:
                 pass
- 
+
         self._eligibility_worker = _EligibilityWorker()
         self._eligibility_worker.finished.connect(self._on_eligibility_loaded)
         self._eligibility_worker.error.connect(self._on_eligibility_error)
         self._eligibility_worker.start()
- 
+
     def _on_eligibility_loaded(self, data: list):
         self.eligibility_data = data
         if self._total_mode:
             self.elig_loading_lbl.setVisible(False)
             self._rebuild_eligibility_list(self.eligibility_data)
- 
+
     def _on_eligibility_error(self, error_msg: str):
         # credit passing percentage: Hide loading label and leave list empty on error
         self.elig_loading_lbl.setVisible(False)
         print(f"Eligibility load error: {error_msg}")
- 
+
     def _rebuild_eligibility_list(self, eligibility_list: list):
         while self.elig_list_layout.count():
             item = self.elig_list_layout.takeAt(0)
             if item.widget():
                 item.widget().deleteLater()
- 
+
         if not eligibility_list:
             lbl = QLabel("No progression data available.")
             lbl.setObjectName("CardSub")
             self.elig_list_layout.addWidget(lbl)
             return
- 
+
         for elig in eligibility_list:
             self.elig_list_layout.addWidget(self._make_eligibility_row(elig))
- 
+
     def _make_eligibility_row(self, data: dict) -> QFrame:
         row = QFrame()
         row.setObjectName("SubjectRow")
         layout = QHBoxLayout(row)
         layout.setContentsMargins(4, 6, 4, 6)
- 
+
         target_year = data["target_year"]
         is_eligible = data["is_eligible"]
         credits_earned = data["credits_earned"]
@@ -692,17 +695,17 @@ class DashboardScreen(QWidget):
         current_pct = data["current_percentage"]
         required_pct = data["required_percentage"]
         cumulative = data["cumulative"]
- 
+
         year_lbl = QLabel(f"→ Year {target_year}")
         year_lbl.setFixedWidth(70)
         year_lbl.setStyleSheet("font-size: 13px; font-weight: bold; color: #2D4B1D;")
- 
+
         credits_lbl = QLabel(f"{credits_earned}/{credits_required} credits  ({current_pct:.1f}%)")
         credits_lbl.setStyleSheet("font-size: 13px; color: #555;")
- 
+
         req_lbl = QLabel(f"Required: {required_pct:.0f}%")
         req_lbl.setStyleSheet("font-size: 12px; color: #777;")
- 
+
         if cumulative:
             cum_lbl = QLabel("cumulative")
             cum_lbl.setStyleSheet(
@@ -711,13 +714,13 @@ class DashboardScreen(QWidget):
             )
         else:
             cum_lbl = QLabel("")
- 
+
         badge_text = "✓ ELIGIBLE" if is_eligible else "✗ NOT ELIGIBLE"
         badge_color = "#27ae60" if is_eligible else "#c0392b"
         badge_lbl = QLabel(badge_text)
         badge_lbl.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {badge_color};")
         badge_lbl.setFixedWidth(110)
- 
+
         layout.addWidget(year_lbl)
         layout.addWidget(credits_lbl)
         layout.addSpacing(12)
@@ -726,9 +729,8 @@ class DashboardScreen(QWidget):
         layout.addWidget(cum_lbl)
         layout.addStretch()
         layout.addWidget(badge_lbl)
- 
-        return row
 
+        return row
 
     # ------------------------------------------------------------------
     # Auth

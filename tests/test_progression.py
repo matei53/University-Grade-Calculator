@@ -8,7 +8,9 @@ credit passing percentage: Uses in-memory SQLite via the test_db fixture from co
 import importlib
 import sys
 from unittest.mock import MagicMock
+
 import pytest
+
 from server.models import AcademicYear, Assessment, Grade, Semester, Subject, User
 from server.services.progression_service import ProgressionService
 
@@ -35,9 +37,11 @@ def qapp():
         app = QApplication(sys.argv)
     yield app
 
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 class DummyRouter:
     def __init__(self):
@@ -50,6 +54,7 @@ class DummyRouter:
 # ---------------------------------------------------------------------------
 # ProgressionService tests
 # ---------------------------------------------------------------------------
+
 
 class TestProgressionService:
     def test_get_or_create_progression_requirement_creates_default(self, test_db):
@@ -158,16 +163,12 @@ class TestProgressionService:
         test_db.commit()
         test_db.refresh(user)
 
-        year1 = AcademicYear(
-            user_id=user.id, label="Year 1", order_index=1, credit_requirement=60
-        )
+        year1 = AcademicYear(user_id=user.id, label="Year 1", order_index=1, credit_requirement=60)
         test_db.add(year1)
         test_db.commit()
         test_db.refresh(year1)
 
-        semester = Semester(
-            academic_year_id=year1.id, label="Semester 1", order_index=1
-        )
+        semester = Semester(academic_year_id=year1.id, label="Semester 1", order_index=1)
         test_db.add(semester)
         test_db.commit()
         test_db.refresh(semester)
@@ -272,6 +273,7 @@ class TestProgressionService:
 # ProgressionSettingsScreen tests
 # ---------------------------------------------------------------------------
 
+
 class TestProgressionSettingsScreen:
     # credit passing percentage: Suppress all QMessageBox dialogs so tests don't block waiting for user input
     @pytest.fixture(autouse=True)
@@ -335,6 +337,7 @@ class TestProgressionSettingsScreen:
         screen.save_all_requirements()
         screen._save_worker.wait()
         from PyQt6.QtWidgets import QApplication
+
         QApplication.processEvents()
 
         mock_client.update_progression_requirement.assert_called_once_with(
@@ -396,6 +399,7 @@ class TestProgressionSettingsScreen:
         screen.save_all_requirements()
         screen._save_worker.wait()
         from PyQt6.QtWidgets import QApplication
+
         QApplication.processEvents()
 
         # credit passing percentage: Both years were attempted despite Year 3 failing

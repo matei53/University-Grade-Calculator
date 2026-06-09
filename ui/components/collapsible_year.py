@@ -3,21 +3,21 @@ from PyQt6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
-    QFrame,
+    QDoubleSpinBox,
     QFormLayout,
+    QFrame,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QMessageBox,
+    QProgressBar,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QSpinBox,
     QToolButton,
-    QSizePolicy,
     QVBoxLayout,
     QWidget,
-    QDoubleSpinBox,
-    QProgressBar,
 )
 
 from client.api_client import APIClient
@@ -86,7 +86,9 @@ class EditSubjectDialog(QDialog):
             "color: #2D4B1D; font-weight: bold; font-size: 11px; letter-spacing: 1px;"
         )
         self.weight_status_label = QLabel("Total Weight: 0.0%")
-        self.weight_status_label.setStyleSheet("color: #D32F2F; font-weight: bold; font-size: 12px;")
+        self.weight_status_label.setStyleSheet(
+            "color: #D32F2F; font-weight: bold; font-size: 12px;"
+        )
         section_header_row.addWidget(assessment_header)
         section_header_row.addStretch()
         section_header_row.addWidget(self.weight_status_label)
@@ -100,7 +102,13 @@ class EditSubjectDialog(QDialog):
         name_col_hdr = QLabel("Name")
         name_col_hdr.setStyleSheet("color: #555; font-size: 10px; font-weight: bold;")
         col_header_layout.addWidget(name_col_hdr, 1)
-        for col_text, col_w in [("Weight", 80), ("Grade", 80), ("Max Score", 80), ("Min. Pass", 80), ("", 30)]:
+        for col_text, col_w in [
+            ("Weight", 80),
+            ("Grade", 80),
+            ("Max Score", 80),
+            ("Min. Pass", 80),
+            ("", 30),
+        ]:
             lbl = QLabel(col_text)
             lbl.setStyleSheet("color: #555; font-size: 10px; font-weight: bold;")
             lbl.setFixedWidth(col_w)
@@ -110,7 +118,9 @@ class EditSubjectDialog(QDialog):
         self.assessments_container = QScrollArea()
         self.assessments_container.setWidgetResizable(True)
         self.assessments_container.setFixedHeight(200)
-        self.assessments_container.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.assessments_container.setHorizontalScrollBarPolicy(
+            Qt.ScrollBarPolicy.ScrollBarAlwaysOff
+        )
         self.assessments_container.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOn)
         assessments_widget = QWidget()
         self.assessments_layout = QVBoxLayout(assessments_widget)
@@ -263,14 +273,18 @@ class EditSubjectDialog(QDialog):
                     "grade_id": getattr(row, "grade_id", None),
                     "name": row.name_input.text().strip(),
                     "weight": float(row.weight_input.value()),
-                    "score": None if row.score_input.value() < 0 else float(row.score_input.value()),
+                    "score": (
+                        None if row.score_input.value() < 0 else float(row.score_input.value())
+                    ),
                     "max_score": float(row.max_score_input.value()),
                     "passing_grade": float(row.passing_grade_input.value()),
                 }
             )
 
         if not GradeService.validate_weights_total(assessments_payload):
-            QMessageBox.warning(self, "Validation Error", "Total assessment weights must equal 100%.")
+            QMessageBox.warning(
+                self, "Validation Error", "Total assessment weights must equal 100%."
+            )
             return
 
         # Safely obtain raw year from the combo (can be data or text)
@@ -464,7 +478,7 @@ class CollapsibleYear(QWidget):
 
         prog_container = QWidget()
         prog_v = QVBoxLayout(prog_container)
-        
+
         prog_v.setContentsMargins(14, 15, 14, 10)
 
         progress_percentage = (
@@ -509,7 +523,9 @@ class CollapsibleYear(QWidget):
                     n.setStyleSheet("font-weight: 600; font-size: 13px;")
 
                     grade_val = sub["grade"]
-                    is_failed = grade_val is not None and grade_val < sub.get("passing_grade", passing_grade)
+                    is_failed = grade_val is not None and grade_val < sub.get(
+                        "passing_grade", passing_grade
+                    )
 
                     credit_text = f"{sub['credits']} Credits"
                     if is_failed:
@@ -552,7 +568,9 @@ class CollapsibleYear(QWidget):
         if not self.api_client:
             return
 
-        dialog = EditSubjectDialog(self, subject, self.api_client, refresh_callback=self.refresh_callback)
+        dialog = EditSubjectDialog(
+            self, subject, self.api_client, refresh_callback=self.refresh_callback
+        )
         dialog.exec()
 
     def remove_subject_widget(self, subject_id: int):

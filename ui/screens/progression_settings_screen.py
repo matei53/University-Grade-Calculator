@@ -93,9 +93,7 @@ class ProgressionSettingsScreen(QWidget):
 
         title = QLabel("Year Progression Requirements")
         title.setObjectName("HeaderTitle")
-        title.setStyleSheet(
-            "font-size: 20px; font-weight: bold; color: #2D4B1D; margin-top: 10px;"
-        )
+        title.setStyleSheet("font-size: 20px; font-weight: bold; color: #2D4B1D; margin-top: 10px;")
 
         header_area.addWidget(back_btn)
         header_area.addWidget(title)

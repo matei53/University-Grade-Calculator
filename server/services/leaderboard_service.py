@@ -48,8 +48,7 @@ def compute_user_stats(db: Session, user_id: int) -> dict:
                 max_year_with_data = max(max_year_with_data, year.order_index)
 
     weighted_avg = (
-        total_weighted_points / total_credits_with_grades
-        if total_credits_with_grades > 0 else 0.0
+        total_weighted_points / total_credits_with_grades if total_credits_with_grades > 0 else 0.0
     )
     return {
         "weighted_avg": round(weighted_avg, 2),
@@ -103,12 +102,10 @@ def build_leaderboard(
 
     current_stats = compute_user_stats(db, current_user.id)
     current_user_year_level = current_stats["year_level"]
-    filter_year_level = (
-        year_level if year_level is not None else current_user_year_level
-    )
+    filter_year_level = year_level if year_level is not None else current_user_year_level
 
     peers = (
-    db.query(User)
+        db.query(User)
         .join(University, User.university_id == University.id)
         .join(Major, User.major_id == Major.id)
         .filter(University.name == uni.name, Major.name == major.name)
@@ -121,16 +118,17 @@ def build_leaderboard(
         if not u.leaderboard_visible and u.id != current_user.id:
             continue
         stats = compute_user_stats(db, u.id)
-        all_rows.append({
-            "user_id": u.id,
-            "display_name": u.username.replace("_", " ").title(),
-            "university_name": u.university.name if u.university else "—",
-            "year_level": stats["year_level"],
-            "weighted_avg": stats["weighted_avg"],
-            "credits": stats["credits"],
-            "is_current_user": u.id == current_user.id,
-        })
-
+        all_rows.append(
+            {
+                "user_id": u.id,
+                "display_name": u.username.replace("_", " ").title(),
+                "university_name": u.university.name if u.university else "—",
+                "year_level": stats["year_level"],
+                "weighted_avg": stats["weighted_avg"],
+                "credits": stats["credits"],
+                "is_current_user": u.id == current_user.id,
+            }
+        )
 
     available_year_levels = sorted({r["year_level"] for r in all_rows})
 
@@ -164,7 +162,7 @@ def build_leaderboard(
         page = total_pages
 
     start = (page - 1) * page_size
-    paginated_table = table_rows[start:start + page_size]
+    paginated_table = table_rows[start : start + page_size]
 
     return {
         "podium": podium,

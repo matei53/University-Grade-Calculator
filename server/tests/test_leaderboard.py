@@ -46,12 +46,8 @@ def profiled_user(client, test_university, test_major):
 
 def _add_subject_grade(test_db, username: str, score: float, year_level: int = 1):
     user = test_db.query(User).filter(User.username == username).first()
-    subject = SubjectService.add_subject(
-        test_db, user.id, "Math", 6, 1, year_level
-    )
-    AssessmentService.add_assessment(
-        test_db, subject.id, "Exam", 100.0, score
-    )
+    subject = SubjectService.add_subject(test_db, user.id, "Math", 6, 1, year_level)
+    AssessmentService.add_assessment(test_db, subject.id, "Exam", 100.0, score)
 
 
 class TestLeaderboardRoutes:
@@ -70,9 +66,7 @@ class TestLeaderboardRoutes:
         assert data["total"] == 0
         assert data["filter_university"] is None
 
-    def test_leaderboard_shows_two_peers_same_course(
-        self, client, profiled_user, test_university
-    ):
+    def test_leaderboard_shows_two_peers_same_course(self, client, profiled_user, test_university):
         user_a = profiled_user("alice_leader")
         profiled_user("bob_leader")
 
@@ -353,8 +347,6 @@ class TestLeaderboardSorting:
     def test_current_user_flag_in_table(self, client, profiled_user):
         users = [profiled_user(f"flag_{i}") for i in range(1, 6)]
         data = client.get("/leaderboard", headers=users[4]["headers"]).json()
-        me_rows = [
-            e for e in data["podium"] + data["entries"] if e["is_current_user"]
-        ]
+        me_rows = [e for e in data["podium"] + data["entries"] if e["is_current_user"]]
         assert len(me_rows) == 1
         assert me_rows[0]["display_name"] == "Flag 5"

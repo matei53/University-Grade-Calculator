@@ -142,7 +142,7 @@ class TestProfileRoutes:
             status.HTTP_200_OK,
             status.HTTP_404_NOT_FOUND,
         ]
-        
+
     def test_delete_profile(self, client, authenticated_headers):
         response = client.delete("/profile", headers=authenticated_headers)
         assert response.status_code == status.HTTP_204_NO_CONTENT
@@ -214,4 +214,3 @@ class TestCreateMajor:
 
         names = [m["name"] for m in response.json()]
         assert "Sociology" in names
-        

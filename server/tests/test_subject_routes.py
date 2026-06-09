@@ -154,16 +154,12 @@ class TestSubjectRoutes:
         )
         subject_id = response.json()["id"]
 
-        delete_response = client.delete(
-            f"/subjects/{subject_id}", headers=authenticated_headers
-        )
+        delete_response = client.delete(f"/subjects/{subject_id}", headers=authenticated_headers)
 
         assert delete_response.status_code == status.HTTP_204_NO_CONTENT
         response = client.get("/subjects/years", headers=authenticated_headers)
         assert all(
-            subject["id"] != subject_id
-            for year in response.json()
-            for subject in year["subjects"]
+            subject["id"] != subject_id for year in response.json() for subject in year["subjects"]
         )
 
 
@@ -378,7 +374,9 @@ class TestAssessmentRoutes:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["grade"]["score"] is None
 
-    def test_add_assessment_explicit_null_score_creates_ungraded(self, client, authenticated_headers):
+    def test_add_assessment_explicit_null_score_creates_ungraded(
+        self, client, authenticated_headers
+    ):
         """Explicitly passing score=null should also create an ungraded assessment."""
         subject_response = client.post(
             "/subjects",

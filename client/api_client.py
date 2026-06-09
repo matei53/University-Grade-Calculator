@@ -111,7 +111,7 @@ class APIClient:
             error_detail = response.json() if response.text else "No response body"
             raise ValueError(f"Get profile error ({response.status_code}): {error_detail}")
         return response.json()
-    
+
     def get_leaderboard(
         self,
         year_level: Optional[int] = None,
@@ -149,8 +149,10 @@ class APIClient:
         )
         response.raise_for_status()
         return response.json()["visible"]
-        
-    def update_profile(self, university_id: Optional[int] = None, major_id: Optional[int] = None) -> Dict[str, Any]:
+
+    def update_profile(
+        self, university_id: Optional[int] = None, major_id: Optional[int] = None
+    ) -> Dict[str, Any]:
         """Update user profile"""
         payload = {}
         if university_id is not None:
@@ -513,6 +515,7 @@ class APIClient:
         if response.status_code != 200:
             raise ValueError(f"Get all year eligibility error ({response.status_code})")
         return response.json()
+
     def update_assessment(
         self,
         assessment_id: int,

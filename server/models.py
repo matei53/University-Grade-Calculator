@@ -28,7 +28,7 @@ class Major(Base):
 
 class User(Base):
     __tablename__ = "users"
-    
+
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
@@ -36,8 +36,10 @@ class User(Base):
         Integer, ForeignKey("universities.id"), nullable=True
     )
     major_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("majors.id"), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
-    
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(timezone.utc)
+    )
+
     leaderboard_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     university: Mapped[University | None] = relationship(back_populates="users")
@@ -195,6 +197,7 @@ class FinalAssessmentGrade(Base):
 
     assessment: Mapped[FinalAssessment] = relationship(back_populates="grade")
 
+
 # credit passing percentage
 class YearProgressionRequirement(Base):
     __tablename__ = "year_progression_requirements"
@@ -206,5 +209,3 @@ class YearProgressionRequirement(Base):
     cumulative: Mapped[bool] = mapped_column(Boolean, default=False)
 
     user: Mapped[User] = relationship(back_populates="progression_requirements")
-
-
