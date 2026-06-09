@@ -192,3 +192,32 @@ jobs:
             needs.lint.result == 'success' }}
       run: |
         echo "All checks passed successfully!"
+
+  cd:
+    name: Build & Push Docker Image
+    needs: [test-summary]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: ./server
+        push: true
+        tags: |
+          ghcr.io/${{ github.repository_owner }}/university-grade-calculator:latest
+          ghcr.io/${{ github.repository_owner }}/university-grade-calculator:${{ github.sha }}
