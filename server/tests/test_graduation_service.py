@@ -2,9 +2,9 @@
 
 import pytest
 
-from models import User
-from services.auth_service import AuthService
-from services.graduation_service import GraduationService
+from server.models import User
+from server.services.auth_service import AuthService
+from server.services.graduation_service import GraduationService
 
 
 class TestGraduationSettings:
