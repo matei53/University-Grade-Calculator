@@ -1,24 +1,16 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Header, Depends
-from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy.orm import Session
-from database import engine, Base, SessionLocal, get_db
-from models import University, Major, User, AcademicYear, Subject
-from routers import auth, profile, subjects, assessments, leaderboard
-from dependencies import get_current_user
+from typing import Any
 import json
 import os
-from contextlib import asynccontextmanager
-from typing import Any
 
-from dependencies import get_current_user
-from fastapi import Depends, FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from routers import assessments, auth, graduation, profile, subjects
 from sqlalchemy.orm import Session
 
-from database import Base, SessionLocal, engine, get_db
-from models import AcademicYear, Major, Subject, University, User
+from database import engine, Base, SessionLocal, get_db
+from dependencies import get_current_user
+from models import University, Major, User, AcademicYear, Subject
+from routers import auth, profile, subjects, assessments, leaderboard, graduation
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):

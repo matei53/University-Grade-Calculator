@@ -146,7 +146,7 @@ class LeaderboardEntry(BaseModel):
     rank: int
     user_id: int
     display_name: str
-    university_short: str
+    university_name: str
     year_level: int
     weighted_avg: float
     credits: int

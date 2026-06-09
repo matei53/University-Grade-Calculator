@@ -16,6 +16,21 @@ from client.api_client import APIClient
 from ui.styles import LEADERBOARD_STYLE
 
 
+class _VisibilityWorker(QThread):
+    error = pyqtSignal(str)
+
+    def __init__(self, api, visible: bool):
+        super().__init__()
+        self.api = api
+        self.visible = visible
+
+    def run(self):
+        try:
+            self.api.set_leaderboard_visibility(self.visible)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class _LeaderboardLoadWorker(QThread):
     finished = pyqtSignal(dict, object)  # data, visibility (None if not fetched)
     error = pyqtSignal(str)
@@ -58,6 +73,7 @@ class LeaderboardScreen(QWidget):
         self._current_page = 1
         self._selected_year: int | None = None
         self._worker: _LeaderboardLoadWorker | None = None
+        self._vis_worker: _VisibilityWorker | None = None
         self._search_timer = QTimer(self)
         self._search_timer.setSingleShot(True)
         self._search_timer.setInterval(350)
@@ -221,10 +237,9 @@ class LeaderboardScreen(QWidget):
         self._load_leaderboard(reset_year=True, fetch_visibility=True)
 
     def _on_visibility_changed(self, checked: bool):
-        try:
-            self.api.set_leaderboard_visibility(checked)
-        except Exception as e:
-            print(f"Failed to update visibility: {e}")
+        self._vis_worker = _VisibilityWorker(self.api, checked)
+        self._vis_worker.error.connect(lambda e: print(f"Failed to update visibility: {e}"))
+        self._vis_worker.start()
 
     def _on_search_changed(self):
         self._search_timer.start()
@@ -397,7 +412,7 @@ class LeaderboardScreen(QWidget):
         name.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(name)
 
-        uni = QLabel(entry["university_short"])
+        uni = QLabel(entry["university_name"])
         uni.setObjectName("CardSub")
         uni.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lay.addWidget(uni)
@@ -438,7 +453,7 @@ class LeaderboardScreen(QWidget):
             name_text += " (You)"
         name = QLabel(name_text)
         name.setStyleSheet("font-weight: bold;")
-        meta = QLabel(f"{entry['university_short']} · Year {entry['year_level']}")
+        meta = QLabel(f"{entry['university_name']} · Year {entry['year_level']}")
         meta.setObjectName("CardSub")
         student_col.addWidget(name)
         student_col.addWidget(meta)

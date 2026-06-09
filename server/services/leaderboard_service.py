@@ -1,40 +1,12 @@
 import math
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from models import Major, University, User
 from services.subject_service import SubjectService
 
-_KNOWN_ABBREVIATIONS = {
-    "Universitatea din Bucuresti": "UB",
-    "Universitatea Politehnica": "UPB",
-    "UBB": "UBB",
-}
-
 DEFAULT_PAGE_SIZE = 2
 MAX_PAGE_SIZE = 20
-
-
-def university_short(name: str | None) -> str:
-    """Return a short label for a university name."""
-    if not name:
-        return "—"
-
-    if name in _KNOWN_ABBREVIATIONS:
-        return _KNOWN_ABBREVIATIONS[name]
-
-    if name.upper() == name and len(name) <= 6:
-        return name
-
-    capitalized_words = [word for word in name.split() if word and word[0].isupper()]
-
-    if len(capitalized_words) > 1:
-        abbreviation = "".join(word[0] for word in capitalized_words)
-        if abbreviation == "UDB":
-            return "UB"
-        return abbreviation
-
-    return name[:4].upper()
 
 
 def _subject_grade(subject) -> float | None:
@@ -136,10 +108,11 @@ def build_leaderboard(
     )
 
     peers = (
-        db.query(User)
+    db.query(User)
         .join(University, User.university_id == University.id)
         .join(Major, User.major_id == Major.id)
         .filter(University.name == uni.name, Major.name == major.name)
+        .options(joinedload(User.university))
         .all()
     )
 
@@ -148,16 +121,16 @@ def build_leaderboard(
         if not u.leaderboard_visible and u.id != current_user.id:
             continue
         stats = compute_user_stats(db, u.id)
-        peer_uni = db.query(University).filter(University.id == u.university_id).first()
         all_rows.append({
             "user_id": u.id,
             "display_name": u.username.replace("_", " ").title(),
-            "university_short": university_short(peer_uni.name if peer_uni else None),
+            "university_name": u.university.name if u.university else "—",
             "year_level": stats["year_level"],
             "weighted_avg": stats["weighted_avg"],
             "credits": stats["credits"],
             "is_current_user": u.id == current_user.id,
         })
+
 
     available_year_levels = sorted({r["year_level"] for r in all_rows})
 
