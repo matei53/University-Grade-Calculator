@@ -6,7 +6,7 @@ import pytest
 from fastapi import status
 
 from models import University, User
-from services.leaderboard_service import build_leaderboard, university_short
+from services.leaderboard_service import build_leaderboard
 from services.subject_service import AssessmentService, SubjectService
 
 
@@ -43,38 +43,7 @@ def profiled_user(client, test_university, test_major):
 
     return _register
 
-def _add_subject_grade(test_db, username: str, score: float, year_level: int = 1):
-    # 1. Find the user and fetch their assigned test university record
-    user = test_db.query(User).filter(User.username == username).first()
-    university = user.university 
 
-    # 2. Extract boundaries if they exist on your model, otherwise fall back to 
-    # whatever scale your `test_university` fixture currently inserts into the DB
-    passing = getattr(university, "passing_grade", 5.0)
-    max_g = getattr(university, "max_grade", 10.0)
-
-    # 3. Call your approved services using explicit keyword arguments
-    subject = SubjectService.add_subject(
-        db=test_db,
-        user_id=user.id,
-        name="Math",
-        credits=6,
-        semester_index=1,
-        year_level=year_level,
-        passing_grade=passing,
-        max_grade=max_g
-    )
-    
-    AssessmentService.add_assessment(
-        db=test_db,
-        subject_id=subject.id,
-        name="Exam",
-        weight=100.0,
-        score=score,
-        max_score=max_g,
-        passing_grade=passing
-    )
-    
 def _add_subject_grade(test_db, username: str, score: float, year_level: int = 1):
     user = test_db.query(User).filter(User.username == username).first()
     subject = SubjectService.add_subject(
@@ -83,25 +52,6 @@ def _add_subject_grade(test_db, username: str, score: float, year_level: int = 1
     AssessmentService.add_assessment(
         test_db, subject.id, "Exam", 100.0, score
     )
-
-class TestUniversityAbbreviation:
-    """University short-name helper."""
-
-    def test_known_ubb(self):
-        assert university_short("UBB") == "UBB"
-
-    def test_known_politehnica(self):
-        assert university_short("Universitatea Politehnica") == "UPB"
-
-    def test_known_bucuresti(self):
-        assert university_short("Universitatea din Bucuresti") == "UB"
-
-    def test_empty_name(self):
-        assert university_short(None) == "—"
-        assert university_short("") == "—"
-
-    def test_multi_word_initials(self):
-        assert university_short("Alexandru Ioan Cuza") == "AIC"
 
 
 class TestLeaderboardRoutes:
@@ -121,7 +71,7 @@ class TestLeaderboardRoutes:
         assert data["filter_university"] is None
 
     def test_leaderboard_shows_two_peers_same_course(
-        self, client, profiled_user, test_university, test_major
+        self, client, profiled_user, test_university
     ):
         user_a = profiled_user("alice_leader")
         profiled_user("bob_leader")
@@ -133,7 +83,7 @@ class TestLeaderboardRoutes:
         assert "Alice Leader" in _all_names(data)
         assert "Bob Leader" in _all_names(data)
         for entry in data["podium"]:
-            assert entry["university_short"] == university_short(test_university.name)
+            assert entry["university_name"] == test_university.name
 
     def test_leaderboard_excludes_different_major(
         self, client, profiled_user, test_db, test_university
@@ -169,7 +119,7 @@ class TestLeaderboardRoutes:
         assert data["total"] == 1
         assert data["podium"][0]["display_name"] == "Carol Cs"
 
-    def test_university_abbreviation_in_response(self, client, profiled_user, test_db):
+    def test_university_name_in_response(self, client, profiled_user, test_db):
         upb = University(name="Universitatea Politehnica")
         test_db.add(upb)
         test_db.commit()
@@ -199,7 +149,7 @@ class TestLeaderboardRoutes:
         )
 
         data = client.get("/leaderboard", headers=headers).json()
-        assert data["podium"][0]["university_short"] == "UPB"
+        assert data["podium"][0]["university_name"] == "Universitatea Politehnica"
         assert data["filter_university"] == "Universitatea Politehnica"
 
 
@@ -388,7 +338,6 @@ class TestLeaderboardSorting:
     def test_credits_break_tie_on_average(self, test_db, profiled_user, client):
         profiled_user("tie_low_cr")
         profiled_user("tie_high_cr")
-        # Use a real 10/10 score for a full subject average of 10.0
         _add_subject_grade(test_db, "tie_low_cr", 10.0)
         user_high = test_db.query(User).filter(User.username == "tie_high_cr").first()
         s1 = SubjectService.add_subject(test_db, user_high.id, "A", 6, 1, 1)
