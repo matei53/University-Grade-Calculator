@@ -1,6 +1,6 @@
 from typing import Optional
 
-from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QFormLayout,
@@ -13,9 +13,6 @@ from PyQt6.QtWidgets import (
     QWidget,
     QTextEdit,
 )
-
-import threading
-import requests
 
 from client.api_client import APIClient
 from models.session import Session
@@ -37,12 +34,29 @@ class _ProfileLoadWorker(QThread):
             self.error.emit(str(e))
 
 
+class _CareerGuidanceWorker(QThread):
+    result_ready = pyqtSignal(str)
+    error = pyqtSignal(str)
+
+    def __init__(self, api_client):
+        super().__init__()
+        self._api_client = api_client
+
+    def run(self):
+        try:
+            from agents.career_advisor import run_career_guidance
+            self.result_ready.emit(run_career_guidance(self._api_client))
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class ProfileScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
         self.api_client = APIClient()
         self._worker: Optional[_ProfileLoadWorker] = None
+        self._career_worker: Optional[_CareerGuidanceWorker] = None
         self.setStyleSheet(DASHBOARD_STYLE)
         self._build_ui()
 
@@ -183,48 +197,31 @@ class ProfileScreen(QWidget):
 
         self.ai_group_box = advisor_group
 
-    def _set_career_output(self, text: str):
-        self.career_output.setMarkdown(text)
-
     def _handle_generate_career_guidance(self):
         self.career_button.setEnabled(False)
         self.career_button.setText("Analyzing your performance...")
         self.career_output.setMarkdown("*Fetching guidance from the AI advisor...*")
 
-        def request_guidance():
+        if self._career_worker and self._career_worker.isRunning():
             try:
-                headers = self.api_client._get_headers()
-                response = requests.get(
-                    f"{self.api_client.base_url}/profile/career-guidance",
-                    headers=headers,
-                    timeout=20,
-                )
-                if response.status_code != 200:
-                    raise ValueError(
-                        f"Server returned {response.status_code}: {response.text}"
-                    )
-                guidance = response.text
-                QTimer.singleShot(0, lambda: self._set_career_output(guidance))
-            except Exception as exc:
-                error_message = f"Unable to fetch career guidance: {exc}"
-                QTimer.singleShot(
-                    0,
-                    lambda: QMessageBox.critical(
-                        self,
-                        "Career Guidance Failed",
-                        error_message,
-                    ),
-                )
-                QTimer.singleShot(
-                    0,
-                    lambda: self.career_output.setMarkdown(
-                        "**Failed to load career guidance.**"
-                    ),
-                )
-            finally:
-                QTimer.singleShot(0, self._career_button_ready)
+                self._career_worker.result_ready.disconnect()
+                self._career_worker.error.disconnect()
+            except Exception:
+                pass
 
-        threading.Thread(target=request_guidance, daemon=True).start()
+        self._career_worker = _CareerGuidanceWorker(self.api_client)
+        self._career_worker.result_ready.connect(self._on_career_guidance_ready)
+        self._career_worker.error.connect(self._on_career_guidance_error)
+        self._career_worker.start()
+
+    def _on_career_guidance_ready(self, text: str):
+        self.career_output.setMarkdown(text)
+        self._career_button_ready()
+
+    def _on_career_guidance_error(self, error: str):
+        QMessageBox.critical(self, "Career Guidance Failed", f"Unable to fetch career guidance: {error}")
+        self.career_output.setMarkdown("**Failed to load career guidance.**")
+        self._career_button_ready()
 
     def _career_button_ready(self):
         self.career_button.setEnabled(True)
@@ -285,4 +282,20 @@ class ProfileScreen(QWidget):
             QMessageBox.critical(self, "Delete Failed", str(error))
 
     def _back_to_dashboard(self):
+        if self._career_worker and self._career_worker.isRunning():
+            reply = QMessageBox.question(
+                self,
+                "Guidance in progress",
+                "Career guidance is still being generated. Cancel it and go back?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                QMessageBox.StandardButton.No,
+            )
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+            try:
+                self._career_worker.result_ready.disconnect(self._on_career_guidance_ready)
+                self._career_worker.error.disconnect(self._on_career_guidance_error)
+            except Exception:
+                pass
+            self._career_button_ready()
         self.router.navigate("dashboard")
