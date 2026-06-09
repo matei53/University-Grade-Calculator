@@ -325,3 +325,54 @@ class APIClient:
             raise ValueError(f"Add assessment error \
                     ({response.status_code}): {error_detail}")
         return response.json()
+
+    # credit passing percentage: Progression eligibility endpoints
+    def get_progression_requirements(self) -> List[Dict[str, Any]]:
+        """credit passing percentage: Get all progression requirements for current user"""
+        response = requests.get(
+            f"{self.base_url}/progression/requirements",
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Get progression requirements error ({response.status_code})")
+        return response.json()
+
+    def update_progression_requirement(
+        self,
+        target_year: int,
+        credit_percentage: float,
+        cumulative: bool = False,
+    ) -> Dict[str, Any]:
+        """credit passing percentage: Update progression requirement for a target year"""
+        payload = {
+            "credit_percentage": credit_percentage,
+            "cumulative": cumulative,
+        }
+        response = requests.put(
+            f"{self.base_url}/progression/requirements/{target_year}",
+            json=payload,
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Update progression requirement error ({response.status_code})")
+        return response.json()
+
+    def get_year_eligibility(self, target_year: int) -> Dict[str, Any]:
+        """credit passing percentage: Check eligibility for a specific year"""
+        response = requests.get(
+            f"{self.base_url}/progression/eligibility/{target_year}",
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Get year eligibility error ({response.status_code})")
+        return response.json()
+
+    def get_all_year_eligibility(self) -> List[Dict[str, Any]]:
+        """credit passing percentage: Check eligibility for all years in student's program"""
+        response = requests.get(
+            f"{self.base_url}/progression/eligibility",
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            raise ValueError(f"Get all year eligibility error ({response.status_code})")
+        return response.json()

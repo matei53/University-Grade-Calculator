@@ -5,7 +5,6 @@ from PyQt6.QtWidgets import QApplication, QMessageBox
 
 from client.api_client import APIClient
 
-# Internal Imports
 from ui.app import AppRouter
 from ui.screens.dashboard_screen import DashboardScreen
 from ui.screens.graduation_screen import GraduationScreen
@@ -13,6 +12,7 @@ from ui.screens.login_screen import LoginScreen
 from ui.screens.signup_screen import SignupScreen
 from ui.screens.simulator_screen import SimulatorScreen
 from ui.screens.subject_screen import SubjectScreen
+from ui.screens.progression_settings_screen import ProgressionSettingsScreen
 
 load_dotenv()
 
@@ -59,6 +59,8 @@ def main():
     subject_setup = SubjectScreen(router)
     simulator = SimulatorScreen(router)
     graduation = GraduationScreen(router)
+    # credit passing percentage: Create progression settings screen
+    progression_settings = ProgressionSettingsScreen(router)
 
     # Inject API client into simulator
     simulator.set_api_client_instance(api_client)
@@ -70,6 +72,8 @@ def main():
     router.register("subject_setup", subject_setup)
     router.register("simulator", simulator)
     router.register("graduation", graduation)
+    # credit passing percentage: Register progression settings route
+    router.register("progression_settings", progression_settings)
 
     # Initial View
     router.navigate("login")

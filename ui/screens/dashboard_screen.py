@@ -58,7 +58,19 @@ class _GradDataWorker(QThread):
         except Exception as e:
             self.error.emit(str(e))
 
+class _EligibilityWorker(QThread):
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
 
+    def run(self):
+        try:
+            client = APIClient()
+            # credit passing percentage: Fetch eligibility criteria from server
+            data = client.get_all_year_eligibility()
+            self.finished.emit(data)
+        except Exception as e:
+            self.error.emit(str(e))
+            
 # ---------------------------------------------------------------------------
 # Dashboard screen
 # ---------------------------------------------------------------------------
@@ -80,6 +92,8 @@ class DashboardScreen(QWidget):
         self._grad_worker: Optional[_GradDataWorker] = None
         self._dash_worker: Optional[_DashboardLoadWorker] = None
         self._grad_data_loaded: bool = False
+        # credit passing percentage: Store eligibility data for display
+        self.eligibility_data: list = []
         self.api_client = APIClient()
         self._grad_service = GraduationService()
         self.setStyleSheet(DASHBOARD_STYLE)
@@ -116,6 +130,15 @@ class DashboardScreen(QWidget):
         )
         add_subject_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
 
+        # credit passing percentage: Add progression settings button
+        progression_btn = QPushButton("📊 Progression")
+        progression_btn.setFixedWidth(140)
+        progression_btn.setStyleSheet(
+            "background-color: #A8C686; color: #0A0D08; font-weight: bold; "
+            "border-radius: 6px; padding: 6px;"
+        )
+        progression_btn.clicked.connect(lambda: self.router.navigate("progression_settings"))
+
         simulator_btn = QPushButton("Grade Simulator")
         simulator_btn.setFixedWidth(140)
         simulator_btn.setStyleSheet(
@@ -133,6 +156,8 @@ class DashboardScreen(QWidget):
         logout_btn.clicked.connect(self._handle_logout)
 
         header_layout.addWidget(add_subject_btn)
+        # credit passing percentage: Add progression settings button to header
+        header_layout.addWidget(progression_btn)
         header_layout.addWidget(simulator_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
@@ -210,6 +235,33 @@ class DashboardScreen(QWidget):
         sep.setStyleSheet("color: #E0E0E0; margin: 0px;")
         layout.addWidget(sep)
 
+        # --- YEAR PROGRESSION STATUS ---
+        elig_title_bar = QHBoxLayout()
+        elig_title = QLabel("YEAR PROGRESSION ELIGIBILITY")
+        elig_title.setObjectName("CardTitle")
+        
+        self.elig_loading_lbl = QLabel("Loading Status…")
+        self.elig_loading_lbl.setObjectName("CardSub")
+        
+        elig_title_bar.addWidget(elig_title)
+        elig_title_bar.addWidget(self.elig_loading_lbl)
+        elig_title_bar.addStretch()
+        layout.addLayout(elig_title_bar)
+
+        # Container list layout for per-year progress items
+        self.elig_list_widget = QWidget()
+        self.elig_list_layout = QVBoxLayout(self.elig_list_widget)
+        self.elig_list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.elig_list_layout.setSpacing(4)
+        self.elig_list_layout.setContentsMargins(0, 0, 0, 0)
+        layout.addWidget(self.elig_list_widget)
+
+        # Separator between progression tracking and final assessment details
+        sep2 = QFrame()
+        sep2.setFrameShape(QFrame.Shape.HLine)
+        sep2.setStyleSheet("color: #E0E0E0; margin: 4px 0px;")
+        layout.addWidget(sep2)
+
         # FA list title
         fa_title = QLabel("FINAL ASSESSMENTS")
         fa_title.setObjectName("CardTitle")
@@ -279,6 +331,9 @@ class DashboardScreen(QWidget):
         self._grad_worker.finished.connect(self._on_grad_data_ready)
         self._grad_worker.error.connect(self._on_grad_data_error)
         self._grad_worker.start()
+
+        # credit passing percentage: Load eligibility status
+        self._load_eligibility_data()
 
     def _on_dashboard_loaded(self, all_data: dict, uni: str, major: str):
         self.all_data = all_data
@@ -435,6 +490,13 @@ class DashboardScreen(QWidget):
                 self._grad_worker.error.connect(self._on_grad_data_error)
                 self._grad_worker.start()
 
+        # --- Credit Passing Percentage ---
+        if hasattr(self, 'eligibility_data') and self.eligibility_data:
+            self.elig_loading_lbl.setVisible(False)
+            self._rebuild_eligibility_list(self.eligibility_data)
+        else:
+            self.elig_loading_lbl.setVisible(True)
+
     def _on_grad_data_ready(self, settings: dict, assessments: list):
         self._grad_data_loaded = True
         self._grad_settings = settings
@@ -548,6 +610,100 @@ class DashboardScreen(QWidget):
             self._rebuild_fa_list(self._grad_assessments)
         except Exception as e:
             print(f"Error saving graduation score: {e}")
+
+    # ------------------------------------------------------------------
+    # Year Progression Eligibility
+    # ------------------------------------------------------------------
+ 
+    def _load_eligibility_data(self):
+        if self._eligibility_worker and self._eligibility_worker.isRunning():
+            try:
+                self._eligibility_worker.finished.disconnect()
+                self._eligibility_worker.error.disconnect()
+            except Exception:
+                pass
+ 
+        self._eligibility_worker = _EligibilityWorker()
+        self._eligibility_worker.finished.connect(self._on_eligibility_loaded)
+        self._eligibility_worker.error.connect(self._on_eligibility_error)
+        self._eligibility_worker.start()
+ 
+    def _on_eligibility_loaded(self, data: list):
+        self.eligibility_data = data
+        if self._total_mode:
+            self.elig_loading_lbl.setVisible(False)
+            self._rebuild_eligibility_list(self.eligibility_data)
+ 
+    def _on_eligibility_error(self, error_msg: str):
+        # credit passing percentage: Hide loading label and leave list empty on error
+        self.elig_loading_lbl.setVisible(False)
+        print(f"Eligibility load error: {error_msg}")
+ 
+    def _rebuild_eligibility_list(self, eligibility_list: list):
+        while self.elig_list_layout.count():
+            item = self.elig_list_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
+ 
+        if not eligibility_list:
+            lbl = QLabel("No progression data available.")
+            lbl.setObjectName("CardSub")
+            self.elig_list_layout.addWidget(lbl)
+            return
+ 
+        for elig in eligibility_list:
+            self.elig_list_layout.addWidget(self._make_eligibility_row(elig))
+ 
+    def _make_eligibility_row(self, data: dict) -> QFrame:
+        row = QFrame()
+        row.setObjectName("SubjectRow")
+        layout = QHBoxLayout(row)
+        layout.setContentsMargins(4, 6, 4, 6)
+ 
+        target_year = data["target_year"]
+        is_eligible = data["is_eligible"]
+        credits_earned = data["credits_earned"]
+        credits_required = data["credits_required"]
+        current_pct = data["current_percentage"]
+        required_pct = data["required_percentage"]
+        cumulative = data["cumulative"]
+ 
+        year_lbl = QLabel(f"→ Year {target_year}")
+        year_lbl.setFixedWidth(70)
+        year_lbl.setStyleSheet("font-size: 13px; font-weight: bold; color: #2D4B1D;")
+ 
+        credits_lbl = QLabel(f"{credits_earned}/{credits_required} credits  ({current_pct:.1f}%)")
+        credits_lbl.setStyleSheet("font-size: 13px; color: #555;")
+ 
+        req_lbl = QLabel(f"Required: {required_pct:.0f}%")
+        req_lbl.setStyleSheet("font-size: 12px; color: #777;")
+ 
+        if cumulative:
+            cum_lbl = QLabel("cumulative")
+            cum_lbl.setStyleSheet(
+                "font-size: 11px; color: #fff; background-color: #7B9E6B; "
+                "border-radius: 3px; padding: 1px 5px;"
+            )
+        else:
+            cum_lbl = QLabel("")
+ 
+        badge_text = "✓ ELIGIBLE" if is_eligible else "✗ NOT ELIGIBLE"
+        badge_color = "#27ae60" if is_eligible else "#c0392b"
+        badge_lbl = QLabel(badge_text)
+        badge_lbl.setStyleSheet(f"font-size: 12px; font-weight: bold; color: {badge_color};")
+        badge_lbl.setFixedWidth(110)
+ 
+        layout.addWidget(year_lbl)
+        layout.addWidget(credits_lbl)
+        layout.addSpacing(12)
+        layout.addWidget(req_lbl)
+        layout.addSpacing(8)
+        layout.addWidget(cum_lbl)
+        layout.addStretch()
+        layout.addWidget(badge_lbl)
+ 
+        return row
+
 
     # ------------------------------------------------------------------
     # Auth
