@@ -40,3 +40,31 @@ Once you open UniGrade, you can easily navigate through your academic journey us
 ### ⚙️ Smart AI Assistants
 * ⚙️ **Grade Simulator Tab:** Run predictive "what-if" scenarios. Simply type in your target GPA, select which upcoming or retakeable assignments you want to calculate, and the AI agent will tell you the exact scores you need to hit your goal.
 * ⚙️ **Career Advisor Tab:** Head to your profile and click **Generate Career Guidance**. The built-in AI counselor will analyze your passed courses, strengths, and grades to build a personalized roadmap for your future internships and career choices.
+
+---
+## 🤖 AI Usage Report
+
+This section outlines how Artificial Intelligence tools were leveraged throughout the Software Development Life Cycle (SDLC) to accelerate the design, implementation, and debugging of UniGrade.
+
+### ⚙️ 1. AI Tool Roles
+* **GitHub Copilot:** Used as an intelligent inline assistant for fast code autocompletion and writing quick PyQt6 frontend and FastAPI backend boilerplate.
+* **Gemini:** Used as a high-level architectural consultant to design prompt engineering strategies for our AI agents, map out database schemas, and diagnose pipeline bugs.
+
+### 📊 2. Frontend Development (PyQt6)
+* **What the AI did:** Copilot quickly generated native desktop layout components, turning basic text forms into clean, organized `QFormLayout` and `QGridLayout` code blocks.
+* **Where it failed:** The AI lacked spatial reasoning. It accidentally placed the **Delete Account** button directly over a panel border line. We had to manually rewrite the layout sequence, fix widget nesting, and inject `QSpacerItem` barriers to correct the visual layout.
+
+### ⚙️ 3. Backend, CI/CD, and Debugging
+* **What the AI did:** Cline automated our CRUD server endpoints, generating safe database query loops for creating, updating, and deleting academic data.
+* **CI/CD Pipeline Fix:** When GitHub Actions automated tests crashed with a `ModuleNotFoundError: No module named 'PyQt6'`, Gemini diagnosed that the remote environment runner was trying to load frontend UI requirements during isolated backend tests. We then used Cline to swiftly rewrite file imports into absolute `server.` paths, repairing the pipeline.
+* **Linter Compliance:** AI assisted in maintaining strict code hygiene, scanning for Flake8 errors and instantly fixing formatting oversights (such as replacing undefined catch variables with standard `{e}` exceptions).
+
+### 📊 4. Core Feature Integration
+* **Data Mapping:** We used AI to design clean mapping structures that convert complex PostgreSQL relational tables into plain Python dictionaries. This sanitized data is what gets passed safely into LangChain and our local Ollama framework to feed our background-threaded AI agents.
+
+### ⚙️ 5. Key Limitations & Failures
+* **Hallucinations:** AI assistants occasionally lost track of our codebase scope, inventing variables that did not exist. This led to multiple `NameError` bugs (such as referencing an undefined `raw_year` variable during database writes) which required manual code auditing.
+* **Pathing Mistakes:** The AI frequently mixed up package roots and directory structures, writing broken internal imports that had to be manually re-mapped.
+
+### 📊 6. Conclusion
+Pairing GitHub Copilot (for quick boilerplate production) with Gemini (for structural problem-solving) reduced our overall engineering and debugging timeline by **70-80%**. While AI serves as a powerful development accelerator, rigorous human overview is completely mandatory to correct architectural scope, fix file pathing, and resolve visual UI bugs.
