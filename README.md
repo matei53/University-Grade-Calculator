@@ -11,11 +11,11 @@ This project follows a clean, layered architecture separating the database model
 ### 1. Use Case Diagram
 *Shows how the student interacts with the application tabs and how the AI agents communicate with external APIs.*
 
-https://www.planttext.com?text=VLHTQnin47mt-3yi5sWJIEX3wKDJABawhGd4DDHneH0eQsbzfqOdkPBEhYdvxrtfFdAkayXW-tQrSpipArtuW2xKbHwF_BqoQtHOGOb6RfqAWGoiK7iQ9Yjhh2YThUWmjqPnZmNDmquJE181JQ7tTlWIfTqgKtJ5msJjIQ0d-3iU0QzFZ5OuMniviTewE5gzZvysQPqaroRUfjKaSkVijes_IsiyUeZlGH4ubir3BSa4M7Xo6Q27Bd24MWbQwfe-Q6NeFFxhgxwkoUHNy0QkhsUGtroboZPuf753XhjfwjQrM-l4h5S0ieLH6t9UXHrC7Kg22MfHQupWyvqFL6KTxUPRqof0iE1KKGQGAc8fQuPR1l0pL0OkqPTBYqx2AxXnjd3aVOyQLwVlOlBpkw9jt1zfPF7XiVhE7ASMFSDC74aLV0_7dhYJx4d4MyTspPHfIX9k2W77L5LN7TQTMJ7d7uIkHsLUBMOowZzkkU1cAYMumu0mGyCJLh5Xpr5hTgJDiOdc4VPGc68kvUbdxkVqaZG5Wdcz_CNlZAGRzYSlj7IBoxWnDwXtGOaNLRucHdEDBxtOW-3JQavA4lUnaM_qEvMbG6gjnZW8m8cQfo8guLzIxmg-48QQTORZl8YxJvvhDn6Vgogza7_ZV58hHpSLqCRPGrRXcLcOe2DokTmaf2a5Q28mhPL48uZHsFoLuWu7A0_jINtTdqbb0l4GHS8UjYgKi7AMOqP2O0_6esxZsTd7uLWV9FQdyo3zE3DFGWxiEiWFdJf8TeeULdKADNpPfUGD26iCjNpvzDCVvizJbguTlh0sV4EDHqEh8bvx3vr3ng8AFb3izJeIRO2oLF7eoNx9b0nB7BX4D1uvYxB2THOxks2bw-eV
 
 ### 2. Class Diagram
 *Illustrates the backend object-oriented structure, built with SQLAlchemy ORM models and dedicated static service layers.*
 
+<img width="868" height="856" alt="Case Diagram" src="https://github.com/user-attachments/assets/be686e0e-80d2-41ba-85b6-4ae574606984" />
 
 ---
 
