@@ -308,6 +308,12 @@ class EditSubjectDialog(QDialog):
                 self.api_client.delete_assessment(assessment_id)
 
             QMessageBox.information(self, "Saved", "Subject changes have been saved.")
+            if self.refresh_callback:
+                try:
+                    self.refresh_callback()
+                except Exception:
+                    pass
+                self.refresh_callback = None  # prevent double-call from closeEvent
             self.accept()
         except Exception as error:
             QMessageBox.critical(self, "Save Failed", str(error))
