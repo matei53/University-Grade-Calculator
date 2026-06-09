@@ -2,8 +2,8 @@ import math
 
 from sqlalchemy.orm import Session, joinedload
 
-from models import Major, University, User
-from services.subject_service import SubjectService
+from server.models import Major, University, User
+from server.services.subject_service import SubjectService
 
 DEFAULT_PAGE_SIZE = 2
 MAX_PAGE_SIZE = 20

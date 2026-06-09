@@ -4,9 +4,9 @@ Tests for the subject and assessment services.
 
 import pytest
 
-from models import Assessment, User
-from services.auth_service import AuthService
-from services.subject_service import AssessmentService, SubjectService
+from server.models import Assessment, User
+from server.services.auth_service import AuthService
+from server.services.subject_service import AssessmentService, SubjectService
 
 
 class TestSubjectService:
@@ -230,3 +230,17 @@ class TestAssessmentService:
         )
 
         assert assessment.grade.score == 0.0
+
+    def test_add_assessment_null_score_creates_ungraded_grade(self, test_db, subject_with_user):
+        """Test that score=None creates a Grade record with null score (ungraded)."""
+        assessment = AssessmentService.add_assessment(
+            test_db,
+            subject_with_user.id,
+            "Pending Exam",
+            weight=0.5,
+            score=None,
+        )
+
+        db_assessment = test_db.query(Assessment).filter(Assessment.id == assessment.id).first()
+        assert db_assessment.grade is not None
+        assert db_assessment.grade.score is None

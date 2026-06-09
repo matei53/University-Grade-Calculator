@@ -2,11 +2,11 @@ from datetime import datetime, timedelta, timezone
 
 import bcrypt
 import jwt
-from config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
-from schemas import UserResponse
+from server.config import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, SECRET_KEY
+from server.schemas import UserResponse
 from sqlalchemy.orm import Session
 
-from models import AcademicYear, Semester, User
+from server.models import AcademicYear, Semester, User
 
 
 class AuthService:

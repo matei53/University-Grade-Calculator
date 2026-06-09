@@ -5,9 +5,9 @@ Tests for leaderboard API and service logic.
 import pytest
 from fastapi import status
 
-from models import University, User
-from services.leaderboard_service import build_leaderboard
-from services.subject_service import AssessmentService, SubjectService
+from server.models import University, User
+from server.services.leaderboard_service import build_leaderboard
+from server.services.subject_service import AssessmentService, SubjectService
 
 
 def _all_names(data: dict) -> set[str]:
@@ -88,7 +88,7 @@ class TestLeaderboardRoutes:
     def test_leaderboard_excludes_different_major(
         self, client, profiled_user, test_db, test_university
     ):
-        from models import Major
+        from server.models import Major
 
         other_major = Major(name="Law")
         test_db.add(other_major)
@@ -125,7 +125,7 @@ class TestLeaderboardRoutes:
         test_db.commit()
         test_db.refresh(upb)
 
-        from models import Major
+        from server.models import Major
 
         major = Major(name="Engineering")
         test_db.add(major)

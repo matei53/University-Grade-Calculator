@@ -28,6 +28,7 @@ class DashboardService:
                     has_grades = False
                     subject_max = subject.get("max_grade", 10.0)
 
+                    grade_infos = []
                     for assessment in assessments:
                         grade_obj = assessment.get("grade")
                         if grade_obj is not None:
@@ -44,14 +45,46 @@ class DashboardService:
                                     * (float(assessment.get("weight", 0)) / 100.0)
                                     * float(subject_max)
                                 )
+                            if grade_obj.get("id") is not None:
+                                grade_infos.append(
+                                    {
+                                        "grade_id": grade_obj["id"],
+                                        "assessment_id": assessment.get("id"),
+                                        "name": assessment.get("name"),
+                                        "score": score,
+                                    }
+                                )
+
+                    subject_grade_id = grade_infos[0]["grade_id"] if len(grade_infos) == 1 else None
+
+                    assessments_list = []
+                    for assessment in subject.get("assessments", []):
+                        grade_obj = assessment.get("grade")
+                        assessments_list.append(
+                            {
+                                "id": assessment.get("id"),
+                                "name": assessment.get("name"),
+                                "weight": float(assessment.get("weight", 0.0)),
+                                "max_score": float(assessment.get("max_score", 10.0)),
+                                "passing_grade": float(assessment.get("passing_grade", 5.0)),
+                                "grade_id": grade_obj.get("id") if grade_obj else None,
+                                "grade_score": grade_obj.get("score") if grade_obj else None,
+                            }
+                        )
 
                     all_data[year_num]["subjects"].append(
                         {
+                            "subject_id": subject["id"],
                             "name": subject["name"],
                             "credits": subject["credit_value"],
                             "grade": (round(total_grade, 2) if has_grades else None),
-                            "semester": subject.get("semester_index", 1),
+                            "semester_index": subject.get("semester_index", 1),
+                            "year_level": subject.get("year_level", year_num),
                             "passing_grade": subject.get("passing_grade", 5.0),
+                            "max_grade": subject_max,
+                            "grade_id": subject_grade_id,
+                            "grade_details": grade_infos,
+                            "assessments": assessments_list,
                         }
                     )
         except Exception as e:

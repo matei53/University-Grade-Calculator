@@ -261,3 +261,92 @@ class TestAcademicEndpoints:
         with patch("requests.post", return_value=_err(400, "bad data")):
             with pytest.raises(ValueError, match="Add assessment error"):
                 client.add_assessment(1, "Exam", 100.0, 8.0)
+
+    def test_add_assessment_null_score_sends_none_in_payload(self, client):
+        with patch("requests.post", return_value=_ok({"id": 5})) as mock_post:
+            client.add_assessment(1, "Quiz", 100.0, score=None)
+        payload = mock_post.call_args.kwargs["json"]
+        assert payload["score"] is None
+
+
+# -----------------------------------------------------------------------
+# Subject CRUD
+# -----------------------------------------------------------------------
+
+
+class TestSubjectCRUD:
+
+    def test_update_subject_sends_only_provided_fields(self, client):
+        with patch("requests.put", return_value=_ok({"id": 1})) as mock_put:
+            client.update_subject(1, name="New Name", credits=5)
+        payload = mock_put.call_args.kwargs["json"]
+        assert payload == {"name": "New Name", "credits": 5}
+        assert "passing_grade" not in payload
+
+    def test_update_subject_raises_on_error(self, client):
+        with patch("requests.put", return_value=_err(404, "not found")):
+            with pytest.raises(ValueError, match="Update subject error"):
+                client.update_subject(999, name="X")
+
+    def test_delete_subject_calls_correct_url(self, client):
+        r = MagicMock()
+        r.status_code = 204
+        r.text = ""
+        with patch("requests.delete", return_value=r) as mock_del:
+            client.delete_subject(7)
+        assert "/subjects/7" in mock_del.call_args.args[0]
+
+    def test_delete_subject_raises_on_error(self, client):
+        with patch("requests.delete", return_value=_err(404, "not found")):
+            with pytest.raises(ValueError, match="Delete subject error"):
+                client.delete_subject(999)
+
+
+# -----------------------------------------------------------------------
+# Assessment / grade CRUD
+# -----------------------------------------------------------------------
+
+
+class TestAssessmentCRUD:
+
+    def test_update_assessment_sends_only_provided_fields(self, client):
+        with patch("requests.put", return_value=_ok({"id": 5})) as mock_put:
+            client.update_assessment(5, name="Final", max_score=20.0)
+        payload = mock_put.call_args.kwargs["json"]
+        assert payload == {"name": "Final", "max_score": 20.0}
+        assert "weight" not in payload
+
+    def test_update_assessment_raises_on_error(self, client):
+        with patch("requests.put", return_value=_err(404, "not found")):
+            with pytest.raises(ValueError, match="Update assessment error"):
+                client.update_assessment(999, name="X")
+
+    def test_delete_assessment_calls_correct_url(self, client):
+        r = MagicMock()
+        r.status_code = 204
+        r.text = ""
+        with patch("requests.delete", return_value=r) as mock_del:
+            client.delete_assessment(3)
+        assert "/assessments/3" in mock_del.call_args.args[0]
+
+    def test_delete_assessment_raises_on_error(self, client):
+        with patch("requests.delete", return_value=_err(404, "not found")):
+            with pytest.raises(ValueError, match="Delete assessment error"):
+                client.delete_assessment(999)
+
+    def test_update_grade_sends_score(self, client):
+        with patch("requests.put", return_value=_ok({"id": 1, "score": 9.0})) as mock_put:
+            client.update_grade(1, score=9.0)
+        payload = mock_put.call_args.kwargs["json"]
+        assert payload == {"score": 9.0}
+
+    def test_update_grade_sends_null_to_clear_score(self, client):
+        with patch("requests.put", return_value=_ok({"id": 1, "score": None})) as mock_put:
+            client.update_grade(1, score=None)
+        payload = mock_put.call_args.kwargs["json"]
+        assert payload["score"] is None
+
+    def test_update_grade_raises_on_error(self, client):
+        with patch("requests.put", return_value=_err(404, "not found")):
+            with pytest.raises(ValueError, match="Update grade error"):
+                client.update_grade(999, score=5.0)

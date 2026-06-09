@@ -1,16 +1,16 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from database import get_db
-from dependencies import get_current_user
-from models import User
-from schemas import (
+from server.database import get_db
+from server.dependencies import get_current_user
+from server.models import User
+from server.schemas import (
     LeaderboardEntry,
     LeaderboardResponse,
     VisibilityResponse,
     VisibilityUpdate,
 )
-from services.leaderboard_service import MAX_PAGE_SIZE, build_leaderboard
+from server.services.leaderboard_service import MAX_PAGE_SIZE, build_leaderboard
 
 router = APIRouter(prefix="/leaderboard", tags=["leaderboard"])
 

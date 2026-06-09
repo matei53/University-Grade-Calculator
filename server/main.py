@@ -1,16 +1,44 @@
+import os
+import sys
 from contextlib import asynccontextmanager
 from typing import Any
-import json
-import os
+
+# Ensure both the server directory and the repo root are on sys.path so that
+# this module can be imported as `server.main` (uvicorn) or as `main` (pytest).
+_SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR = os.path.abspath(os.path.join(_SERVER_DIR, ".."))
+for _p in (_SERVER_DIR, _ROOT_DIR):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from database import engine, Base, SessionLocal, get_db
-from dependencies import get_current_user
-from models import University, Major, User, AcademicYear, Subject
-from routers import auth, profile, subjects, assessments, leaderboard, graduation
+from server.database import engine, Base, SessionLocal, get_db
+from server.dependencies import get_current_user
+from server.models import University, Major, User, AcademicYear, Subject
+from server.routers import auth, profile, subjects, assessments, leaderboard, grades, graduation, progression
+
+_SEED_UNIVERSITIES = [
+    "University of Bucharest",
+    "Polytechnic University",
+    "UBB",
+]
+
+_SEED_MAJORS = [
+    "Computer Science",
+    "Law",
+    "Medicine",
+    "Economics",
+    "Mathematics",
+    "Physics",
+    "Psychology",
+    "Architecture",
+    "Political Science",
+    "Business Administration",
+    "Geography",
+]
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -19,29 +47,19 @@ async def lifespan(_app: FastAPI):
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        # Check if universities exist
         if db.query(University).count() == 0:
-            data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-            with open(os.path.join(data_dir, "universities.json"), "r") as f:
-                universities = json.load(f)
-            for uni in universities:
-                db.add(University(name=uni["name"]))
+            for name in _SEED_UNIVERSITIES:
+                db.add(University(name=name))
 
-        # Check if majors exist
         if db.query(Major).count() == 0:
-            data_dir = os.path.join(os.path.dirname(__file__), "..", "data")
-            with open(os.path.join(data_dir, "majors.json"), "r") as f:
-                majors = json.load(f)
-            for major in majors:
-                db.add(Major(name=major["name"]))
+            for name in _SEED_MAJORS:
+                db.add(Major(name=name))
 
         db.commit()
     finally:
         db.close()
 
     yield
-
-    # Shutdown (if needed, add cleanup code here)
 
 
 app = FastAPI(title="UniGrade API", version="1.0.0", lifespan=lifespan)
@@ -55,13 +73,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
 app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(subjects.router)
 app.include_router(assessments.router)
-app.include_router(leaderboard.router)  
+app.include_router(leaderboard.router)
+app.include_router(grades.router)
 app.include_router(graduation.router)
+app.include_router(progression.router)
 
 
 @app.get("/debug/user-data")
