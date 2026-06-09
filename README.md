@@ -11,7 +11,7 @@ This project follows a clean, layered architecture separating the database model
 ### 1. Use Case Diagram
 *It shows how the student interacts with the application tabs and how the AI agents communicate with external APIs.*
 
-![Uploading Use diagram 1.png…]()
+<img width="1085" height="1219" alt="Use diagram 1" src="https://github.com/user-attachments/assets/4aba0dbc-68e7-41aa-8921-ba9bd6046706" />
 
 
 ### 2. Class Diagram
