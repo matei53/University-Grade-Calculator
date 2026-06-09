@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI/CD Pipeline
 
 on:
   push:
@@ -7,7 +7,8 @@ on:
     branches: [ main, dev ]
 
 jobs:
-  test:
+  server-tests:
+    name: Server Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -171,14 +172,14 @@ jobs:
       continue-on-error: true
 
   test-summary:
-    needs: [test, client-tests, lint]
+    needs: [server-tests, client-tests, lint]
     runs-on: ubuntu-latest
     if: always()
 
     steps:
     - name: Test status
       if: >-
-        ${{ needs.test.result == 'failure' ||
+        ${{ needs.server-tests.result == 'failure' ||
             needs.client-tests.result == 'failure' ||
             needs.lint.result == 'failure' }}
       run: |
@@ -187,7 +188,7 @@ jobs:
 
     - name: Success
       if: >-
-        ${{ needs.test.result == 'success' &&
+        ${{ needs.server-tests.result == 'success' &&
             needs.client-tests.result == 'success' &&
             needs.lint.result == 'success' }}
       run: |
