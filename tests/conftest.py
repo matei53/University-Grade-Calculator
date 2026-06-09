@@ -6,12 +6,14 @@ Provides in-memory SQLite database for testing and FastAPI test client.
 import os
 import sys
 
-# Dynamic path integration: Make the server module discoverable from root
+# Dynamic path integration: Make the repository root discoverable before server packages
 _ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _SERVER_DIR = os.path.join(_ROOT_DIR, "server")
-for _path in (_SERVER_DIR, _ROOT_DIR):
-    if _path not in sys.path:
-        sys.path.insert(0, _path)
+
+if _ROOT_DIR not in sys.path:
+    sys.path.insert(0, _ROOT_DIR)
+if _SERVER_DIR not in sys.path:
+    sys.path.insert(0, _SERVER_DIR)
 
 import pytest
 from fastapi.testclient import TestClient
@@ -19,8 +21,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from database import Base, get_db
-from main import app
+from server.database import Base, get_db
+from server.main import app
+
+if _SERVER_DIR in sys.path:
+    sys.path.remove(_SERVER_DIR)
 
 @pytest.fixture(scope="session")
 def test_db_url():

@@ -7,7 +7,7 @@ credit passing percentage: Manages modifiable progression thresholds per user
 
 from sqlalchemy.orm import Session
 
-from models import AcademicYear, Subject, YearProgressionRequirement, User
+from server.models import AcademicYear, Subject, YearProgressionRequirement, User
 
 
 class ProgressionService:

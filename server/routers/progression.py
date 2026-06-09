@@ -8,11 +8,11 @@ credit passing percentage: Allows students to customize their advancement requir
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from database import get_db
-from dependencies import get_current_user
-from models import User
-from schemas import YearProgressionRequirementResponse, YearProgressionRequirementUpdate, YearEligibilityResponse
-from services.progression_service import ProgressionService
+from server.database import get_db
+from server.dependencies import get_current_user
+from server.models import User
+from server.schemas import YearProgressionRequirementResponse, YearProgressionRequirementUpdate, YearEligibilityResponse
+from server.services.progression_service import ProgressionService
 
 
 
