@@ -17,7 +17,7 @@ This project follows a clean, layered architecture separating the database model
 ### 2. Class Diagram
 *It illustrates the backend object-oriented structure, built with SQLAlchemy ORM models and dedicated static service layers.*
 
-<img width="868" height="821" alt="Class Diagram" src="https://github.com/user-attachments/assets/7a13930a-6249-48ca-8dc7-c2b305869c71" />
+<img width="1583" height="1087" alt="Class diagram 2" src="https://github.com/user-attachments/assets/c1918c53-4331-47de-a4cd-ad110ee01959" />
 
 ---
 
