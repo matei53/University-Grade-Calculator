@@ -5,7 +5,7 @@ credit passing percentage: Allows students to modify credit percentage threshold
 credit passing percentage: Shows eligibility status for each year
 """
 
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtWidgets import (
     QCheckBox,
     QDoubleSpinBox,
@@ -22,6 +22,46 @@ from PyQt6.QtWidgets import (
 from client.api_client import APIClient
 
 
+class _ProgressionLoadWorker(QThread):
+    finished = pyqtSignal(list)
+    error = pyqtSignal(str)
+
+    def __init__(self, api_client):
+        super().__init__()
+        self.api_client = api_client
+
+    def run(self):
+        try:
+            data = self.api_client.get_all_year_eligibility()
+            self.finished.emit(data)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
+class _ProgressionSaveWorker(QThread):
+    finished = pyqtSignal(list, list)
+
+    def __init__(self, api_client, requirements: list):
+        super().__init__()
+        self.api_client = api_client
+        self.requirements = requirements
+
+    def run(self):
+        saved_years: list[int] = []
+        failed_years: list[tuple[int, str]] = []
+        for req in self.requirements:
+            try:
+                self.api_client.update_progression_requirement(
+                    target_year=req["target_year"],
+                    credit_percentage=req["credit_percentage"],
+                    cumulative=req["cumulative"],
+                )
+                saved_years.append(req["target_year"])
+            except Exception as e:
+                failed_years.append((req["target_year"], str(e)))
+        self.finished.emit(saved_years, failed_years)
+
+
 class ProgressionSettingsScreen(QWidget):
     """
     credit passing percentage: UI screen for managing year progression requirements
@@ -34,6 +74,8 @@ class ProgressionSettingsScreen(QWidget):
         self.api_client = APIClient()
         self.eligibility_data = []
         self.requirement_widgets = []
+        self._load_worker = None
+        self._save_worker = None
         self.setup_ui()
 
     def setup_ui(self):
@@ -76,7 +118,7 @@ class ProgressionSettingsScreen(QWidget):
         self.requirements_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         self.requirements_layout.setSpacing(10)
         scroll.setWidget(self.scroll_content)
-        main_layout.addWidget(scroll)
+        main_layout.addWidget(scroll, 1)
 
         # credit passing percentage: Action buttons
         button_layout = QHBoxLayout()
@@ -96,7 +138,6 @@ class ProgressionSettingsScreen(QWidget):
         button_layout.addStretch()
         main_layout.addLayout(button_layout)
 
-        main_layout.addStretch()
         self.setLayout(main_layout)
 
     def on_screen_shown(self):
@@ -106,31 +147,36 @@ class ProgressionSettingsScreen(QWidget):
 
     def load_eligibility_data(self):
         """credit passing percentage: Fetch current eligibility and requirements from server"""
-        try:
-            # credit passing percentage: Get all year eligibility status
-            self.eligibility_data = self.api_client.get_all_year_eligibility()
+        if self._load_worker and self._load_worker.isRunning():
+            return
 
-            # credit passing percentage: Clear existing widgets
-            while self.requirements_layout.count():
-                item = self.requirements_layout.takeAt(0)
-                if item.widget():
-                    item.widget().deleteLater()
+        self._load_worker = _ProgressionLoadWorker(self.api_client)
+        self._load_worker.finished.connect(self._on_load_finished)
+        self._load_worker.error.connect(self._on_load_error)
+        self._load_worker.start()
 
-            self.requirement_widgets = []
+    def _on_load_finished(self, data: list):
+        self.eligibility_data = data
 
-            # credit passing percentage: Create a card for each year
-            if not self.eligibility_data:
-                empty_label = QLabel("No academic years found.")
-                empty_label.setObjectName("HeaderSubtitle")
-                self.requirements_layout.addWidget(empty_label)
-                return
+        while self.requirements_layout.count():
+            item = self.requirements_layout.takeAt(0)
+            if item.widget():
+                item.widget().deleteLater()
 
-            for eligibility in self.eligibility_data:
-                card = self._create_requirement_card(eligibility)
-                self.requirements_layout.addWidget(card)
+        self.requirement_widgets = []
 
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load eligibility data: {str(e)}")
+        if not self.eligibility_data:
+            empty_label = QLabel("No academic years found.")
+            empty_label.setObjectName("HeaderSubtitle")
+            self.requirements_layout.addWidget(empty_label)
+            return
+
+        for eligibility in self.eligibility_data:
+            card = self._create_requirement_card(eligibility)
+            self.requirements_layout.addWidget(card)
+
+    def _on_load_error(self, message: str):
+        QMessageBox.critical(self, "Error", f"Failed to load eligibility data: {message}")
 
     def _create_requirement_card(self, eligibility: dict) -> QFrame:
         """
@@ -223,58 +269,43 @@ class ProgressionSettingsScreen(QWidget):
             QMessageBox.warning(self, "Warning", "No requirements to save.")
             return
 
-        # credit passing percentage: Track which years saved successfully and which failed
-        saved_years: list[int] = []
-        failed_years: list[tuple[int, str]] = []
+        if self._save_worker and self._save_worker.isRunning():
+            return
 
-        for widget_group in self.requirement_widgets:
-            target_year = widget_group["target_year"]
-            credit_percentage = widget_group["percentage_spinner"].value()
-            cumulative = widget_group["cumulative_check"].isChecked()
+        requirements = [
+            {
+                "target_year": w["target_year"],
+                "credit_percentage": w["percentage_spinner"].value(),
+                "cumulative": w["cumulative_check"].isChecked(),
+            }
+            for w in self.requirement_widgets
+        ]
 
-            # credit passing percentage: Attempt to save each year independently so one failure
-            # credit passing percentage: does not prevent the remaining years from being saved
-            try:
-                self.api_client.update_progression_requirement(
-                    target_year=target_year,
-                    credit_percentage=credit_percentage,
-                    cumulative=cumulative,
-                )
-                # credit passing percentage: Record successful save for this year
-                saved_years.append(target_year)
-            except Exception as e:
-                # credit passing percentage: Record failure with its error message for later reporting
-                failed_years.append((target_year, str(e)))
+        self._save_worker = _ProgressionSaveWorker(self.api_client, requirements)
+        self._save_worker.finished.connect(self._on_save_finished)
+        self._save_worker.start()
 
-        # credit passing percentage: Build a summary message based on the outcome
+    def _on_save_finished(self, saved_years: list, failed_years: list):
         if not failed_years:
-            # credit passing percentage: All years saved without error
             QMessageBox.information(
                 self, "Success", "Progression requirements updated successfully!"
             )
         elif not saved_years:
-            # credit passing percentage: Every year failed — show a consolidated error
-            error_lines = "\n".join(
-                f"  • Year {yr}: {msg}" for yr, msg in failed_years
-            )
+            error_lines = "\n".join(f"  • Year {yr}: {msg}" for yr, msg in failed_years)
             QMessageBox.critical(
                 self,
                 "Save Failed",
                 f"Failed to save requirements for all years:\n\n{error_lines}",
             )
         else:
-            # credit passing percentage: Partial success — some years saved, some did not
             ok_text = ", ".join(f"Year {yr}" for yr in saved_years)
-            fail_lines = "\n".join(
-                f"  • Year {yr}: {msg}" for yr, msg in failed_years
-            )
+            fail_lines = "\n".join(f"  • Year {yr}: {msg}" for yr, msg in failed_years)
             QMessageBox.warning(
                 self,
                 "Partial Save",
                 f"Saved: {ok_text}\n\nFailed to save:\n{fail_lines}",
             )
 
-        # credit passing percentage: Refresh to reflect the current server state after save attempt
         self.load_eligibility_data()
 
     def exit_to_dashboard(self):

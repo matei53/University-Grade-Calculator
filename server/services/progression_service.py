@@ -144,31 +144,24 @@ class ProgressionService:
         total_credits = 0
 
         for subject in subjects:
-            # credit passing percentage: Add subject credits to total
             total_credits += subject.credit_value
 
-            # credit passing percentage: Check if subject is passed (has grades and average >= passing grade)
             if subject.assessments:
-                # credit passing percentage: Calculate subject average from assessments
                 total_score = 0.0
                 total_weight = 0.0
 
                 for assessment in subject.assessments:
                     if assessment.grade and assessment.grade.score is not None:
-                        # credit passing percentage: Weight the assessment score
-                        total_score += assessment.grade.score * (assessment.weight / 100.0)
+                        total_score += assessment.grade.score * assessment.weight
                         total_weight += assessment.weight
 
-                # credit passing percentage: If all assessments are weighted, calculate final grade
-                if total_weight > 0 and total_weight >= 100.0:
-                    # credit passing percentage: Normalize to subject max grade
-                    normalized_score = (total_score / 100.0) * subject.max_grade
-
-                    # credit passing percentage: Check if subject is passed
-                    if normalized_score >= subject.passing_grade:
+                if total_weight >= 100.0:
+                    average_score = total_score / total_weight
+                    if average_score >= subject.passing_grade:
                         credits_earned += subject.credit_value
 
-        return credits_earned, total_credits
+        year_total = academic_year.credit_requirement if academic_year.credit_requirement else total_credits
+        return credits_earned, year_total
 
     @staticmethod
     def calculate_cumulative_credits(db: Session, user_id: int, up_to_year: int) -> tuple[int, int]:
