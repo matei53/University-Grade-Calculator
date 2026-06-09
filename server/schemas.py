@@ -167,6 +167,38 @@ class UpdateProfileRequest(BaseModel):
     major_id: Optional[int] = None
 
 
+UpdateUserProfile = UpdateProfileRequest
+
+# Leaderboard
+class LeaderboardEntry(BaseModel):
+    rank: int
+    user_id: int
+    display_name: str
+    university_name: str
+    year_level: int
+    weighted_avg: float
+    credits: int
+    is_current_user: bool
+
+class LeaderboardResponse(BaseModel):
+    podium: List[LeaderboardEntry] = []
+    entries: List[LeaderboardEntry] = []
+    total: int = 0
+    page: int = 1
+    page_size: int = 2
+    total_pages: int = 0
+    current_user_visible: bool
+    filter_university: Optional[str] = None
+    filter_major: Optional[str] = None
+    filter_year_level: Optional[int] = None
+    current_user_year_level: int = 1
+    available_year_levels: List[int] = []
+
+class VisibilityUpdate(BaseModel):
+    visible: bool
+
+class VisibilityResponse(BaseModel):
+    visible: bool
 # Graduation
 class GraduationSettingsResponse(BaseModel):
     id: int

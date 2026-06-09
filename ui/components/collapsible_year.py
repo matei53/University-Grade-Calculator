@@ -464,7 +464,8 @@ class CollapsibleYear(QWidget):
 
         prog_container = QWidget()
         prog_v = QVBoxLayout(prog_container)
-        prog_v.setContentsMargins(0, 15, 0, 10)
+        
+        prog_v.setContentsMargins(14, 15, 14, 10)
 
         progress_percentage = (
             int((total_passed_creds / year_target_credits) * 100) if year_target_credits > 0 else 0

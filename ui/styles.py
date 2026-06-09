@@ -289,4 +289,246 @@ AUTH_STYLE = f"""
         padding: 10px 20px;
         font-weight: bold;
     }}
+
+"""
+LEADERBOARD_STYLE = f"""
+    QWidget {{
+        background-color: {CREAM_BONE};
+        font-family: 'Segoe UI', 'Roboto', sans-serif;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLabel {{
+        background: transparent;
+        border: none;
+        padding: 0px;
+        margin: 0px;
+    }}
+
+    QScrollArea {{
+        border: none;
+        background-color: transparent;
+    }}
+
+    QLabel#HeaderTitle {{
+        font-size: 24px;
+        font-weight: bold;
+        color: {FOREST_GREEN};
+    }}
+
+    QLabel#HeaderSubtitle {{
+        color: #666;
+        font-size: 12px;
+        font-weight: normal;
+    }}
+
+    QFrame#StatCard {{
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-radius: 12px;
+        padding: 14px;
+    }}
+
+    QLabel#CardTitle {{
+        color: #777;
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 1px;
+    }}
+
+    QLabel#CardValue {{
+        color: {FOREST_GREEN};
+        font-size: 32px;
+        font-weight: bold;
+    }}
+
+    QLabel#CardSub {{
+        color: {STONE_GREY};
+        font-size: 11px;
+    }}
+
+    QFrame#LeaderboardPanel {{
+        background-color: white;
+        border: 1px solid #E0E0E0;
+        border-radius: 12px;
+        padding: 4px 20px 12px 20px;
+    }}
+
+    QLabel#TableHeader {{
+        color: {STONE_GREY};
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        padding: 10px 0 6px 0;
+    }}
+
+    QLabel#TableHeaderRank {{
+        color: {STONE_GREY};
+        font-size: 10px;
+        font-weight: bold;
+        letter-spacing: 1px;
+        padding: 10px 0 6px 0;
+    }}
+
+    QLabel#RankCell {{
+        padding-left: 0;
+        font-weight: bold;
+        color: {MIDNIGHT};
+    }}
+
+    QLineEdit#SearchInput {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 8px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: {MIDNIGHT};
+    }}
+
+    QLineEdit#SearchInput:focus {{
+        border: 2px solid {FOREST_GREEN};
+    }}
+
+    QComboBox#YearSelector {{
+        background-color: white;
+        border: 1px solid #D0CCC8;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 13px;
+        color: {MIDNIGHT};
+        min-width: 140px;
+    }}
+
+    QComboBox#YearSelector:focus {{
+        border: 2px solid {FOREST_GREEN};
+    }}
+
+    QComboBox#YearSelector::drop-down {{
+        subcontrol-origin: padding;
+        subcontrol-position: top right;
+        width: 30px;
+        border-left: 1px solid #D0CCC8;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+        background-color: #E8E8E2;
+    }}
+
+    QComboBox#YearSelector::down-arrow {{
+        image: none;
+        width: 0;
+        height: 0;
+    }}
+
+    QPushButton#NavButton {{
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 8px 14px;
+    }}
+
+    QPushButton#NavButton:hover {{
+        background-color: #D4E4BC;
+        border-color: {SAGE_GREEN};
+        color: {MIDNIGHT};
+    }}
+
+    QPushButton#NavButton:pressed {{
+        background-color: #C7D9A8;
+    }}
+
+    QPushButton#FilterButton {{
+        background-color: #E0DDD9;
+        border: none;
+        border-radius: 15px;
+        padding: 8px 18px;
+        color: #444;
+        font-weight: bold;
+    }}
+
+    QPushButton#FilterButton:hover {{
+        background-color: #D4E4BC;
+        color: {MIDNIGHT};
+    }}
+
+    QPushButton#LeaderActionButton {{
+        background-color: #E0DDD9;
+        border: none;
+        border-radius: 15px;
+        padding: 8px 18px;
+        color: #444;
+        font-weight: bold;
+    }}
+
+    QPushButton#LeaderActionButton:hover {{
+        background-color: #D4E4BC;
+        color: {MIDNIGHT};
+    }}
+
+    QFrame#LeaderRow {{
+        background-color: transparent;
+        border: none;
+        border-bottom: 1px solid #F0F0F0;
+        padding: 10px 0;
+        margin: 0;
+    }}
+
+    QFrame#LeaderRow[is_me="true"] {{
+        background-color: #D4E4BC;
+        border: none;
+        border-bottom: 1px solid #C5D9A8;
+        border-left: 4px solid {FOREST_GREEN};
+        border-radius: 4px;
+        padding: 10px 0;
+        margin: 2px 0;
+    }}
+
+    QFrame#StatCard[is_me="true"] {{
+        border: 2px solid {FOREST_GREEN};
+        background-color: #F5FAEF;
+    }}
+
+    QLabel#RowAvg {{
+        font-size: 14px;
+        font-weight: bold;
+        color: {MIDNIGHT};
+    }}
+
+    QLabel#RowAvgMe {{
+        color: {FOREST_GREEN};
+        font-weight: bold;
+        font-size: 15px;
+    }}
+
+    QLabel#PodiumAvatar {{
+        background-color: {SAGE_GREEN};
+        border-radius: 24px;
+        font-weight: bold;
+        font-size: 18px;
+        color: {MIDNIGHT};
+    }}
+
+    QPushButton#NavButton {{
+        background-color: #ffffff;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px 12px;
+    }}
+
+    QCheckBox#VisibilityToggle {{
+        spacing: 8px;
+        color: {MIDNIGHT};
+        font-weight: 500;
+    }}
+
+    QCheckBox#VisibilityToggle::indicator {{
+        width: 44px;
+        height: 24px;
+        border-radius: 12px;
+        background: {STONE_GREY};
+    }}
+
+    QCheckBox#VisibilityToggle::indicator:checked {{
+        background: {FOREST_GREEN};
+    }}
 """

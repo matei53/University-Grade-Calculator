@@ -125,6 +125,13 @@ class DashboardScreen(QWidget):
         header_layout.addLayout(title_container)
         header_layout.addStretch()
 
+        # leaderboard 
+        leaderboard_btn = QPushButton("Leaderboard")
+        leaderboard_btn.setFixedWidth(100)
+        leaderboard_btn.setStyleSheet("background-color: #ffffff; border: 1px solid #ccc; border-radius: 6px; padding: 6px;")
+        leaderboard_btn.clicked.connect(lambda: self.router.navigate("leaderboard"))
+
+        # Add Subject button
         add_subject_btn = QPushButton("+ Add Subject")
         add_subject_btn.setFixedWidth(140)
         add_subject_btn.setStyleSheet(
@@ -165,7 +172,8 @@ class DashboardScreen(QWidget):
             "border-radius: 6px; padding: 6px;"
         )
         logout_btn.clicked.connect(self._handle_logout)
-
+        
+        header_layout.addWidget(leaderboard_btn)  
         header_layout.addWidget(add_subject_btn)
         # credit passing percentage: Add progression settings button to header
         header_layout.addWidget(progression_btn)
@@ -432,6 +440,7 @@ class DashboardScreen(QWidget):
             passing_grade=float(getattr(self, "passing_grade", 5.0)),
         )
 
+        # 4. Handle Visibility of Year Components
         for y, comp in self.year_components.items():
             comp.setVisible(y <= up_to_yr)
 

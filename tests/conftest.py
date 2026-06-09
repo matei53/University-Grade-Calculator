@@ -119,3 +119,18 @@ def registered_user(client, test_user_data):
 def authenticated_headers(registered_user):
     """Return authorization headers with a valid token."""
     return {"Authorization": f"Bearer {registered_user['token']}"}
+
+
+try:
+    from PyQt6.QtWidgets import QApplication
+    _HAS_QT = True
+except ImportError:
+    _HAS_QT = False
+
+
+@pytest.fixture(scope="session")
+def qapp():
+    if not _HAS_QT:
+        pytest.skip("PyQt6 not installed")
+    app = QApplication.instance() or QApplication(sys.argv)
+    yield app

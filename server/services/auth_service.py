@@ -52,7 +52,13 @@ class AuthService:
 
         # Create user
         password_hash = AuthService.hash_password(password)
-        user = User(username=username, password_hash=password_hash)
+
+        user = User(
+            username=username, 
+            password_hash=password_hash,
+            leaderboard_visible=True
+        )
+
         db.add(user)
         db.flush()  # Get the user ID
 

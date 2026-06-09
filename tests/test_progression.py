@@ -299,7 +299,7 @@ class TestProgressionSettingsScreen:
         ]
         screen.api_client = mock_client
 
-        screen.load_eligibility_data()
+        screen._on_load_finished(mock_client.get_all_year_eligibility.return_value)
 
         assert len(screen.requirement_widgets) == 1
         widget_data = screen.requirement_widgets[0]
@@ -324,7 +324,7 @@ class TestProgressionSettingsScreen:
             }
         ]
         screen.api_client = mock_client
-        screen.load_eligibility_data()
+        screen._on_load_finished(mock_client.get_all_year_eligibility.return_value)
         assert len(screen.requirement_widgets) == 1
 
         widget_data = screen.requirement_widgets[0]
@@ -333,6 +333,9 @@ class TestProgressionSettingsScreen:
 
         screen.load_eligibility_data = MagicMock()
         screen.save_all_requirements()
+        screen._save_worker.wait()
+        from PyQt6.QtWidgets import QApplication
+        QApplication.processEvents()
 
         mock_client.update_progression_requirement.assert_called_once_with(
             target_year=2,
@@ -377,7 +380,7 @@ class TestProgressionSettingsScreen:
             },
         ]
         screen.api_client = mock_client
-        screen.load_eligibility_data()
+        screen._on_load_finished(mock_client.get_all_year_eligibility.return_value)
 
         # credit passing percentage: Make the second call (Year 3) raise an exception
         call_count = {"n": 0}
@@ -391,6 +394,9 @@ class TestProgressionSettingsScreen:
         screen.load_eligibility_data = MagicMock()
 
         screen.save_all_requirements()
+        screen._save_worker.wait()
+        from PyQt6.QtWidgets import QApplication
+        QApplication.processEvents()
 
         # credit passing percentage: Both years were attempted despite Year 3 failing
         assert mock_client.update_progression_requirement.call_count == 2

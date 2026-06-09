@@ -28,15 +28,17 @@ class Major(Base):
 
 class User(Base):
     __tablename__ = "users"
-
+    
     id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
-    university_id: Mapped[int | None] = mapped_column(
+    university_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("universities.id"), nullable=True
     )
     major_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("majors.id"), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    
+    leaderboard_visible: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 
     university: Mapped[University | None] = relationship(back_populates="users")
     major: Mapped[Major | None] = relationship(back_populates="users")
@@ -143,7 +145,7 @@ class Grade(Base):
         nullable=False,
         unique=True,
     )
-    score: Mapped[float | None] = mapped_column(Float, nullable=True)
+    score: Mapped[float] = mapped_column(Float, nullable=True)
 
     assessment: Mapped[Assessment] = relationship(back_populates="grade")
 

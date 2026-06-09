@@ -32,9 +32,11 @@ class YearSetupScreen(QWidget):
         self.save_btn = QPushButton("Save Year")
         self.save_btn.clicked.connect(self.save_year)
 
-        # Button to navigate to add subjects
+        # Button to proceed to subject setup
         self.next_btn = QPushButton("Go to Subjects")
-        self.next_btn.clicked.connect(lambda: self.router.navigate("subject_setup"))
+        self.next_btn.clicked.connect(
+            lambda: self.router.navigate("subject_setup")
+        )
 
         layout.addWidget(self.title)
         layout.addWidget(self.year_name_input)
