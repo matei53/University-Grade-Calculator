@@ -30,6 +30,10 @@ class APIClient:
             self._restore_token()
         return self.token is not None
 
+    def clear_token(self) -> None:
+        """Clear local auth token."""
+        self.token = None
+
     def _get_headers(self) -> Dict[str, str]:
         headers = {"Content-Type": "application/json"}
         # Always restore token from session to ensure we have the latest
@@ -187,6 +191,81 @@ class APIClient:
                     ({response.status_code}): {error_detail}")
         return response.json()
 
+    def update_subject(
+        self,
+        subject_id: int,
+        name: Optional[str] = None,
+        credits: Optional[int] = None,
+        semester_index: Optional[int] = None,
+        year_level: Optional[int] = None,
+        passing_grade: Optional[float] = None,
+        max_grade: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {}
+        if name is not None:
+            payload["name"] = name
+        if credits is not None:
+            payload["credits"] = credits
+        if semester_index is not None:
+            payload["semester_index"] = semester_index
+        if year_level is not None:
+            payload["year_level"] = year_level
+        if passing_grade is not None:
+            payload["passing_grade"] = passing_grade
+        if max_grade is not None:
+            payload["max_grade"] = max_grade
+
+        headers = self._get_headers()
+        response = requests.put(
+            f"{self.base_url}/subjects/{subject_id}",
+            json=payload,
+            headers=headers,
+        )
+        if response.status_code != 200:
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Update subject error ({response.status_code}): {error_detail}")
+        return response.json()
+
+    def delete_subject(self, subject_id: int) -> None:
+        response = requests.delete(
+            f"{self.base_url}/subjects/{subject_id}",
+            headers=self._get_headers(),
+        )
+        if response.status_code not in (200, 204):
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Delete subject error ({response.status_code}): {error_detail}")
+
+    def update_grade(self, grade_id: int, score: Optional[float] = None) -> Dict[str, Any]:
+        response = requests.put(
+            f"{self.base_url}/grades/{grade_id}",
+            json={"score": score},
+            headers=self._get_headers(),
+        )
+        if response.status_code != 200:
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Update grade error ({response.status_code}): {error_detail}")
+        return response.json()
+
+    def delete_grade(self, grade_id: int) -> None:
+        response = requests.delete(
+            f"{self.base_url}/grades/{grade_id}",
+            headers=self._get_headers(),
+        )
+        if response.status_code not in (200, 204):
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Delete grade error ({response.status_code}): {error_detail}")
+
+    def delete_account(self) -> None:
+        response = requests.delete(
+            f"{self.base_url}/profile",
+            headers=self._get_headers(),
+        )
+        if response.status_code not in (200, 204):
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Delete account error ({response.status_code}): {error_detail}")
+
+        self.clear_token()
+
     # Graduation endpoints
     def get_graduation_settings(self) -> Dict[str, Any]:
         """Get graduation settings (subject_average_weight, max_grade)"""
@@ -302,7 +381,7 @@ class APIClient:
         subject_id: int,
         name: str,
         weight: float,
-        score: float,
+        score: Optional[float] = None,
         max_score: float = 10.0,
         passing_grade: float = 5.0,
     ) -> Dict[str, Any]:
@@ -325,3 +404,42 @@ class APIClient:
             raise ValueError(f"Add assessment error \
                     ({response.status_code}): {error_detail}")
         return response.json()
+
+    def update_assessment(
+        self,
+        assessment_id: int,
+        name: Optional[str] = None,
+        weight: Optional[float] = None,
+        max_score: Optional[float] = None,
+        passing_grade: Optional[float] = None,
+    ) -> Dict[str, Any]:
+        payload: Dict[str, Any] = {}
+        if name is not None:
+            payload["name"] = name
+        if weight is not None:
+            payload["weight"] = weight
+        if max_score is not None:
+            payload["max_score"] = max_score
+        if passing_grade is not None:
+            payload["passing_grade"] = passing_grade
+
+        headers = self._get_headers()
+        response = requests.put(
+            f"{self.base_url}/assessments/{assessment_id}",
+            json=payload,
+            headers=headers,
+        )
+        if response.status_code != 200:
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Update assessment error ({response.status_code}): {error_detail}")
+        return response.json()
+
+    def delete_assessment(self, assessment_id: int) -> None:
+        headers = self._get_headers()
+        response = requests.delete(
+            f"{self.base_url}/assessments/{assessment_id}",
+            headers=headers,
+        )
+        if response.status_code not in (200, 204):
+            error_detail = response.json() if response.text else "No response body"
+            raise ValueError(f"Delete assessment error ({response.status_code}): {error_detail}")

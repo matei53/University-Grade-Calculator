@@ -124,6 +124,14 @@ class DashboardScreen(QWidget):
         )
         simulator_btn.clicked.connect(lambda: self.router.navigate("simulator"))
 
+        profile_btn = QPushButton("Profile")
+        profile_btn.setFixedWidth(100)
+        profile_btn.setStyleSheet(
+            "background-color: #ffffff; border: 1px solid #ccc; "
+            "border-radius: 6px; padding: 6px;"
+        )
+        profile_btn.clicked.connect(lambda: self.router.navigate("profile"))
+
         logout_btn = QPushButton("Log Out")
         logout_btn.setFixedWidth(90)
         logout_btn.setStyleSheet(
@@ -134,6 +142,7 @@ class DashboardScreen(QWidget):
 
         header_layout.addWidget(add_subject_btn)
         header_layout.addWidget(simulator_btn)
+        header_layout.addWidget(profile_btn)
         header_layout.addWidget(logout_btn)
         self.main_layout.addLayout(header_layout)
 
@@ -326,7 +335,11 @@ class DashboardScreen(QWidget):
 
         self.year_components = {}
         for y, data in self.all_data.items():
-            comp = CollapsibleYear(f"Year {y}")
+            comp = CollapsibleYear(
+                f"Year {y}",
+                api_client=self.api_client,
+                refresh_callback=self.on_screen_shown,
+            )
             comp.set_subjects(data["subjects"], data["target_credits"])
             comp.toggle_button.setChecked(True)
             comp._toggle()

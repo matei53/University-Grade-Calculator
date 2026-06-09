@@ -2,7 +2,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from models import FinalAssessment, FinalAssessmentGrade, GraduationSettings
+from server.models import FinalAssessment, FinalAssessmentGrade, GraduationSettings
 
 
 class GraduationService:

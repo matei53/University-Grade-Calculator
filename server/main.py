@@ -1,16 +1,22 @@
 import json
 import os
+import sys
 from contextlib import asynccontextmanager
 from typing import Any
 
-from dependencies import get_current_user
+# Ensure the repository root is on sys.path when running this file directly.
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if ROOT_DIR not in sys.path:
+    sys.path.insert(0, ROOT_DIR)
+
+from server.dependencies import get_current_user
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import assessments, auth, graduation, profile, subjects
+from server.routers import assessments, auth, grades, graduation, profile, subjects
 from sqlalchemy.orm import Session
 
-from database import Base, SessionLocal, engine, get_db
-from models import AcademicYear, Major, Subject, University, User
+from server.database import Base, SessionLocal, engine, get_db
+from server.models import AcademicYear, Major, Subject, University, User
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
@@ -60,6 +66,7 @@ app.include_router(auth.router)
 app.include_router(profile.router)
 app.include_router(subjects.router)
 app.include_router(assessments.router)
+app.include_router(grades.router)
 app.include_router(graduation.router)
 
 
