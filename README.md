@@ -15,8 +15,12 @@ This project follows a clean, layered architecture separating the database model
 
 
 ### 2. Class Diagram
-*It illustrates the backend object-oriented structure, built with SQLAlchemy ORM models and dedicated static service layers.*
+*Illustrates the backend object-oriented structure, built with SQLAlchemy ORM models and dedicated static service layers.*
 
+#### 🗄️ Database Environment Configuration
+* **Production Environment:** Built using a robust **PostgreSQL** database. 
+* **Testing & CI/CD Pipeline:** Used **SQLite** for testing. 
+* 
 <img width="1583" height="1087" alt="Class diagram 2" src="https://github.com/user-attachments/assets/c1918c53-4331-47de-a4cd-ad110ee01959" />
 
 ---
