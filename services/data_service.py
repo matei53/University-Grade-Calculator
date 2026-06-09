@@ -26,3 +26,17 @@ class DataService:
         except Exception as e:
             print(f"Error fetching majors: {e}")
             return []
+
+    @staticmethod
+    def add_university(name: str) -> int:
+        """Add a new university and return its ID"""
+        client = APIClient()
+        result = client.create_university(name)
+        return result["id"]
+
+    @staticmethod
+    def add_major(name: str) -> int:
+        """Add a new major and return its ID"""
+        client = APIClient()
+        result = client.create_major(name)
+        return result["id"]
