@@ -10,7 +10,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from database import Base, get_db
-from main import app
+from server.main import app
 
 
 @pytest.fixture(scope="session")

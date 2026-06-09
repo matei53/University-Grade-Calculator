@@ -165,16 +165,22 @@ class ProfileScreen(QWidget):
                     )
                 guidance = response.text
                 QTimer.singleShot(0, lambda: self._set_career_output(guidance))
-            except Exception as error:
+            except Exception as exc:
+                error_message = f"Unable to fetch career guidance: {exc}"
                 QTimer.singleShot(
                     0,
                     lambda: QMessageBox.critical(
                         self,
                         "Career Guidance Failed",
-                        f"Unable to fetch career guidance: {error}",
+                        error_message,
                     ),
                 )
-                QTimer.singleShot(0, lambda: self.career_output.setMarkdown("**Failed to load career guidance.**"))
+                QTimer.singleShot(
+                    0,
+                    lambda: self.career_output.setMarkdown(
+                        "**Failed to load career guidance.**"
+                    ),
+                )
             finally:
                 QTimer.singleShot(0, self._career_button_ready)
 
