@@ -1,5 +1,6 @@
-from PyQt6.QtCore import Qt
-from PyQt6.QtCore import QTimer
+from typing import Optional
+
+from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
 from PyQt6.QtWidgets import (
     QComboBox,
     QFormLayout,
@@ -21,11 +22,27 @@ from models.session import Session
 from ui.styles import DASHBOARD_STYLE
 
 
+class _ProfileLoadWorker(QThread):
+    finished = pyqtSignal(dict, list, list)  # profile, universities, majors
+    error = pyqtSignal(str)
+
+    def run(self):
+        try:
+            api_client = APIClient()
+            profile = api_client.get_profile()
+            universities = api_client.get_universities()
+            majors = api_client.get_majors()
+            self.finished.emit(profile, universities, majors)
+        except Exception as e:
+            self.error.emit(str(e))
+
+
 class ProfileScreen(QWidget):
     def __init__(self, router):
         super().__init__()
         self.router = router
         self.api_client = APIClient()
+        self._worker: Optional[_ProfileLoadWorker] = None
         self.setStyleSheet(DASHBOARD_STYLE)
         self._build_ui()
 
@@ -101,8 +118,31 @@ class ProfileScreen(QWidget):
 
     def on_screen_shown(self):
         self.api_client = APIClient()
-        self._load_profile_info()
-        self._load_select_options()
+        if self._worker and self._worker.isRunning():
+            try:
+                self._worker.finished.disconnect()
+                self._worker.error.disconnect()
+            except Exception:
+                pass
+        self._worker = _ProfileLoadWorker()
+        self._worker.finished.connect(self._on_data_loaded)
+        self._worker.error.connect(lambda e: QMessageBox.warning(self, "Load Error", e))
+        self._worker.start()
+
+    def _on_data_loaded(self, profile: dict, universities: list, majors: list):
+        university = profile.get("university_name") or "—"
+        major = profile.get("major_name") or "—"
+        self.current_university_label.setText(f"University: {university}")
+        self.current_major_label.setText(f"Major: {major}")
+
+        self.university_combo.clear()
+        self.major_combo.clear()
+        self.university_combo.addItem("No change", -1)
+        self.major_combo.addItem("No change", -1)
+        for uni in universities:
+            self.university_combo.addItem(uni["name"], uni["id"])
+        for m in majors:
+            self.major_combo.addItem(m["name"], m["id"])
 
     def _build_career_advisor_section(self):
         advisor_group = QGroupBox("")
@@ -201,27 +241,6 @@ class ProfileScreen(QWidget):
             QMessageBox.warning(self, "Profile Load Error", str(error))
             self.current_university_label.setText("University: —")
             self.current_major_label.setText("Major: —")
-
-    def _load_select_options(self):
-        self.university_combo.clear()
-        self.major_combo.clear()
-
-        self.university_combo.addItem("No change", -1)
-        self.major_combo.addItem("No change", -1)
-
-        try:
-            universities = self.api_client.get_universities()
-            for uni in universities:
-                self.university_combo.addItem(uni["name"], uni["id"])
-        except Exception as error:
-            QMessageBox.warning(self, "Load Error", f"Unable to load universities: {error}")
-
-        try:
-            majors = self.api_client.get_majors()
-            for major in majors:
-                self.major_combo.addItem(major["name"], major["id"])
-        except Exception as error:
-            QMessageBox.warning(self, "Load Error", f"Unable to load majors: {error}")
 
     def _handle_update_profile(self):
         university_id = self.university_combo.currentData()
