@@ -6,10 +6,10 @@ Provides in-memory SQLite database for testing and FastAPI test client.
 import os
 import sys
 
-# Dynamic path integration: Make the server package discoverable from root
+# Dynamic path integration: Make the server module discoverable from root
 _ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 _SERVER_DIR = os.path.join(_ROOT_DIR, "server")
-for _path in (_ROOT_DIR, _SERVER_DIR):
+for _path in (_SERVER_DIR, _ROOT_DIR):
     if _path not in sys.path:
         sys.path.insert(0, _path)
 
