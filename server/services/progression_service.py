@@ -149,23 +149,24 @@ class ProgressionService:
         subjects = db.query(Subject).filter(Subject.academic_year_id == academic_year.id).all()
 
         credits_earned = 0
-        total_credits = 0
+        total_credits = academic_year.credit_requirement or 0
 
         for subject in subjects:
-            total_credits += subject.credit_value
-
             if subject.assessments:
                 total_score = 0.0
                 total_weight = 0.0
+                any_assessment_failed = False
 
                 for assessment in subject.assessments:
                     if assessment.grade and assessment.grade.score is not None:
                         total_score += assessment.grade.score * assessment.weight
                         total_weight += assessment.weight
+                        if assessment.grade.score < assessment.passing_grade:
+                            any_assessment_failed = True
 
                 if total_weight >= 100.0:
                     average_score = total_score / total_weight
-                    if average_score >= subject.passing_grade:
+                    if average_score >= subject.passing_grade and not any_assessment_failed:
                         credits_earned += subject.credit_value
 
         return credits_earned, total_credits

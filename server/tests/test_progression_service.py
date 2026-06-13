@@ -118,43 +118,68 @@ class TestCalculateYearCredits:
         assert earned == 0
         assert total == 0
 
-    def test_year_with_no_subjects_returns_zeros(self, test_db, user_3yr):
+    def test_year_with_no_subjects_returns_zero_earned(self, test_db, user_3yr):
+        # credit_requirement=60 for year 1; no subjects → no credits earned
         earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
         assert earned == 0
-        assert total == 0
+        assert total == 60  # uses academic_year.credit_requirement, not sum of subjects
 
     def test_passing_subject_earns_credits(self, test_db, user_3yr):
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=6, score=7.0, passing=5.0)
         earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
         assert earned == 6
-        assert total == 6
+        assert total == 60  # denominator is credit_requirement, not subject credit sum
 
     def test_failing_subject_earns_no_credits(self, test_db, user_3yr):
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=6, score=3.0, passing=5.0)
         earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
         assert earned == 0
-        assert total == 6
+        assert total == 60
 
     def test_incomplete_weight_does_not_count_as_earned(self, test_db, user_3yr):
         # weight=50 means only 50% of the grade is assessed → total_weight < 100 → not counted
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=6, score=9.0, weight=50.0)
         earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
         assert earned == 0
-        assert total == 6
+        assert total == 60
 
     def test_multiple_subjects_partial_pass(self, test_db, user_3yr):
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=6, score=7.0)   # passes
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=4, score=3.0)   # fails
         earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
         assert earned == 6
-        assert total == 10
+        assert total == 60
 
     def test_ungraded_assessment_not_counted(self, test_db, user_3yr):
         # score=None → grade exists but is ungraded → total_weight stays 0 → not >= 100
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=6, score=None)
         earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
         assert earned == 0
-        assert total == 6
+        assert total == 60
+
+    def test_failed_assessment_blocks_credits_despite_passing_average(self, test_db, user_3yr):
+        # Set up a subject where weighted avg passes but one assessment score < its passing_grade
+        from server.models import Subject
+        subject = SubjectService.add_subject(
+            test_db, user_3yr.id, "Mixed", 6, semester_index=1, year_level=1, passing_grade=5.0,
+        )
+        orm_subject = test_db.query(Subject).filter(Subject.id == subject.id).first()
+        # Exam: 8/10 weight=70 → passes its own passing_grade=5
+        exam = Assessment(subject_id=orm_subject.id, name="Exam", weight=70.0, max_score=10.0, passing_grade=5.0)
+        test_db.add(exam)
+        test_db.flush()
+        test_db.add(Grade(assessment_id=exam.id, score=8.0))
+        # Coursework: 3/10 weight=30 → below passing_grade=5 → assessment failed
+        cw = Assessment(subject_id=orm_subject.id, name="CW", weight=30.0, max_score=10.0, passing_grade=5.0)
+        test_db.add(cw)
+        test_db.flush()
+        test_db.add(Grade(assessment_id=cw.id, score=3.0))
+        test_db.commit()
+
+        # Weighted avg = (8*70 + 3*30)/100 = 6.5 >= 5.0 (would normally pass)
+        earned, total = ProgressionService.calculate_year_credits(test_db, user_3yr.id, year_level=1)
+        assert earned == 0  # blocked by failed coursework assessment
+        assert total == 60
 
 
 class TestCalculateCumulativeCredits:
@@ -163,37 +188,40 @@ class TestCalculateCumulativeCredits:
         _add_graded_subject(test_db, user_3yr.id, year_level=2, credits=8, score=8.0)
         earned, total = ProgressionService.calculate_cumulative_credits(test_db, user_3yr.id, up_to_year=2)
         assert earned == 14
-        assert total == 14
+        assert total == 120  # credit_requirement 60 per year × 2 years
 
-    def test_empty_years_return_zeros(self, test_db, user_3yr):
+    def test_empty_years_return_zero_earned(self, test_db, user_3yr):
+        # No subjects added; earned=0 but total = sum of credit_requirements for all 3 years
         earned, total = ProgressionService.calculate_cumulative_credits(test_db, user_3yr.id, up_to_year=3)
         assert earned == 0
-        assert total == 0
+        assert total == 180  # 60 × 3 years
 
 
 class TestCheckYearEligibility:
     def test_eligible_when_percentage_met(self, test_db, user_3yr):
-        _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=6, score=7.0)
+        # Add 50 credits of passing subjects in year 1 (credit_requirement=60) → 83.3% > 70%
+        _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=50, score=7.0)
         result = ProgressionService.check_year_eligibility(test_db, user_3yr.id, target_year=2)
         assert result["is_eligible"] is True
-        assert result["credits_earned"] == 6
-        assert result["credits_required"] == 6
-        assert result["current_percentage"] == 100.0
+        assert result["credits_earned"] == 50
+        assert result["credits_required"] == 60  # academic_year.credit_requirement
+        assert abs(result["current_percentage"] - 83.33) < 0.1
         assert result["target_year"] == 2
 
     def test_not_eligible_when_percentage_not_met(self, test_db, user_3yr):
-        # Only 1 of 2 subjects passed → 50% < 70% default threshold
+        # 5 earned out of 60 required → ~8.3% < 70%
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=5, score=7.0)
         _add_graded_subject(test_db, user_3yr.id, year_level=1, credits=5, score=2.0)
         result = ProgressionService.check_year_eligibility(test_db, user_3yr.id, target_year=2)
         assert result["is_eligible"] is False
-        assert result["current_percentage"] == 50.0
+        assert result["credits_earned"] == 5
+        assert result["credits_required"] == 60
 
     def test_no_credits_not_eligible(self, test_db, user_3yr):
         result = ProgressionService.check_year_eligibility(test_db, user_3yr.id, target_year=2)
         assert result["is_eligible"] is False
         assert result["credits_earned"] == 0
-        assert result["credits_required"] == 0
+        assert result["credits_required"] == 60  # still the credit_requirement, not 0
         assert result["current_percentage"] == 0.0
 
     def test_cumulative_mode_sums_prior_years(self, test_db, user_3yr):
@@ -205,11 +233,11 @@ class TestCheckYearEligibility:
         )
 
         result = ProgressionService.check_year_eligibility(test_db, user_3yr.id, target_year=3)
-        # Cumulative: Y1 earned 6/6, Y2 earned 0/4 → 6/10 = 60% < 70%
+        # Cumulative: Y1 earned 6, Y2 earned 0; total_required = 60+60 = 120; 6/120 = 5% < 70%
         assert result["cumulative"] is True
         assert result["is_eligible"] is False
         assert result["credits_earned"] == 6
-        assert result["credits_required"] == 10
+        assert result["credits_required"] == 120
 
     def test_creates_default_requirement_on_first_check(self, test_db, user_3yr):
         ProgressionService.check_year_eligibility(test_db, user_3yr.id, target_year=2)

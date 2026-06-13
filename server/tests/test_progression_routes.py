@@ -113,10 +113,10 @@ class TestProgressionEligibilityRoutes:
         assert data["credits_earned"] == 0
 
     def test_get_year_eligibility_eligible_after_passing_subjects(self, client, authenticated_headers):
-        # Add a subject in year 1 and give it a passing grade
+        # Add a subject worth 50 credits in year 1 (credit_requirement=60 → 50/60 = 83% > 70%)
         subject_resp = client.post(
             "/subjects",
-            json={"name": "Maths", "credits": 6, "semester_index": 1, "year_level": 1},
+            json={"name": "Maths", "credits": 50, "semester_index": 1, "year_level": 1},
             headers=authenticated_headers,
         )
         subject_id = subject_resp.json()["id"]
@@ -130,8 +130,8 @@ class TestProgressionEligibilityRoutes:
         response = client.get("/progression/eligibility/2", headers=authenticated_headers)
         data = response.json()
         assert data["is_eligible"] is True
-        assert data["credits_earned"] == 6
-        assert data["credits_required"] == 6
+        assert data["credits_earned"] == 50
+        assert data["credits_required"] == 60  # academic_year.credit_requirement from sign-up
 
     def test_get_year_eligibility_requires_auth(self, client):
         response = client.get("/progression/eligibility/2")

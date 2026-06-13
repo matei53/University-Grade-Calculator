@@ -458,7 +458,13 @@ class CollapsibleYear(QWidget):
         stats_row.setSpacing(15)
         graded_list = [s for s in subjects if s["grade"] is not None]
         total_passed_creds = sum(
-            s["credits"] for s in graded_list if s["grade"] >= s.get("passing_grade", passing_grade)
+            s["credits"] for s in graded_list
+            if s["grade"] >= s.get("passing_grade", passing_grade)
+            and not any(
+                a.get("grade_score") is not None
+                and a["grade_score"] < a.get("passing_grade", passing_grade)
+                for a in s.get("assessments", [])
+            )
         )
         weighted_sum = sum(s["grade"] * s["credits"] for s in graded_list)
         total_graded_creds = sum(s["credits"] for s in graded_list)
@@ -523,8 +529,14 @@ class CollapsibleYear(QWidget):
                     n.setStyleSheet("font-weight: 600; font-size: 13px;")
 
                     grade_val = sub["grade"]
-                    is_failed = grade_val is not None and grade_val < sub.get(
-                        "passing_grade", passing_grade
+                    any_assessment_failed = any(
+                        a.get("grade_score") is not None
+                        and a["grade_score"] < a.get("passing_grade", passing_grade)
+                        for a in sub.get("assessments", [])
+                    )
+                    is_failed = grade_val is not None and (
+                        grade_val < sub.get("passing_grade", passing_grade)
+                        or any_assessment_failed
                     )
 
                     credit_text = f"{sub['credits']} Credits"

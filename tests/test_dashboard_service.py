@@ -7,13 +7,18 @@ def _year(subjects):
     return {"subjects": subjects}
 
 
-def _subject(name, credits, grade, passing_grade=5.0):
+def _subject(name, credits, grade, passing_grade=5.0, assessments=None):
     return {
         "name": name,
         "credits": credits,
         "grade": grade,
         "passing_grade": passing_grade,
+        "assessments": assessments or [],
     }
+
+
+def _assessment(grade_score, passing_grade=5.0):
+    return {"grade_score": grade_score, "passing_grade": passing_grade}
 
 
 class TestCalculateStats:
@@ -126,3 +131,53 @@ class TestCalculateStats:
         data = {3: _year([_subject("Math", 6, 9.0)])}
         stats = DashboardService.calculate_stats(data, up_to_year=3)
         assert stats["weighted_avg"] == 9.0
+
+
+class TestCalculateStatsAssessmentFailure:
+    """A subject is failed (credits not earned) if any single assessment score is below
+    that assessment's passing_grade, even when the weighted average passes."""
+
+    def test_failed_assessment_blocks_credits_even_with_passing_average(self):
+        # Weighted avg: (8*0.7 + 3*0.3)*10/10 = (5.6+0.9) = 6.5 >= 5.0 (passes)
+        # But assessment 2 score=3 < passing_grade=5 → no credits earned
+        assessments = [
+            _assessment(grade_score=8.0, passing_grade=5.0),
+            _assessment(grade_score=3.0, passing_grade=5.0),
+        ]
+        data = {1: _year([_subject("Math", 6, 6.5, assessments=assessments)])}
+        stats = DashboardService.calculate_stats(data, up_to_year=1)
+        assert stats["credits"] == 0
+        assert abs(stats["weighted_avg"] - 6.5) < 0.01  # avg still contributes
+
+    def test_all_passing_assessments_earns_credits(self):
+        assessments = [
+            _assessment(grade_score=7.0, passing_grade=5.0),
+            _assessment(grade_score=6.0, passing_grade=5.0),
+        ]
+        data = {1: _year([_subject("Math", 6, 8.0, assessments=assessments)])}
+        stats = DashboardService.calculate_stats(data, up_to_year=1)
+        assert stats["credits"] == 6
+
+    def test_ungraded_assessment_does_not_trigger_failure(self):
+        # grade_score=None means not yet graded — should not count as a failure
+        assessments = [
+            _assessment(grade_score=8.0, passing_grade=5.0),
+            _assessment(grade_score=None, passing_grade=5.0),
+        ]
+        data = {1: _year([_subject("Math", 6, 8.0, assessments=assessments)])}
+        stats = DashboardService.calculate_stats(data, up_to_year=1)
+        assert stats["credits"] == 6
+
+    def test_no_assessments_falls_back_to_subject_grade_only(self):
+        # Existing behaviour: subjects without assessments list use grade >= passing_grade
+        data = {1: _year([_subject("Math", 6, 8.0)])}
+        stats = DashboardService.calculate_stats(data, up_to_year=1)
+        assert stats["credits"] == 6
+
+    def test_assessment_failure_uses_assessment_passing_grade_not_subject(self):
+        # Assessment has a stricter passing_grade than the subject
+        assessments = [_assessment(grade_score=6.0, passing_grade=7.0)]
+        data = {1: _year([_subject("Math", 6, 6.0, passing_grade=5.0, assessments=assessments)])}
+        stats = DashboardService.calculate_stats(data, up_to_year=1)
+        # subject grade 6.0 >= 5.0 passes, but assessment 6.0 < 7.0 → fails
+        assert stats["credits"] == 0

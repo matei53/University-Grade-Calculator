@@ -104,7 +104,7 @@ class TestProgressionService:
             user_id=user.id,
             label="Year 1",
             order_index=1,
-            credit_requirement=60,
+            credit_requirement=10,  # matches subject credit_value so denominator == earned credits
         )
         test_db.add(year1)
         test_db.commit()
@@ -205,7 +205,7 @@ class TestProgressionService:
 
         assert eligibility["is_eligible"] is False
         assert eligibility["credits_earned"] == 0
-        assert eligibility["credits_required"] == 10
+        assert eligibility["credits_required"] == 60  # academic_year.credit_requirement
         assert eligibility["current_percentage"] == 0.0
 
     # credit passing percentage: Extra test: cumulative mode should sum credits from all prior years
@@ -218,7 +218,7 @@ class TestProgressionService:
         # credit passing percentage: Create two academic years with one passing subject each
         for order, label in [(1, "Year 1"), (2, "Year 2")]:
             ay = AcademicYear(
-                user_id=user.id, label=label, order_index=order, credit_requirement=60
+                user_id=user.id, label=label, order_index=order, credit_requirement=10
             )
             test_db.add(ay)
             test_db.commit()
@@ -262,10 +262,10 @@ class TestProgressionService:
 
         eligibility = ProgressionService.check_year_eligibility(test_db, user.id, target_year=3)
 
-        # credit passing percentage: Both years pass — cumulative earned should be 20/20 = 100%
+        # credit passing percentage: Both years pass — cumulative earned 20/(10+10) = 100%
         assert eligibility["cumulative"] is True
         assert eligibility["credits_earned"] == 20
-        assert eligibility["credits_required"] == 20
+        assert eligibility["credits_required"] == 20  # sum of credit_requirements (10+10)
         assert eligibility["is_eligible"] is True
 
 

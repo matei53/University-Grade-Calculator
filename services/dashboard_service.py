@@ -114,7 +114,13 @@ class DashboardService:
                     if grade is not None:
                         total_weighted_points += grade * credits
                         total_credits_with_grades += credits
-                        if grade >= subj_passing_grade:
+                        assessments = subject.get("assessments", [])
+                        any_assessment_failed = any(
+                            a.get("grade_score") is not None
+                            and a["grade_score"] < a.get("passing_grade", subj_passing_grade)
+                            for a in assessments
+                        )
+                        if grade >= subj_passing_grade and not any_assessment_failed:
                             total_credits_earned += credits
 
         weighted_avg = (
