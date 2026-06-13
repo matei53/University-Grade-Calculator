@@ -37,13 +37,15 @@ RULES — apply ALL of the following in order:
    c. predicted_score ≥ current grade if the assessment already has one \
 (never suggest a retake score below what the student already has).
 
-3. WHAT TO CHANGE — determined by the "Target status" line in the data:
+3. WHAT TO CHANGE — determined by the "Target status:" line in the data:
    • "TARGET ALREADY MET" → ONLY assign predicted scores to assessments where \
-"Currently failing: YES" or whose subject has "Subject passing: FAILING". \
-Do NOT touch passing assessments.
-   • "TARGET NOT MET" → fix every failing assessment first (raise to passing), \
-then raise further available assessments as needed to reach the target. \
-Prioritise the lowest-scoring available assessments first.
+"Currently failing: YES" or "Currently failing: NO GRADE (ungraded)", \
+or whose subject has "Subject passing: FAILING" or "Subject passing: NO GRADES YET". \
+Do NOT touch assessments that are passing.
+   • "TARGET NOT MET" → treat assessments marked "Currently failing: YES" OR \
+"Currently failing: NO GRADE (ungraded)" as the first priority (raise to at \
+least their Min passing score), then raise further available assessments as \
+needed to reach the target. Prioritise lowest-weight assessments first.
 
 4. SPECIAL CASES (see data prompt banner):
    • IMPOSSIBLE target → use the stated maximum as effective target; \
@@ -180,20 +182,28 @@ def _build_data_prompt(  # noqa: C901
 
     if not available_ids:
         lines.append(
-            "  *** NO ASSESSMENTS AVAILABLE TO CHANGE. "
-            "Return empty grades list + non-empty message. ***"
+            "  Target status: NO AVAILABLE ASSESSMENTS — "
+            "return empty grades list with a non-empty message."
         )
     elif target_already_met:
         lines.append(
-            f"  *** TARGET ALREADY MET. Actual average {actual_avg:.2f} ≥ target {target:.2f}. "
-            f"Only fix FAILING assessments/subjects. Do NOT change passing assessments. ***"
+            f"  Target status: TARGET ALREADY MET "
+            f"(actual {actual_avg:.2f} ≥ target {target:.2f}). "
+            f"Only fix FAILING or ungraded assessments/subjects. "
+            f"Do NOT change passing assessments."
         )
     elif max_avg is not None and target > max_avg:
         lines.append(
-            f"  *** TARGET {target:.2f} IS IMPOSSIBLE. "
-            f"Maximum achievable is {max_avg:.2f}. "
-            f"Use {max_avg:.2f} as effective target. "
-            f"Set a non-empty message explaining this adjustment. ***"
+            f"  Target status: TARGET IMPOSSIBLE "
+            f"(max achievable {max_avg:.2f} < target {target:.2f}). "
+            f"Use {max_avg:.2f} as effective target and set a non-empty message."
+        )
+    else:
+        lines.append(
+            f"  Target status: TARGET NOT MET "
+            f"(current {f'{actual_avg:.2f}' if actual_avg is not None else 'N/A (no grades yet)'} "
+            f"< target {target:.2f}). "
+            f"Assign predicted scores to available assessments to reach the target."
         )
 
     lines.append("")
@@ -248,7 +258,7 @@ def _build_data_prompt(  # noqa: C901
                 min_passing = round((passing_grade / max_grade) * max_score, 2)
 
                 if score is None:
-                    failing_str = "NO GRADE"
+                    failing_str = "NO GRADE (ungraded)"
                 elif score < min_passing:
                     failing_str = "YES"
                 else:

@@ -321,7 +321,7 @@ class TestBuildDataPrompt:
     def test_no_available_assessments_flagged(self):
         years = _make_years([[_subject("Math", 6, [_assessment(1, 100, 8.0)])]])
         prompt = _build_data_prompt(9.0, "All Years", "", [], years)
-        assert "NO ASSESSMENTS AVAILABLE" in prompt
+        assert "NO AVAILABLE ASSESSMENTS" in prompt
 
     def test_precomputed_averages_present(self):
         years = _make_years(
