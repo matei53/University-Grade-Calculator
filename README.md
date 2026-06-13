@@ -23,9 +23,8 @@ It illustrates the database schema for an academic performance tracking system, 
 ### 3. Architectural Class Diagram
 It illustrates how the PyQt6 frontend screens trigger asynchronous background worker threads, route workflows through client-side business logic services, and communicate with the central API network gateway to ensure responsive data processing and strict layer isolation.
 
-<img width="1835" height="2004" alt="Architectural Class Diagram" src="https://github.com/user-attachments/assets/9010194b-000e-4942-8348-fb7648af46e1" />
+<img width="1835" height="2008" alt="img 8" src="https://github.com/user-attachments/assets/98689ede-1f05-4577-8ab5-08baad947ca4" />
 
-<img width="1835" height="2041" alt="img 8" src="https://github.com/user-attachments/assets/f10104d0-ba53-4d69-95b5-bd81d5db25d2" />
 
 ---
 
