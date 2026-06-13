@@ -25,6 +25,7 @@ It illustrates how the PyQt6 frontend screens trigger asynchronous background wo
 
 <img width="1835" height="2004" alt="Architectural Class Diagram" src="https://github.com/user-attachments/assets/9010194b-000e-4942-8348-fb7648af46e1" />
 
+<img width="1338" height="2041" alt="img 7" src="https://github.com/user-attachments/assets/640b434d-8283-4897-ba63-f127aa5a4464" />
 
 ---
 
