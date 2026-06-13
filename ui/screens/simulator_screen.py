@@ -521,8 +521,11 @@ class SimulatorScreen(QWidget):
         self.response_label.setText("Thinking…")
 
         if self.worker_thread is not None and self.worker_thread.isRunning():
-            self.worker_thread.quit()
-            self.worker_thread.wait()
+            try:
+                self.worker_thread.result_ready.disconnect()
+            except Exception:
+                pass
+            self.worker_thread.finished.connect(self.worker_thread.deleteLater)
 
         self.worker_thread = SimulatorWorker(
             target,
@@ -586,9 +589,10 @@ class SimulatorScreen(QWidget):
             if reply != QMessageBox.StandardButton.Yes:
                 return
             try:
-                self.worker_thread.result_ready.disconnect(self._on_result_ready)
+                self.worker_thread.result_ready.disconnect()
             except Exception:
                 pass
+            self.worker_thread.finished.connect(self.worker_thread.deleteLater)
             self._set_controls_enabled(True)
             self.response_label.clear()
         self.router.navigate("dashboard")
