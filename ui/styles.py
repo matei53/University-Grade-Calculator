@@ -9,7 +9,7 @@ DASHBOARD_STYLE = f"""
     QWidget {{
         background-color: {CREAM_BONE};
         font-family: 'Segoe UI', 'Roboto', sans-serif;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
     }}
 
@@ -160,7 +160,7 @@ AUTH_STYLE = f"""
     QWidget {{
         background-color: {CREAM_BONE};
         font-family: 'Segoe UI', 'Roboto', sans-serif;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
     }}
 
@@ -189,7 +189,7 @@ AUTH_STYLE = f"""
         border: 1px solid #D0CCC8;
         border-radius: 8px;
         padding: 10px 12px;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
     }}
 
@@ -209,7 +209,7 @@ AUTH_STYLE = f"""
         border-radius: 8px;
         padding: 10px 20px;
         font-weight: bold;
-        font-size: 13px;
+        font-size: 10pt;
     }}
 
     QPushButton#PrimaryButton:hover {{
@@ -225,7 +225,7 @@ AUTH_STYLE = f"""
         color: {FOREST_GREEN};
         border: none;
         text-decoration: underline;
-        font-size: 13px;
+        font-size: 10pt;
         padding: 0px;
     }}
 
@@ -244,7 +244,7 @@ AUTH_STYLE = f"""
         border: 1px solid #D0CCC8;
         border-radius: 8px;
         padding: 8px 12px;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
     }}
 
@@ -268,7 +268,7 @@ AUTH_STYLE = f"""
         border: 1px solid #D0CCC8;
         border-radius: 8px;
         padding: 8px 12px;
-        font-size: 13px;
+        font-size: 10pt;
         color: #0A0D08;
     }}
 
@@ -295,7 +295,7 @@ LEADERBOARD_STYLE = f"""
     QWidget {{
         background-color: {CREAM_BONE};
         font-family: 'Segoe UI', 'Roboto', sans-serif;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
     }}
 
@@ -382,7 +382,7 @@ LEADERBOARD_STYLE = f"""
         border: 1px solid #D0CCC8;
         border-radius: 8px;
         padding: 8px 12px;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
     }}
 
@@ -395,7 +395,7 @@ LEADERBOARD_STYLE = f"""
         border: 1px solid #D0CCC8;
         border-radius: 10px;
         padding: 8px 12px;
-        font-size: 13px;
+        font-size: 10pt;
         color: {MIDNIGHT};
         min-width: 140px;
     }}

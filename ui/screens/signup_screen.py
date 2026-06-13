@@ -270,6 +270,7 @@ class SignupScreen(QWidget):
         )
         self._worker.success.connect(self._on_signup_success)
         self._worker.failure.connect(self._on_signup_failure)
+        self._worker.finished.connect(self._worker.deleteLater)
         self._worker.start()
 
     def _on_signup_success(self, _token: str, used_custom_uni: bool, used_custom_major: bool):

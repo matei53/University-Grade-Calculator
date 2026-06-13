@@ -15,12 +15,16 @@ import os
 import random
 import sys
 
-sys.path.insert(0, os.path.dirname(__file__))
+# Mirror main.py's path setup so `server.*` imports resolve and `config` is findable
+_SERVER_DIR = os.path.dirname(os.path.abspath(__file__))
+_ROOT_DIR = os.path.dirname(_SERVER_DIR)
+for _p in (_SERVER_DIR, _ROOT_DIR):
+    if _p not in sys.path:
+        sys.path.insert(0, _p)
 
 import bcrypt
-from database import Base, SessionLocal, engine
-
-from models import AcademicYear, Assessment, Grade, Major, Semester, Subject, University, User
+from server.database import Base, SessionLocal, engine
+from server.models import AcademicYear, Assessment, Grade, Major, Semester, Subject, University, User
 
 random.seed(42)
 

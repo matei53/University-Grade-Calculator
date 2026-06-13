@@ -199,6 +199,7 @@ class SubjectScreen(QWidget):
                 self._years_worker.error.disconnect()
             except Exception:
                 pass
+            self._years_worker.finished.connect(self._years_worker.deleteLater)
         self._years_worker = _YearsLoadWorker()
         self._years_worker.finished.connect(self._on_years_loaded)
         self._years_worker.error.connect(self._on_years_error)

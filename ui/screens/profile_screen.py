@@ -139,6 +139,7 @@ class ProfileScreen(QWidget):
                 self._worker.error.disconnect()
             except Exception:
                 pass
+            self._worker.finished.connect(self._worker.deleteLater)
         self._worker = _ProfileLoadWorker()
         self._worker.finished.connect(self._on_data_loaded)
         self._worker.error.connect(lambda e: QMessageBox.warning(self, "Load Error", e))
@@ -211,6 +212,7 @@ class ProfileScreen(QWidget):
                 self._career_worker.error.disconnect()
             except Exception:
                 pass
+            self._career_worker.finished.connect(self._career_worker.deleteLater)
 
         self._career_worker = _CareerGuidanceWorker(self.api_client)
         self._career_worker.result_ready.connect(self._on_career_guidance_ready)

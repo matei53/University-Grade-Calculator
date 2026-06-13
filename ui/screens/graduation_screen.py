@@ -262,6 +262,7 @@ class GraduationScreen(QWidget):
                 self._worker.error.disconnect()
             except Exception:
                 pass
+            self._worker.finished.connect(self._worker.deleteLater)
         self._worker = _GraduationLoadWorker()
         self._worker.finished.connect(self._on_data_loaded)
         self._worker.error.connect(lambda e: print(f"Error loading graduation data: {e}"))

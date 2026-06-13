@@ -239,6 +239,7 @@ class LeaderboardScreen(QWidget):
     def _on_visibility_changed(self, checked: bool):
         self._vis_worker = _VisibilityWorker(self.api, checked)
         self._vis_worker.error.connect(lambda e: print(f"Failed to update visibility: {e}"))
+        self._vis_worker.finished.connect(self._vis_worker.deleteLater)
         self._vis_worker.start()
 
     def _on_search_changed(self):
@@ -278,6 +279,7 @@ class LeaderboardScreen(QWidget):
                 self._worker.error.disconnect()
             except Exception:
                 pass
+            self._worker.finished.connect(self._worker.deleteLater)
 
         self._worker = _LeaderboardLoadWorker(
             self.api,

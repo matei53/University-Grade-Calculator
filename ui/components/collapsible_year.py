@@ -407,7 +407,7 @@ class CollapsibleYear(QWidget):
         self.toggle_button.setObjectName("YearToggle")
         self.toggle_button.setText(title)
         self.toggle_button.setCheckable(True)
-        self.toggle_button.setStyleSheet("font-size: 15px; text-align: left;")
+        self.toggle_button.setStyleSheet("font-size: 11pt; text-align: left;")
         self.toggle_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.toggle_button.setArrowType(Qt.ArrowType.RightArrow)
         self.toggle_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)

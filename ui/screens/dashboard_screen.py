@@ -299,6 +299,7 @@ class DashboardScreen(QWidget):
                     w.error.disconnect()
                 except Exception:
                     pass
+                w.finished.connect(w.deleteLater)
 
         self._dash_worker = _DashboardLoadWorker(self)
         self._dash_worker.finished.connect(self._on_dashboard_loaded)

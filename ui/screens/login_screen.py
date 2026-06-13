@@ -107,6 +107,7 @@ class LoginScreen(QWidget):
         self._worker = _LoginWorker(username, password)
         self._worker.success.connect(self._on_login_success)
         self._worker.failure.connect(self._on_login_failure)
+        self._worker.finished.connect(self._worker.deleteLater)
         self._worker.start()
 
     def _on_login_success(self, user: dict):
