@@ -19,6 +19,12 @@ It illustrates the database schema for an academic performance tracking system, 
 
 <img width="1823" height="958" alt="class diagram modified" src="https://github.com/user-attachments/assets/ab28acbf-9b2c-4228-a7c2-76d6dc2570d8" />
 
+
+### 3. Architectural Class Diagram
+
+<img width="1835" height="2041" alt="img 2" src="https://github.com/user-attachments/assets/9b9ebde0-cd8a-4554-b516-b49fd6618e84" />
+<img width="4096" height="1026" alt="img 3" src="https://github.com/user-attachments/assets/0d930c63-8d85-4f86-bccb-b44642720a31" />
+
 ---
 
 ## 🚀 How to Use the Application
