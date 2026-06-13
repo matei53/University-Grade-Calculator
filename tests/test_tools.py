@@ -86,9 +86,10 @@ class TestAssessmentScore:
 
 
 class TestGetCurrentGradesTool:
-    def test_raises_when_no_client_set(self):
-        with pytest.raises(RuntimeError, match="API client not set"):
-            get_current_grades.invoke({"year_id": None})
+    def test_no_client_set_returns_error_string(self):
+        # LangChain tools must not raise — they return an error description instead.
+        result = get_current_grades.invoke({"year_id": None})
+        assert "Error" in result
 
     def test_returns_no_subjects_message_when_empty(self):
         mock_client = MagicMock()
@@ -96,13 +97,14 @@ class TestGetCurrentGradesTool:
         set_api_client(mock_client)
 
         result = get_current_grades.invoke({"year_id": None})
-        assert result == "No subjects found."
+        assert "No academic data found" in result
 
     def test_returns_grades_for_graded_assessment(self):
         mock_client = MagicMock()
         mock_client.get_academic_years.return_value = [
             {
                 "id": 1,
+                "label": "Year 1",
                 "order_index": 1,
                 "subjects": [
                     {
@@ -111,7 +113,8 @@ class TestGetCurrentGradesTool:
                         "passing_grade": 5.0,
                         "max_grade": 10.0,
                         "assessments": [
-                            {"weight": 100.0, "max_score": 10.0, "grade": {"score": 8.0}},
+                            {"id": 1, "name": "Exam", "weight": 100.0, "max_score": 10.0,
+                             "grade": {"score": 8.0}},
                         ],
                     }
                 ],
@@ -121,7 +124,7 @@ class TestGetCurrentGradesTool:
 
         result = get_current_grades.invoke({"year_id": None})
         assert "Maths" in result
-        assert "8.0/10.0" in result
+        assert "score: 8.0" in result
         assert "Year 1" in result
 
     def test_returns_no_grade_message_for_ungraded_assessment(self):
