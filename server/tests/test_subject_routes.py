@@ -219,6 +219,27 @@ class TestAssessmentRoutes:
         assert response.status_code == status.HTTP_404_NOT_FOUND
         assert "Subject not found" in response.json()["detail"]
 
+    def test_add_assessment_to_other_users_subject_returns_403(self, client, authenticated_headers):
+        """POST /assessments/{subject_id} must be 403 when the subject belongs to another user."""
+        second_resp = client.post(
+            "/auth/register",
+            json={"username": "other_subj_user", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+        )
+        other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
+        subject_resp = client.post(
+            "/subjects",
+            json={"name": "Private Subject", "credits": 4, "semester_index": 1, "year_level": 1},
+            headers=other_headers,
+        )
+        other_subject_id = subject_resp.json()["id"]
+
+        response = client.post(
+            f"/assessments/{other_subject_id}",
+            json={"name": "Intruder Exam", "weight": 1.0, "score": 9.0},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_403_FORBIDDEN
+
     def test_add_multiple_assessments(self, client, authenticated_headers):
         """Test adding multiple assessments to same subject."""
         # Add subject
@@ -418,3 +439,159 @@ class TestAssessmentRoutes:
 
         assert update_response.status_code == status.HTTP_200_OK
         assert update_response.json()["score"] is None
+
+
+class TestAssessmentUpdateDeleteRoutes:
+    """Test PUT and DELETE endpoints for assessments."""
+
+    @staticmethod
+    def _make_subject_and_assessment(client, headers, subject_name="TestSubject"):
+        subject_resp = client.post(
+            "/subjects",
+            json={"name": subject_name, "credits": 4, "semester_index": 1, "year_level": 1},
+            headers=headers,
+        )
+        subject_id = subject_resp.json()["id"]
+        assessment_resp = client.post(
+            f"/assessments/{subject_id}",
+            json={"name": "Midterm", "weight": 50.0, "score": 7.0, "max_score": 10.0, "passing_grade": 5.0},
+            headers=headers,
+        )
+        return assessment_resp.json()["id"]
+
+    def test_update_assessment_name(self, client, authenticated_headers):
+        assessment_id = self._make_subject_and_assessment(client, authenticated_headers)
+        response = client.put(
+            f"/assessments/{assessment_id}",
+            json={"name": "Final Exam"},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["name"] == "Final Exam"
+
+    def test_update_assessment_weight(self, client, authenticated_headers):
+        assessment_id = self._make_subject_and_assessment(client, authenticated_headers)
+        response = client.put(
+            f"/assessments/{assessment_id}",
+            json={"weight": 75.0},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json()["weight"] == 75.0
+
+    def test_update_assessment_max_score_and_passing_grade(self, client, authenticated_headers):
+        assessment_id = self._make_subject_and_assessment(client, authenticated_headers)
+        response = client.put(
+            f"/assessments/{assessment_id}",
+            json={"max_score": 20.0, "passing_grade": 10.0},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+        assert data["max_score"] == 20.0
+        assert data["passing_grade"] == 10.0
+
+    def test_update_assessment_not_found_returns_404(self, client, authenticated_headers):
+        response = client.put(
+            "/assessments/99999",
+            json={"name": "Ghost"},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_assessment_wrong_user_returns_404(self, client, authenticated_headers):
+        second_resp = client.post(
+            "/auth/register",
+            json={"username": "other2", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+        )
+        other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
+        other_assessment_id = self._make_subject_and_assessment(client, other_headers, "OtherSubject")
+
+        response = client.put(
+            f"/assessments/{other_assessment_id}",
+            json={"name": "Stolen"},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_assessment_requires_auth(self, client, authenticated_headers):
+        assessment_id = self._make_subject_and_assessment(client, authenticated_headers)
+        response = client.put(f"/assessments/{assessment_id}", json={"name": "No Auth"})
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+    def test_delete_assessment_success(self, client, authenticated_headers):
+        assessment_id = self._make_subject_and_assessment(client, authenticated_headers, "DeleteMe")
+        response = client.delete(f"/assessments/{assessment_id}", headers=authenticated_headers)
+        assert response.status_code == status.HTTP_204_NO_CONTENT
+
+    def test_delete_assessment_not_found_returns_404(self, client, authenticated_headers):
+        response = client.delete("/assessments/99999", headers=authenticated_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_delete_assessment_wrong_user_returns_404(self, client, authenticated_headers):
+        second_resp = client.post(
+            "/auth/register",
+            json={"username": "other3", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+        )
+        other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
+        other_assessment_id = self._make_subject_and_assessment(client, other_headers, "OtherSubject2")
+
+        response = client.delete(f"/assessments/{other_assessment_id}", headers=authenticated_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_delete_assessment_requires_auth(self, client, authenticated_headers):
+        assessment_id = self._make_subject_and_assessment(client, authenticated_headers, "NoAuthDel")
+        response = client.delete(f"/assessments/{assessment_id}")
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
+
+
+class TestSubjectUpdateDeleteErrorPaths:
+    """Error-path tests for PUT/DELETE /subjects/{id} not covered by TestSubjectRoutes."""
+
+    def test_update_subject_not_found_returns_404(self, client, authenticated_headers):
+        response = client.put(
+            "/subjects/99999",
+            json={"name": "Ghost Subject"},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_delete_subject_not_found_returns_404(self, client, authenticated_headers):
+        response = client.delete("/subjects/99999", headers=authenticated_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_update_subject_wrong_user_returns_404(self, client, authenticated_headers):
+        second_resp = client.post(
+            "/auth/register",
+            json={"username": "other4", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+        )
+        other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
+        subject_resp = client.post(
+            "/subjects",
+            json={"name": "OtherSubject3", "credits": 4, "semester_index": 1, "year_level": 1},
+            headers=other_headers,
+        )
+        subject_id = subject_resp.json()["id"]
+
+        response = client.put(
+            f"/subjects/{subject_id}",
+            json={"name": "Stolen"},
+            headers=authenticated_headers,
+        )
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_delete_subject_wrong_user_returns_404(self, client, authenticated_headers):
+        second_resp = client.post(
+            "/auth/register",
+            json={"username": "other5", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+        )
+        other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
+        subject_resp = client.post(
+            "/subjects",
+            json={"name": "OtherSubject4", "credits": 4, "semester_index": 1, "year_level": 1},
+            headers=other_headers,
+        )
+        subject_id = subject_resp.json()["id"]
+
+        response = client.delete(f"/subjects/{subject_id}", headers=authenticated_headers)
+        assert response.status_code == status.HTTP_404_NOT_FOUND

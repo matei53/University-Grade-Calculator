@@ -26,19 +26,15 @@ def add_assessment(
     if subject.academic_year.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    try:
-        assessment = AssessmentService.add_assessment(
-            db,
-            subject_id,
-            assessment_data.name,
-            assessment_data.weight,
-            assessment_data.score,
-            assessment_data.max_score,
-            assessment_data.passing_grade,
-        )
-        return assessment
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+    return AssessmentService.add_assessment(
+        db,
+        subject_id,
+        assessment_data.name,
+        assessment_data.weight,
+        assessment_data.score,
+        assessment_data.max_score,
+        assessment_data.passing_grade,
+    )
 
 
 @router.put("/{assessment_id}", response_model=AssessmentResponse)
