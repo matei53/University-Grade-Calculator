@@ -64,8 +64,7 @@ def get_current_grades(year_id: Optional[int] = None) -> str:
             max_grade = float(subject.get("max_grade", 10.0))
             passing_grade = float(subject.get("passing_grade", 5.0))
             lines.append(
-                f"  {name} | {credits} credits | "
-                f"passing grade: {passing_grade}/{max_grade}"
+                f"  {name} | {credits} credits | " f"passing grade: {passing_grade}/{max_grade}"
             )
             for a in subject.get("assessments", []):
                 a_id = a.get("id")

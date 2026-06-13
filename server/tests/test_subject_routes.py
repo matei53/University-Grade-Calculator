@@ -223,7 +223,12 @@ class TestAssessmentRoutes:
         """POST /assessments/{subject_id} must be 403 when the subject belongs to another user."""
         second_resp = client.post(
             "/auth/register",
-            json={"username": "other_subj_user", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+            json={
+                "username": "other_subj_user",
+                "password": "pass123",
+                "num_years": 1,
+                "credit_requirements": [60],
+            },
         )
         other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
         subject_resp = client.post(
@@ -454,7 +459,13 @@ class TestAssessmentUpdateDeleteRoutes:
         subject_id = subject_resp.json()["id"]
         assessment_resp = client.post(
             f"/assessments/{subject_id}",
-            json={"name": "Midterm", "weight": 50.0, "score": 7.0, "max_score": 10.0, "passing_grade": 5.0},
+            json={
+                "name": "Midterm",
+                "weight": 50.0,
+                "score": 7.0,
+                "max_score": 10.0,
+                "passing_grade": 5.0,
+            },
             headers=headers,
         )
         return assessment_resp.json()["id"]
@@ -502,10 +513,17 @@ class TestAssessmentUpdateDeleteRoutes:
     def test_update_assessment_wrong_user_returns_404(self, client, authenticated_headers):
         second_resp = client.post(
             "/auth/register",
-            json={"username": "other2", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+            json={
+                "username": "other2",
+                "password": "pass123",
+                "num_years": 1,
+                "credit_requirements": [60],
+            },
         )
         other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
-        other_assessment_id = self._make_subject_and_assessment(client, other_headers, "OtherSubject")
+        other_assessment_id = self._make_subject_and_assessment(
+            client, other_headers, "OtherSubject"
+        )
 
         response = client.put(
             f"/assessments/{other_assessment_id}",
@@ -531,16 +549,27 @@ class TestAssessmentUpdateDeleteRoutes:
     def test_delete_assessment_wrong_user_returns_404(self, client, authenticated_headers):
         second_resp = client.post(
             "/auth/register",
-            json={"username": "other3", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+            json={
+                "username": "other3",
+                "password": "pass123",
+                "num_years": 1,
+                "credit_requirements": [60],
+            },
         )
         other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
-        other_assessment_id = self._make_subject_and_assessment(client, other_headers, "OtherSubject2")
+        other_assessment_id = self._make_subject_and_assessment(
+            client, other_headers, "OtherSubject2"
+        )
 
-        response = client.delete(f"/assessments/{other_assessment_id}", headers=authenticated_headers)
+        response = client.delete(
+            f"/assessments/{other_assessment_id}", headers=authenticated_headers
+        )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
     def test_delete_assessment_requires_auth(self, client, authenticated_headers):
-        assessment_id = self._make_subject_and_assessment(client, authenticated_headers, "NoAuthDel")
+        assessment_id = self._make_subject_and_assessment(
+            client, authenticated_headers, "NoAuthDel"
+        )
         response = client.delete(f"/assessments/{assessment_id}")
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
@@ -563,7 +592,12 @@ class TestSubjectUpdateDeleteErrorPaths:
     def test_update_subject_wrong_user_returns_404(self, client, authenticated_headers):
         second_resp = client.post(
             "/auth/register",
-            json={"username": "other4", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+            json={
+                "username": "other4",
+                "password": "pass123",
+                "num_years": 1,
+                "credit_requirements": [60],
+            },
         )
         other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
         subject_resp = client.post(
@@ -583,7 +617,12 @@ class TestSubjectUpdateDeleteErrorPaths:
     def test_delete_subject_wrong_user_returns_404(self, client, authenticated_headers):
         second_resp = client.post(
             "/auth/register",
-            json={"username": "other5", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+            json={
+                "username": "other5",
+                "password": "pass123",
+                "num_years": 1,
+                "credit_requirements": [60],
+            },
         )
         other_headers = {"Authorization": f"Bearer {second_resp.json()['access_token']}"}
         subject_resp = client.post(

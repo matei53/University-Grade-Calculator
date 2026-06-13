@@ -4,16 +4,17 @@ Unit tests for agents/tools.py helper functions and the get_current_grades tool.
 All tests reset the module-level _api_client between runs so state doesn't leak.
 """
 
-import pytest
 from unittest.mock import MagicMock
+
+import pytest
 
 import agents.tools as tools_module
 from agents.tools import (
-    _filter_years,
     _assessment_score,
+    _filter_years,
     _get_api_client,
-    set_api_client,
     get_current_grades,
+    set_api_client,
 )
 
 
@@ -113,8 +114,13 @@ class TestGetCurrentGradesTool:
                         "passing_grade": 5.0,
                         "max_grade": 10.0,
                         "assessments": [
-                            {"id": 1, "name": "Exam", "weight": 100.0, "max_score": 10.0,
-                             "grade": {"score": 8.0}},
+                            {
+                                "id": 1,
+                                "name": "Exam",
+                                "weight": 100.0,
+                                "max_score": 10.0,
+                                "grade": {"score": 8.0},
+                            },
                         ],
                     }
                 ],
@@ -155,14 +161,32 @@ class TestGetCurrentGradesTool:
     def test_filter_by_year_id_excludes_other_years(self):
         mock_client = MagicMock()
         mock_client.get_academic_years.return_value = [
-            {"id": 1, "order_index": 1, "subjects": [
-                {"name": "Year1Subject", "credit_value": 4, "passing_grade": 5.0,
-                 "max_grade": 10.0, "assessments": []}
-            ]},
-            {"id": 2, "order_index": 2, "subjects": [
-                {"name": "Year2Subject", "credit_value": 4, "passing_grade": 5.0,
-                 "max_grade": 10.0, "assessments": []}
-            ]},
+            {
+                "id": 1,
+                "order_index": 1,
+                "subjects": [
+                    {
+                        "name": "Year1Subject",
+                        "credit_value": 4,
+                        "passing_grade": 5.0,
+                        "max_grade": 10.0,
+                        "assessments": [],
+                    }
+                ],
+            },
+            {
+                "id": 2,
+                "order_index": 2,
+                "subjects": [
+                    {
+                        "name": "Year2Subject",
+                        "credit_value": 4,
+                        "passing_grade": 5.0,
+                        "max_grade": 10.0,
+                        "assessments": [],
+                    }
+                ],
+            },
         ]
         set_api_client(mock_client)
 

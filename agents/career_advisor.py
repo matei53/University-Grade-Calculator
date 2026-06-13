@@ -124,12 +124,14 @@ def run_career_guidance(api_client) -> str:
             "Call get_academic_profile if you need to re-fetch or verify the data."
         )
 
-        result = agent.invoke({
-            "messages": [
-                SystemMessage(content=SYSTEM_PROMPT),
-                HumanMessage(content=human_message),
-            ]
-        })
+        result = agent.invoke(
+            {
+                "messages": [
+                    SystemMessage(content=SYSTEM_PROMPT),
+                    HumanMessage(content=human_message),
+                ]
+            }
+        )
 
         messages = result.get("messages", [])
         for msg in reversed(messages):

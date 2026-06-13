@@ -23,8 +23,18 @@ for _p in (_SERVER_DIR, _ROOT_DIR):
         sys.path.insert(0, _p)
 
 import bcrypt
+
 from server.database import Base, SessionLocal, engine
-from server.models import AcademicYear, Assessment, Grade, Major, Semester, Subject, University, User
+from server.models import (
+    AcademicYear,
+    Assessment,
+    Grade,
+    Major,
+    Semester,
+    Subject,
+    University,
+    User,
+)
 
 random.seed(42)
 

@@ -30,7 +30,12 @@ def other_user_grade_id(client):
     """Grade belonging to a second user that the primary user must not access."""
     second_resp = client.post(
         "/auth/register",
-        json={"username": "other_user", "password": "pass123", "num_years": 1, "credit_requirements": [60]},
+        json={
+            "username": "other_user",
+            "password": "pass123",
+            "num_years": 1,
+            "credit_requirements": [60],
+        },
     )
     token = second_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
@@ -57,7 +62,9 @@ class TestUpdateGradeRoute:
         )
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_update_grade_wrong_user_returns_403(self, client, authenticated_headers, other_user_grade_id):
+    def test_update_grade_wrong_user_returns_403(
+        self, client, authenticated_headers, other_user_grade_id
+    ):
         response = client.put(
             f"/grades/{other_user_grade_id}",
             json={"score": 5.0},
@@ -78,7 +85,9 @@ class TestUpdateGradeRoute:
         assert response.status_code == status.HTTP_200_OK
         assert response.json()["score"] == 9.5
 
-    def test_update_grade_to_null_clears_score(self, client, authenticated_headers, subject_with_grade):
+    def test_update_grade_to_null_clears_score(
+        self, client, authenticated_headers, subject_with_grade
+    ):
         response = client.put(
             f"/grades/{subject_with_grade}",
             json={"score": None},
@@ -93,7 +102,9 @@ class TestDeleteGradeRoute:
         response = client.delete("/grades/99999", headers=authenticated_headers)
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_delete_grade_wrong_user_returns_403(self, client, authenticated_headers, other_user_grade_id):
+    def test_delete_grade_wrong_user_returns_403(
+        self, client, authenticated_headers, other_user_grade_id
+    ):
         response = client.delete(
             f"/grades/{other_user_grade_id}",
             headers=authenticated_headers,

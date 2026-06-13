@@ -29,7 +29,6 @@ from agents.grade_simulator import (
 )
 from agents.tools import get_current_grades, set_api_client
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -76,50 +75,58 @@ class TestComputeWeightedAverage:
 
     def test_two_graded_subjects_weighted_by_credits(self):
         # Math 6cr@8.0, Physics 5cr@6.0 → (8*6 + 6*5) / 11 = 78/11
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Physics", 5, [_assessment(2, 100, 6.0)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Physics", 5, [_assessment(2, 100, 6.0)]),
+                ]
+            ]
+        )
         assert _compute_weighted_average(years, set(), None) == round(78 / 11, 2)
 
     def test_ungraded_available_assessment_excluded_from_denominator(self):
         # Physics (id=2) is available with no score → excluded entirely
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Physics", 5, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Physics", 5, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         assert _compute_weighted_average(years, {2}, None) == 8.0
 
     def test_available_assessment_included_when_score_provided(self):
         # Chemistry (id=2) available; assigning 10.0 → (8*6 + 10*4) / 10 = 8.8
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Chemistry", 4, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Chemistry", 4, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         assert _compute_weighted_average(years, {2}, 10.0) == 8.8
 
     def test_multiple_assessments_per_subject(self):
         # exam 60%@7.0 + project 40%@9.0 = 4.2 + 3.6 = 7.8
-        years = _make_years([[
-            _subject("Math", 8, [_assessment(1, 60, 7.0), _assessment(2, 40, 9.0)])
-        ]])
+        years = _make_years(
+            [[_subject("Math", 8, [_assessment(1, 60, 7.0), _assessment(2, 40, 9.0)])]]
+        )
         assert _compute_weighted_average(years, set(), None) == 7.8
 
     def test_partial_subject_counted_in_denominator(self):
         # Math has one scored (50%) and one available (50%); with available=None:
         # grade = (6/10)*0.5*10 = 3.0; subject has a score → still in denominator
-        years = _make_years([[
-            _subject("Math", 10, [_assessment(1, 50, 6.0), _assessment(2, 50)])
-        ]])
+        years = _make_years([[_subject("Math", 10, [_assessment(1, 50, 6.0), _assessment(2, 50)])]])
         assert _compute_weighted_average(years, {2}, None) == 3.0
         # With available scored at 10: grade = 3.0 + 5.0 = 8.0
         assert _compute_weighted_average(years, {2}, 10.0) == 8.0
 
     def test_non_standard_max_score(self):
         # score 75/100, weight 100%, max_grade 10 → (75/100)*1.0*10 = 7.5
-        years = _make_years([[
-            _subject("Stats", 5, [_assessment(1, 100, 75.0, max_score=100.0)])
-        ]])
+        years = _make_years([[_subject("Stats", 5, [_assessment(1, 100, 75.0, max_score=100.0)])]])
         assert _compute_weighted_average(years, set(), None) == 7.5
 
     def test_returns_none_when_no_subject_has_score(self):
@@ -128,20 +135,26 @@ class TestComputeWeightedAverage:
 
     def test_multiple_years_combined(self):
         # Year1: Math 6cr@8; Year2: Physics 4cr@6 → (8*6+6*4)/10 = 7.2
-        years = _make_years([
-            [_subject("Math", 6, [_assessment(1, 100, 8.0)])],
-            [_subject("Physics", 4, [_assessment(2, 100, 6.0)])],
-        ])
+        years = _make_years(
+            [
+                [_subject("Math", 6, [_assessment(1, 100, 8.0)])],
+                [_subject("Physics", 4, [_assessment(2, 100, 6.0)])],
+            ]
+        )
         assert _compute_weighted_average(years, set(), None) == 7.2
 
     def test_achievable_score_for_target(self):
         # Target 7.5 with Chemistry (4cr) available on top of Math(6cr)@8 + Physics(5cr)@6
         # Required chem grade = (7.5*15 - 78) / 4 = 8.625
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Physics", 5, [_assessment(2, 100, 6.0)]),
-            _subject("Chemistry", 4, [_assessment(3, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Physics", 5, [_assessment(2, 100, 6.0)]),
+                    _subject("Chemistry", 4, [_assessment(3, 100)]),
+                ]
+            ]
+        )
         avg = _compute_weighted_average(years, {3}, 8.625)
         assert avg is not None and abs(avg - 7.5) < 0.01
 
@@ -167,29 +180,41 @@ class TestBuildDataPrompt:
     def test_target_not_met_banner(self):
         # Math@6.0 (6cr) + Physics available (4cr): max achievable = (6*6+10*4)/10 = 7.6
         # target 7.0 is below max → achievable → TARGET NOT MET
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 6.0)]),
-            _subject("Physics", 4, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 6.0)]),
+                    _subject("Physics", 4, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         prompt = _build_data_prompt(7.0, "All Years", "", [2], years)
         assert "TARGET NOT MET" in prompt
         assert "TARGET ALREADY MET" not in prompt
         assert "IMPOSSIBLE" not in prompt
 
     def test_target_already_met_banner(self):
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 9.0)]),
-            _subject("Physics", 4, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 9.0)]),
+                    _subject("Physics", 4, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         prompt = _build_data_prompt(7.0, "All Years", "", [2], years)
         assert "TARGET ALREADY MET" in prompt
 
     def test_impossible_target_banner(self):
         # Max achievable with Chemistry at 10.0: (8*6+10*4)/10 = 8.8 < 9.5
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Chemistry", 4, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Chemistry", 4, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         prompt = _build_data_prompt(9.5, "All Years", "", [2], years)
         assert "IMPOSSIBLE" in prompt
 
@@ -202,17 +227,21 @@ class TestBuildDataPrompt:
         years = _make_years([[_subject("Math", 6, [_assessment(2, 100)])]])
         prompt = _build_data_prompt(7.0, "All Years", "", [2], years)
         assert "MANDATORY IDs" in prompt
-        mandatory_line = next(l for l in prompt.split("\n") if "MANDATORY IDs" in l)
+        mandatory_line = next(line for line in prompt.split("\n") if "MANDATORY IDs" in line)
         assert "2" in mandatory_line
 
     def test_mandatory_ids_covers_all_subjects_and_assessments(self):
         # Both subjects have multiple ungraded available assessments
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 50), _assessment(2, 50)]),
-            _subject("Physics", 4, [_assessment(3, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 50), _assessment(2, 50)]),
+                    _subject("Physics", 4, [_assessment(3, 100)]),
+                ]
+            ]
+        )
         prompt = _build_data_prompt(7.0, "All Years", "", [1, 2, 3], years)
-        mandatory_line = next(l for l in prompt.split("\n") if "MANDATORY IDs" in l)
+        mandatory_line = next(line for line in prompt.split("\n") if "MANDATORY IDs" in line)
         assert "1" in mandatory_line
         assert "2" in mandatory_line
         assert "3" in mandatory_line
@@ -230,28 +259,28 @@ class TestBuildDataPrompt:
 
     def test_mandatory_ids_excludes_graded_available_assessments(self):
         # ID 10: graded + available; ID 2: ungraded + available — only ID 2 is mandatory
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(10, 50, 7.0), _assessment(2, 50)])
-        ]])
+        years = _make_years([[_subject("Math", 6, [_assessment(10, 50, 7.0), _assessment(2, 50)])]])
         prompt = _build_data_prompt(7.0, "All Years", "", [10, 2], years)
         assert "MANDATORY IDs" in prompt
-        mandatory_line = next(l for l in prompt.split("\n") if "MANDATORY IDs" in l)
+        mandatory_line = next(line for line in prompt.split("\n") if "MANDATORY IDs" in line)
         assert "2" in mandatory_line
         assert "10" not in mandatory_line
 
     def test_available_yes_no_flags(self):
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 60, 7.0), _assessment(2, 40)])
-        ]])
+        years = _make_years([[_subject("Math", 6, [_assessment(1, 60, 7.0), _assessment(2, 40)])]])
         prompt = _build_data_prompt(8.0, "All Years", "", [2], years)
         assert "Assessment ID 1" in prompt and "Available to change: NO" in prompt
         assert "Assessment ID 2" in prompt and "Available to change: YES" in prompt
 
     def test_precomputed_averages_present(self):
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Physics", 4, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Physics", 4, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         prompt = _build_data_prompt(7.0, "All Years", "", [2], years)
         assert "Actual current average" in prompt
         assert "Maximum achievable" in prompt
@@ -259,18 +288,20 @@ class TestBuildDataPrompt:
 
     def test_min_passing_score_scales_with_max_score(self):
         # passing_grade=5.0, max_grade=10.0, max_score=100.0 → min_passing=50.0
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0, max_score=100.0)])
-        ]])
+        years = _make_years([[_subject("Math", 6, [_assessment(1, 100, 8.0, max_score=100.0)])]])
         prompt = _build_data_prompt(7.0, "All Years", "", [], years)
         assert "Min passing score: 50.0" in prompt
 
     def test_subject_passing_statuses(self):
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),   # passing
-            _subject("Physics", 4, [_assessment(2, 100, 3.0)]),  # failing
-            _subject("Chemistry", 3, [_assessment(3, 100)]),   # no grades yet
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),  # passing
+                    _subject("Physics", 4, [_assessment(2, 100, 3.0)]),  # failing
+                    _subject("Chemistry", 3, [_assessment(3, 100)]),  # no grades yet
+                ]
+            ]
+        )
         prompt = _build_data_prompt(7.0, "All Years", "", [], years)
         assert "Subject passing: YES" in prompt
         assert "Subject passing: FAILING" in prompt
@@ -278,13 +309,21 @@ class TestBuildDataPrompt:
 
     def test_assessment_failing_flags(self):
         # min_passing = 5.0; score 3.0 → failing; score 7.0 → not failing; None → ungraded
-        years = _make_years([[
-            _subject("Math", 6, [
-                _assessment(1, 34, 3.0),   # failing
-                _assessment(2, 33, 7.0),   # passing
-                _assessment(3, 33),         # ungraded
-            ])
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject(
+                        "Math",
+                        6,
+                        [
+                            _assessment(1, 34, 3.0),  # failing
+                            _assessment(2, 33, 7.0),  # passing
+                            _assessment(3, 33),  # ungraded
+                        ],
+                    )
+                ]
+            ]
+        )
         prompt = _build_data_prompt(7.0, "All Years", "", [3], years)
         assert "Currently failing: YES" in prompt
         assert "Currently failing: NO" in prompt
@@ -358,9 +397,9 @@ class TestVerifySimulation:
 
     def test_multiple_assessments_per_subject(self):
         # exam 60%@7.0 + project 40%@9.0 = 7.8
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 60, 7.0), _assessment(2, 40, 9.0)])
-        ]])
+        years = _make_years(
+            [[_subject("Math", 6, [_assessment(1, 60, 7.0), _assessment(2, 40, 9.0)])]]
+        )
         self._set_client(years)
         result = verify_simulation.invoke({"proposed_scores_json": "{}"})
         assert "7.80" in result
@@ -373,10 +412,14 @@ class TestVerifySimulation:
 
     def test_pass_fail_status_reported_per_subject(self):
         # Math proposed 9.0 → PASS; Physics proposed 2.0 → FAIL (below passing 5.0)
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100)]),
-            _subject("Physics", 5, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100)]),
+                    _subject("Physics", 5, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         self._set_client(years)
         result = verify_simulation.invoke({"proposed_scores_json": '{"1": 9.0, "2": 2.0}'})
         assert "PASS" in result
@@ -390,10 +433,14 @@ class TestVerifySimulation:
 
     def test_two_subjects_weighted_average_correct(self):
         # Math 6cr@8.0, Chemistry 4cr proposed 6.0 → (8*6+6*4)/10 = 7.2
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 8.0)]),
-            _subject("Chemistry", 4, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 8.0)]),
+                    _subject("Chemistry", 4, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         self._set_client(years)
         result = verify_simulation.invoke({"proposed_scores_json": '{"2": 6.0}'})
         assert "Weighted average: 7.20" in result
@@ -455,10 +502,18 @@ class TestGetCurrentGrades:
 
     def test_filter_by_year_id_excludes_other_years(self):
         years = [
-            {"id": 1, "order_index": 1, "label": "Year 1",
-             "subjects": [_subject("Math", 6, [_assessment(1, 100, 9.0)])]},
-            {"id": 2, "order_index": 2, "label": "Year 2",
-             "subjects": [_subject("Physics", 5, [_assessment(2, 100, 7.0)])]},
+            {
+                "id": 1,
+                "order_index": 1,
+                "label": "Year 1",
+                "subjects": [_subject("Math", 6, [_assessment(1, 100, 9.0)])],
+            },
+            {
+                "id": 2,
+                "order_index": 2,
+                "label": "Year 2",
+                "subjects": [_subject("Physics", 5, [_assessment(2, 100, 7.0)])],
+            },
         ]
         client = MagicMock()
         client.get_academic_years.return_value = years
@@ -477,10 +532,14 @@ class TestGetCurrentGrades:
 class TestRunSimulation:
 
     def _years(self):
-        return _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 7.0)]),
-            _subject("Physics", 5, [_assessment(2, 100)]),
-        ]])
+        return _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 7.0)]),
+                    _subject("Physics", 5, [_assessment(2, 100)]),
+                ]
+            ]
+        )
 
     def _msg(self, content):
         """Create a mock final agent message (no tool_calls)."""
@@ -557,7 +616,9 @@ class TestRunSimulation:
     def test_tool_call_messages_skipped_for_final_answer(self, mock_create_agent):
         """Messages with tool_calls set are not treated as the final answer."""
         payload = {"grades": [{"assessment_id": 2, "predicted_score": 7.0}], "message": ""}
-        tool_msg = MagicMock(content="calling verify_simulation", tool_calls=[{"name": "verify_simulation"}])
+        tool_msg = MagicMock(
+            content="calling verify_simulation", tool_calls=[{"name": "verify_simulation"}]
+        )
         final_msg = MagicMock(content=json.dumps(payload), tool_calls=None)
         mock_agent = MagicMock()
         mock_agent.invoke.return_value = {"messages": [tool_msg, final_msg]}
@@ -582,26 +643,34 @@ class TestGradeSimulatorAgent:
         return client
 
     def test_returns_valid_dict_structure(self):
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 7.0)]),
-            _subject("Physics", 5, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 7.0)]),
+                    _subject("Physics", 5, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         set_api_client(self._client(years))
         result = run_simulation(7.5, "", [2], None, years, "All Years")
         assert isinstance(result, dict)
         assert "grades" in result and "message" in result
 
     def test_predicted_scores_within_valid_range(self):
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 7.0)]),
-            _subject("Physics", 5, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 7.0)]),
+                    _subject("Physics", 5, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         set_api_client(self._client(years))
         result = run_simulation(7.5, "", [2], None, years, "All Years")
         for entry in result.get("grades", []):
-            assert 1.0 <= entry["predicted_score"] <= 10.0, (
-                f"Predicted score {entry['predicted_score']} out of [1, 10] range"
-            )
+            assert (
+                1.0 <= entry["predicted_score"] <= 10.0
+            ), f"Predicted score {entry['predicted_score']} out of [1, 10] range"
 
     def test_no_available_assessments_returns_empty_grades(self):
         years = _make_years([[_subject("Math", 6, [_assessment(1, 100, 8.0)])]])
@@ -611,10 +680,14 @@ class TestGradeSimulatorAgent:
 
     def test_impossible_target_sets_message(self):
         # Math fixed at 2.0 (6cr), Physics available (6cr) — target 10.0 impossible
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 100, 2.0)]),
-            _subject("Physics", 6, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 100, 2.0)]),
+                    _subject("Physics", 6, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         set_api_client(self._client(years))
         result = run_simulation(10.0, "", [2], None, years, "All Years")
         assert bool(result.get("message")) or bool(result.get("grades"))
@@ -625,50 +698,72 @@ class TestGradeSimulatorAgent:
         Leaving any subject entirely ungraded inflates the average via a smaller
         denominator — the agent must not exploit this.
         """
-        years = _make_years([[
-            _subject("Math", 6, [_assessment(1, 50), _assessment(2, 50)]),
-            _subject("Physics", 4, [_assessment(3, 40), _assessment(4, 60)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Math", 6, [_assessment(1, 50), _assessment(2, 50)]),
+                    _subject("Physics", 4, [_assessment(3, 40), _assessment(4, 60)]),
+                ]
+            ]
+        )
         set_api_client(self._client(years))
         result = run_simulation(7.0, "", [1, 2, 3, 4], None, years, "All Years")
         predicted_ids = {e["assessment_id"] for e in result.get("grades", [])}
-        assert predicted_ids == {1, 2, 3, 4}, (
-            f"Expected all 4 assessment IDs in output, got: {predicted_ids}"
-        )
+        assert predicted_ids == {
+            1,
+            2,
+            3,
+            4,
+        }, f"Expected all 4 assessment IDs in output, got: {predicted_ids}"
 
     def test_predicts_every_assessment_within_a_subject(self):
         """
         Even when a single high-weight assessment could push a subject above its
         passing grade, every ungraded assessment in the subject must be predicted.
         """
-        years = _make_years([[
-            _subject("Math", 6, [
-                _assessment(1, 30),
-                _assessment(2, 40),
-                _assessment(3, 30),
-            ]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject(
+                        "Math",
+                        6,
+                        [
+                            _assessment(1, 30),
+                            _assessment(2, 40),
+                            _assessment(3, 30),
+                        ],
+                    ),
+                ]
+            ]
+        )
         set_api_client(self._client(years))
         result = run_simulation(6.0, "", [1, 2, 3], None, years, "All Years")
         predicted_ids = {e["assessment_id"] for e in result.get("grades", [])}
-        assert {1, 2, 3}.issubset(predicted_ids), (
-            f"Expected IDs 1, 2, 3 in output, got: {predicted_ids}"
-        )
+        assert {1, 2, 3}.issubset(
+            predicted_ids
+        ), f"Expected IDs 1, 2, 3 in output, got: {predicted_ids}"
 
     def test_respects_student_note_for_score_distribution(self):
-        years = _make_years([[
-            _subject("Calculus", 5, [_assessment(1, 100)]),
-            _subject("Biology", 5, [_assessment(2, 100)]),
-        ]])
+        years = _make_years(
+            [
+                [
+                    _subject("Calculus", 5, [_assessment(1, 100)]),
+                    _subject("Biology", 5, [_assessment(2, 100)]),
+                ]
+            ]
+        )
         set_api_client(self._client(years))
         result = run_simulation(
             7.0,
             "Calculus is very hard for me; Biology is my strength.",
-            [1, 2], None, years, "All Years",
+            [1, 2],
+            None,
+            years,
+            "All Years",
         )
         assert isinstance(result, dict)
         grades = {e["assessment_id"]: e["predicted_score"] for e in result.get("grades", [])}
         if 1 in grades and 2 in grades:
-            assert grades[1] <= grades[2] + 2.0, (
-                "Expected Calculus score no higher than Biology + 2 tolerance"
-            )
+            assert (
+                grades[1] <= grades[2] + 2.0
+            ), "Expected Calculus score no higher than Biology + 2 tolerance"

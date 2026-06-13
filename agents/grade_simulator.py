@@ -505,18 +505,18 @@ def run_simulation(
         ]
         fill = round(sum(scores) / len(scores), 1) if scores else min(round(target, 1), 10.0)
         for aid in still_missing:
-            parsed.setdefault("grades", []).append(
-                {"assessment_id": aid, "predicted_score": fill}
-            )
+            parsed.setdefault("grades", []).append({"assessment_id": aid, "predicted_score": fill})
         return parsed
 
     try:
-        result = agent.invoke({
-            "messages": [
-                SystemMessage(content=SYSTEM_PROMPT),
-                HumanMessage(content=data_message),
-            ]
-        })
+        result = agent.invoke(
+            {
+                "messages": [
+                    SystemMessage(content=SYSTEM_PROMPT),
+                    HumanMessage(content=data_message),
+                ]
+            }
+        )
         all_messages = result.get("messages", [])
         content = _first_final_message(all_messages)
 
@@ -527,15 +527,20 @@ def run_simulation(
                 missing = _missing_mandatory(parsed)
                 if missing:
                     # Targeted retry naming exactly which IDs were skipped.
-                    retry_result = agent.invoke({
-                        "messages": all_messages + [
-                            HumanMessage(content=(
-                                f"Your response is missing MANDATORY assessment IDs: {missing}. "
-                                f"Every ungraded assessment in that list MUST appear in the grades array. "
-                                f"Output the complete JSON again with ALL missing IDs included."
-                            ))
-                        ]
-                    })
+                    retry_result = agent.invoke(
+                        {
+                            "messages": all_messages
+                            + [
+                                HumanMessage(
+                                    content=(
+                                        f"Your response is missing MANDATORY assessment IDs: {missing}. "
+                                        f"Every ungraded assessment in that list MUST appear in the grades array. "
+                                        f"Output the complete JSON again with ALL missing IDs included."
+                                    )
+                                )
+                            ]
+                        }
+                    )
                     retry_content = _first_final_message(retry_result.get("messages", []))
                     if retry_content is not None:
                         retry_parsed = _extract_json(retry_content)
@@ -544,14 +549,19 @@ def run_simulation(
                 return _fill_mandatory(parsed)
 
             # Retry: the agent returned text but not valid JSON
-            retry_result = agent.invoke({
-                "messages": all_messages + [
-                    HumanMessage(content=(
-                        "Your previous response was not valid JSON. "
-                        "Respond with ONLY the raw JSON object and no other text."
-                    ))
-                ]
-            })
+            retry_result = agent.invoke(
+                {
+                    "messages": all_messages
+                    + [
+                        HumanMessage(
+                            content=(
+                                "Your previous response was not valid JSON. "
+                                "Respond with ONLY the raw JSON object and no other text."
+                            )
+                        )
+                    ]
+                }
+            )
             retry_content = _first_final_message(retry_result.get("messages", []))
             if retry_content is not None:
                 retry_parsed = _extract_json(retry_content)
@@ -563,8 +573,7 @@ def run_simulation(
             fill = min(round(target, 1), 10.0)
             return {
                 "grades": [
-                    {"assessment_id": aid, "predicted_score": fill}
-                    for aid in sorted(mandatory_ids)
+                    {"assessment_id": aid, "predicted_score": fill} for aid in sorted(mandatory_ids)
                 ],
                 "message": "",
             }

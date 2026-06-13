@@ -17,7 +17,6 @@ import pytest
 from agents.career_advisor import generate_career_guidance, run_career_guidance
 from agents.tools import get_academic_profile, set_api_client
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -89,7 +88,7 @@ class TestGetAcademicProfile:
     def test_shows_numeric_score_for_graded_assessment(self):
         self._set_client(MEDICINE_DATA["years"])
         result = get_academic_profile.invoke({})
-        assert "9.0" in result   # Anatomy score
+        assert "9.0" in result  # Anatomy score
 
     def test_shows_not_graded_for_ungraded_assessment(self):
         self._set_client(NO_GRADES_DATA["years"])
@@ -98,14 +97,34 @@ class TestGetAcademicProfile:
 
     def test_computes_subject_average_correctly(self):
         # Two assessments with scores 8.0 and 6.0 → average 7.0
-        years = [{"id": 1, "label": "Year 1", "subjects": [
-            {"name": "Math", "credit_value": 5, "assessments": [
-                {"id": 1, "name": "Exam 1", "weight": 50, "max_score": 10,
-                 "grade": {"id": 1, "score": 8.0}},
-                {"id": 2, "name": "Exam 2", "weight": 50, "max_score": 10,
-                 "grade": {"id": 2, "score": 6.0}},
-            ]}
-        ]}]
+        years = [
+            {
+                "id": 1,
+                "label": "Year 1",
+                "subjects": [
+                    {
+                        "name": "Math",
+                        "credit_value": 5,
+                        "assessments": [
+                            {
+                                "id": 1,
+                                "name": "Exam 1",
+                                "weight": 50,
+                                "max_score": 10,
+                                "grade": {"id": 1, "score": 8.0},
+                            },
+                            {
+                                "id": 2,
+                                "name": "Exam 2",
+                                "weight": 50,
+                                "max_score": 10,
+                                "grade": {"id": 2, "score": 6.0},
+                            },
+                        ],
+                    }
+                ],
+            }
+        ]
         self._set_client(years)
         result = get_academic_profile.invoke({})
         assert "average: 7.0" in result
@@ -212,12 +231,27 @@ class TestRunCareerGuidance:
 
     def test_fallback_guidance_reflects_api_data(self):
         """High-scoring subjects from the API must appear in the fallback output."""
-        years = [{"id": 1, "label": "Year 1", "subjects": [
-            {"name": "Distinctive Subject", "credit_value": 5, "assessments": [
-                {"id": 1, "name": "Exam", "weight": 100, "max_score": 10,
-                 "grade": {"id": 1, "score": 9.5}}
-            ]}
-        ]}]
+        years = [
+            {
+                "id": 1,
+                "label": "Year 1",
+                "subjects": [
+                    {
+                        "name": "Distinctive Subject",
+                        "credit_value": 5,
+                        "assessments": [
+                            {
+                                "id": 1,
+                                "name": "Exam",
+                                "weight": 100,
+                                "max_score": 10,
+                                "grade": {"id": 1, "score": 9.5},
+                            }
+                        ],
+                    }
+                ],
+            }
+        ]
         client = MagicMock()
         client.get_academic_years.return_value = years
         with patch("agents.career_advisor.ChatOllama", None):
@@ -273,8 +307,17 @@ class TestCareerAdvisorLLM:
         result_lower = result.lower()
         assert any(
             kw in result_lower
-            for kw in ("medicine", "medical", "health", "clinical", "doctor",
-                        "physician", "pharmacist", "biology", "research")
+            for kw in (
+                "medicine",
+                "medical",
+                "health",
+                "clinical",
+                "doctor",
+                "physician",
+                "pharmacist",
+                "biology",
+                "research",
+            )
         ), "Agent produced no health-related career terms for a medicine student"
         pure_cs = (
             "software engineer" in result_lower
@@ -288,6 +331,5 @@ class TestCareerAdvisorLLM:
         result = run_career_guidance(self._client(MEDICINE_DATA))
         result_lower = result.lower()
         assert any(
-            name in result_lower
-            for name in ("anatomy", "physiology", "biochemistry", "clinical")
+            name in result_lower for name in ("anatomy", "physiology", "biochemistry", "clinical")
         ), "Agent output does not reference any of the student's actual subjects"

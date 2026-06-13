@@ -249,9 +249,12 @@ class TestAssessmentService:
         assessment = AssessmentService.add_assessment(
             test_db, subject_with_user.id, "Old Name", weight=50.0, score=7.0
         )
-        from server.services.auth_service import AuthService as _A
         from server.models import Subject as _S
-        user_id = test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+        from server.services.auth_service import AuthService as _A
+
+        user_id = (
+            test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+        )
 
         updated = AssessmentService.update_assessment(
             test_db, user_id, assessment.id, name="New Name"
@@ -260,7 +263,10 @@ class TestAssessmentService:
 
     def test_update_assessment_weight_and_max_score(self, test_db, subject_with_user):
         from server.models import Subject as _S
-        user_id = test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+
+        user_id = (
+            test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+        )
 
         assessment = AssessmentService.add_assessment(
             test_db, subject_with_user.id, "Quiz", weight=30.0, score=6.0, max_score=10.0
@@ -273,7 +279,10 @@ class TestAssessmentService:
 
     def test_update_assessment_not_found_raises(self, test_db, subject_with_user):
         from server.models import Subject as _S
-        user_id = test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+
+        user_id = (
+            test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+        )
 
         with pytest.raises(ValueError, match="Assessment not found"):
             AssessmentService.update_assessment(test_db, user_id, assessment_id=99999, name="Ghost")
@@ -289,7 +298,10 @@ class TestAssessmentService:
 
     def test_delete_assessment_success(self, test_db, subject_with_user):
         from server.models import Subject as _S
-        user_id = test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+
+        user_id = (
+            test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+        )
 
         assessment = AssessmentService.add_assessment(
             test_db, subject_with_user.id, "ToDelete", weight=100.0, score=5.0
@@ -300,7 +312,10 @@ class TestAssessmentService:
 
     def test_delete_assessment_not_found_raises(self, test_db, subject_with_user):
         from server.models import Subject as _S
-        user_id = test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+
+        user_id = (
+            test_db.query(_S).filter(_S.id == subject_with_user.id).first().academic_year.user_id
+        )
 
         with pytest.raises(ValueError, match="Assessment not found"):
             AssessmentService.delete_assessment(test_db, user_id, assessment_id=99999)
