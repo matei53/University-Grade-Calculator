@@ -150,11 +150,9 @@ class SubjectService:
 
         # Explicitly load all subjects/assessments to avoid lazy loading issues
         for year in years:
-            # Access the subjects to trigger loading
             for subject in year.subjects:
-                # Access assessments for each subject
+                _ = subject.semester
                 for assessment in subject.assessments:
-                    # Access grade for each assessment to trigger loading
                     _ = assessment.grade
 
         return years

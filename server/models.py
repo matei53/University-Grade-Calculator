@@ -118,6 +118,10 @@ class Subject(Base):
         cascade="all, delete-orphan",
     )
 
+    @property
+    def semester_index(self) -> int:
+        return self.semester.order_index if self.semester else 1
+
 
 class Assessment(Base):
     __tablename__ = "assessments"

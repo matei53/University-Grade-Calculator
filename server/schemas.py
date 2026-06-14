@@ -101,6 +101,7 @@ class SubjectResponse(BaseModel):
     passing_grade: float
     max_grade: float
     semester_id: int
+    semester_index: int = 1
     academic_year_id: int
     assessments: List["AssessmentResponse"] = []
 
