@@ -33,7 +33,7 @@ Set Credit % Thresholds & Toggle Cumulative Mode"])
 View Real-Time Pass/Fail Metrics"])
         end
 
-        subgraph subj["Subject Screen & Dialog · SubjectScreen / EditSubjectDialog"]
+        subgraph subj["SubjectScreen · EditSubjectDialog"]
             uc5(["Save Subject Data
 save_subject() / _save_changes()"])
         end
@@ -48,7 +48,7 @@ _save_score() / _save_settings()"])
 Filter Class Standings & Set Visibility"])
         end
 
-        subgraph ai["Interactive AI Core · SimulatorScreen / ProfileScreen"]
+        subgraph ai["SimulatorScreen · ProfileScreen"]
             uc8(["Simulate Score Requirements
 SimulatorScreen via grade_simulator.py"])
             uc9(["Generate Career Path Guidance
