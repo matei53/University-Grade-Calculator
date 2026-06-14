@@ -362,7 +362,6 @@ class EditSubjectDialog(QDialog):
         try:
             self.api_client.delete_subject(self.subject.get("subject_id"))
 
-            # Immediately remove the subject row from the parent UI so it vanishes instantly.
             parent_widget = self.parent()
             if parent_widget and hasattr(parent_widget, "remove_subject_widget"):
                 try:
@@ -370,15 +369,14 @@ class EditSubjectDialog(QDialog):
                 except Exception:
                     pass
 
-            if self.refresh_callback:
+            cb = self.refresh_callback
+            self.refresh_callback = None
+            self.accept()
+            if cb:
                 try:
-                    self.refresh_callback()
+                    cb()
                 except Exception:
                     pass
-                self.refresh_callback = None  # prevent double-call from closeEvent
-
-            QMessageBox.information(self, "Deleted", "Subject has been deleted.")
-            self.accept()
         except Exception as error:
             QMessageBox.critical(self, "Delete Failed", str(error))
 
