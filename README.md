@@ -453,6 +453,7 @@ pytest tests/ -m slow -v
 pytest server/tests/ -v
 ```
 
+
 ---
 
 ## 🚀 How to Use the Application
@@ -477,6 +478,74 @@ Once you open UniGrade, you can easily navigate through your academic journey us
 * ⚙️ **Career Advisor Tab:** Head to your **Profile** and click **Generate Career Guidance**. The built-in AI counselor will analyze your passed courses, strengths, and grades to build a personalized roadmap for your future internships and career choices.
 
 ---
+
+## 🤖 AI Agents
+
+### Grade Simulator
+
+The grade simulator is a **LangGraph ReAct agent** backed by `llama3.2` running locally via Ollama. When you open the simulator, select a target average and the assessments you want to plan for, and click Run — the following happens:
+
+1. A data prompt is built in Python and injected as the first message in the agent's conversation. It contains your current grades, each assessment's weight and max score, which assessments are available to change, pre-computed current/min/max achievable averages, and a `MANDATORY IDs` checklist of every ungraded assessment the agent **must** assign a score to. The checklist exists to prevent a denominator exploit where the model could leave subjects entirely ungraded so they drop out of the weighted average, artificially inflating the result.
+2. The agent reasons through the problem and may call the `get_current_grades` tool to re-read your academic data from the API, and the `verify_simulation` tool to check that a proposed set of scores actually produces the target average before committing to them.
+3. Once satisfied, it returns a JSON object with a `grades` list (one entry per assessment with `assessment_id` and `predicted_score`) and an optional `message` (e.g. explaining if the target is impossible). If the model fails to return valid JSON after two attempts, a Python-level fallback fires and reports the failure rather than crashing.
+4. Python post-processing applies a `_fill_mandatory` safeguard that fills in any assessment IDs the model omitted, and `_normalize` coerces any scores the model returned as strings into floats.
+
+If Ollama is not running, `run_simulation` falls back to returning an empty result with an explanatory message.
+
+#### Tests
+
+The fast tests replace the LLM with a `MagicMock` and test the logic surrounding it:
+
+**`TestComputeWeightedAverage`** — unit tests for the `_compute_weighted_average` formula: single subjects, multiple subjects weighted by credits, non-standard max scores, multi-year combinations, and the key edge case where an available-but-ungraded assessment is excluded from the denominator unless a proposed score is supplied.
+
+**`TestBuildDataPrompt`** — checks that the context string built for the LLM contains the right status banner (`TARGET NOT MET` / `TARGET ALREADY MET` / `IMPOSSIBLE`), correctly marks which assessments are available to change, lists only truly ungraded assessments in the `MANDATORY IDs` checklist, and includes pre-computed min/max/current averages.
+
+**`TestExtractJson`** — verifies the JSON parser handles every format the model might return: raw JSON, JSON inside markdown fences, JSON embedded in prose, and returns `None` cleanly on garbage input.
+
+**`TestRunSimulation`** — mocks `create_react_agent` and tests the control flow: successful parse, one retry on bad JSON, fallback dict after two failures, and safe error dict when Ollama throws an exception.
+
+The slow tests (`@pytest.mark.slow`) call the real agent end-to-end and require Ollama running with `llama3.2`:
+
+**`test_returns_valid_dict_structure`** — basic sanity check that the agent returns a dict with both a `grades` list and a `message` key.
+
+**`test_predicted_scores_within_valid_range`** — checks that every predicted score is between 1.0 and 10.0. Guards against the model hallucinating out-of-range values.
+
+**`test_no_available_assessments_returns_empty_grades`** — no ungraded assessments exist; verifies the agent returns an empty grades list or a message rather than crashing.
+
+**`test_impossible_target_sets_message`** — target is mathematically unreachable given the fixed grades; verifies the agent acknowledges this rather than producing a silent wrong answer.
+
+**`test_predicts_all_ungraded_assessments_across_subjects`** — four ungraded assessments across two subjects. Checks that all four IDs appear in the output. Prevents the denominator exploit where leaving a subject entirely ungraded inflates the average.
+
+**`test_predicts_every_assessment_within_a_subject`** — one subject with three ungraded assessments of different weights. Checks all three IDs are predicted even if one alone could push the subject above passing.
+
+**`test_respects_student_note_for_score_distribution`** — student note says Calculus is hard and Biology is a strength. Checks the predicted Calculus score is no more than 2 points higher than Biology's.
+
+---
+
+### Career Advisor
+
+The career advisor is also a **LangGraph ReAct agent** using `llama3.2`. It is triggered from the Profile screen by clicking **Generate Career Guidance**. The flow is:
+
+1. The student's academic profile is pre-fetched in Python and injected as the first human message in the conversation, so the model has immediate context without needing to call a tool first. This was necessary because `llama3.2` does not reliably emit structured tool-call tokens when it has no prior context.
+2. The agent may still call the `get_academic_profile` tool to re-read or cross-check the data if it chooses to during its reasoning loop.
+3. It returns a markdown-formatted guidance document with four sections: Strengths (subjects where you score well), Career Path suggestions matched to your field, Elective Recommendations, and a Motivational message.
+
+If Ollama is not running, `run_career_guidance` falls back to `generate_career_guidance`, a pure rule-based Python function that identifies high-scoring subjects (≥ 7.0) and generates structured advice without any LLM.
+
+#### Tests
+
+**`TestFallbackGuidance`** — tests `generate_career_guidance`, the rule-based fallback with no LLM. Checks that high-scoring subjects appear in the Strengths section, low-scoring ones do not, and edge cases like no grades at all are handled.
+
+**`TestRunCareerGuidance`** — patches `ChatOllama` to `None` to force the fallback path, then verifies the function calls `get_academic_years`, returns a string with the required sections, and that the output reflects the API data.
+
+The slow tests (`@pytest.mark.slow`) call the real agent end-to-end and require Ollama running with `llama3.2`:
+
+**`test_field_agnostic_for_medicine_student`** — verifies the career advisor produces health-related career terms for a medicine student and does not default to generic CS advice regardless of the student's subjects.
+
+**`test_output_references_actual_subjects`** — checks that at least one of the student's real subject names appears in the output, confirming the agent uses the actual academic data rather than a generic template.
+
+---
+
 ## 🤖 AI Usage Report
 
 This section outlines how Artificial Intelligence tools were leveraged throughout the Software Development Life Cycle (SDLC) to accelerate the design, implementation, and debugging of UniGrade.
