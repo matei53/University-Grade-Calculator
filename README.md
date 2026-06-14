@@ -33,7 +33,7 @@ It illustrates how the PyQt6 frontend screens trigger asynchronous background wo
 Once you open UniGrade, you can easily navigate through your academic journey using the menu buttons at the top of the screen:
 
 ### 📊 Main Dashboard & Progress Tracking
-* 📊 **Monitor Overall Progress:** View your overall weighted grade average, total unlocked credits, and overall completion percentage (progress %) on a live progress bar. **Crucial Rule:** Credits are only unlocked and added to your progress bar *after* you get a passing grade (5.0 or higher) in a subject!
+* 📊 **Monitor Overall Progress:** View your overall weighted average, total credits, and overall completion percentage (progress %) on a live progress bar. **Crucial Rule:** Credits are only unlocked and added to your progress bar *after* you get a passing grade (5.0 or higher) in a subject!
 * 📊 **Monitor Annual Progress**: Expand the Year dropdown sections to see deep analytics for that specific year including passed credits, simple average, and course lists. 
 * 📊 **Track Year Progression:** Check your eligibility status at a glance. The dashboard displays a clear `✓ ELIGIBLE` or `✗ NOT ELIGIBLE` badge so you know if you have passed enough classes to advance to the next university year.
 
