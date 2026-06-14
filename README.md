@@ -4,6 +4,12 @@ A comprehensive full-stack application designed to help university students trac
 
 ---
 
+## Demo Video
+
+*https://youtu.be/RqOAjW8VbNk*
+
+---
+
 ## 📐 Architecture & System Design
 
 This project follows a clean, layered architecture separating the database models, business logic (services), API endpoints (routers), and frontend user interface.
