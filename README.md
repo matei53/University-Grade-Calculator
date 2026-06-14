@@ -12,7 +12,7 @@ This project follows a clean, layered architecture separating the database model
 *It shows how the student interacts with each application tab and how the two AI agents (grade simulator and career advisor) communicate with the local Ollama LLM service and the FastAPI backend to fetch and verify data through their tool calls.*
 
 ```mermaid
-flowchart TD
+flowchart LR
     student(["Student User"])
 
     subgraph system["UniGrade System — PyQt6 Client"]
@@ -81,84 +81,84 @@ It illustrates the database schema for an academic performance tracking system, 
 
 ```mermaid
 classDiagram
-    direction LR
+    direction TB
 
     class University {
-        +id: int
+        +id: int PK
         +name: str
     }
     class Major {
-        +id: int
+        +id: int PK
         +name: str
     }
     class User {
-        +id: int
+        +id: int PK
         +username: str
         +password_hash: str
-        +university_id: int
-        +major_id: int
+        +university_id: int FK
+        +major_id: int FK
         +leaderboard_visible: bool
         +created_at: datetime
     }
     class AcademicYear {
-        +id: int
-        +user_id: int
+        +id: int PK
+        +user_id: int FK
         +label: str
         +order_index: int
         +credit_requirement: int
     }
     class Semester {
-        +id: int
-        +academic_year_id: int
+        +id: int PK
+        +academic_year_id: int FK
         +label: str
         +order_index: int
     }
     class Subject {
-        +id: int
-        +semester_id: int
-        +academic_year_id: int
+        +id: int PK
+        +semester_id: int FK
+        +academic_year_id: int FK
         +name: str
         +credit_value: int
         +passing_grade: float
         +max_grade: float
     }
     class Assessment {
-        +id: int
-        +subject_id: int
+        +id: int PK
+        +subject_id: int FK
         +name: str
         +weight: float
         +max_score: float
         +passing_grade: float
     }
     class Grade {
-        +id: int
-        +assessment_id: int
+        +id: int PK
+        +assessment_id: int FK
         +score: float
     }
     class YearProgressionRequirement {
-        +id: int
-        +user_id: int
+        +id: int PK
+        +user_id: int FK
         +target_year: int
         +credit_percentage: float
         +cumulative: bool
     }
     class GraduationSettings {
-        +id: int
-        +user_id: int
+        +id: int PK
+        +user_id: int FK
         +subject_average_weight: float
         +max_grade: float
     }
     class FinalAssessment {
-        +id: int
-        +user_id: int
+        +id: int PK
+        +user_id: int FK
         +name: str
         +weight: float
         +max_score: float
         +passing_grade: float
     }
     class FinalAssessmentGrade {
-        +id: int
-        +final_assessment_id: int
+        +id: int PK
+        +final_assessment_id: int FK
         +score: float
     }
 
@@ -181,32 +181,8 @@ classDiagram
 It illustrates how the PyQt6 frontend screens trigger asynchronous background worker threads, route workflows through client-side business logic services, and communicate with the central API network gateway to ensure responsive data processing and strict layer isolation. The AI agent layer sits inside those same background workers: each agent runs a LangGraph ReAct loop that calls its tools (`get_current_grades`, `verify_simulation`, `get_academic_profile`) to fetch and verify data before producing its final answer.
 
 ```mermaid
+%%{init: {'flowchart': {'nodeSpacing': 60, 'rankSpacing': 120}}}%%
 flowchart LR
-    subgraph SERVICES["Static Business Service Layers"]
-        direction LR
-        GRADE_SVC["GradeService
-validate_weights_total(assessments) bool
-calculate_subject_average(assessments, subject_max_grade) float"]
-        GRAD_SVC["GraduationService
-get_settings() dict
-update_settings(subject_average_weight, max_grade) dict
-get_final_assessments() List
-add_final_assessment(name, weight, max_score, passing_grade) dict
-set_grade(assessment_id, score) dict"]
-        DATA_SVC["DataService
-get_universities() List
-get_majors() List
-add_university(name) int
-add_major(name) int"]
-        AUTH_SVC["AuthService
-sign_up(username, password, num_years, credit_requirements) dict
-login(username, password) dict"]
-        DASH_SVC["DashboardService
-get_user_dashboard_data(user_id) dict
-calculate_stats(all_years_data, up_to_year, total_program_credits) dict
-calculate_graduation_grade(overall_avg, settings, final_assessments) float"]
-    end
-
     subgraph FRONTEND["PyQt6 Frontend UI Screens"]
         direction TB
         SubjectScreen["SubjectScreen
@@ -271,7 +247,7 @@ run() void"]
         GDW["_GradDataWorker
 finished: pyqtSignal
 run() void"]
-        EW["_EligibilityWorker
+        GradLoadW["_GraduationLoadWorker
 finished: pyqtSignal
 run() void"]
         DLW["_DashboardLoadWorker
@@ -280,6 +256,39 @@ run() void"]
         ProfLW["_ProfileLoadWorker
 finished: pyqtSignal
 run() void"]
+        LbLoadW["_LeaderboardLoadWorker
+finished: pyqtSignal
+run() void"]
+    end
+
+    subgraph SERVICES["Client-Side Service Layer"]
+        direction TB
+        GRADE_SVC["GradeService
+validate_weights_total(assessments) bool
+calculate_subject_average(assessments, subject_max_grade) float"]
+        SP1[ ]
+        GRAD_SVC["GraduationService
+get_settings() dict
+update_settings(subject_average_weight, max_grade) dict
+get_final_assessments() List
+add_final_assessment(name, weight, max_score, passing_grade) dict
+set_grade(assessment_id, score) dict"]
+        SP2[ ]
+        SP5[ ]
+        DATA_SVC["DataService
+get_universities() List
+get_majors() List
+add_university(name) int
+add_major(name) int"]
+        SP3[ ]
+        AUTH_SVC["AuthService
+sign_up(username, password, num_years, credit_requirements) dict
+login(username, password) dict"]
+        SP4[ ]
+        DASH_SVC["DashboardService
+get_user_dashboard_data(user_id) dict
+calculate_stats(all_years_data, up_to_year, total_program_credits) dict
+calculate_graduation_grade(overall_avg, settings, final_assessments) float"]
     end
 
     subgraph AGENTS["Agents Layer"]
@@ -296,44 +305,20 @@ verify_simulation(proposed_scores_json) str
 get_academic_profile() str"]
     end
 
-    subgraph NETWORK["Network & API Client"]
-        direction TB
-        API_auth["APIClient — Authentication
-register(username, password, num_years, credit_requirements) dict
-login(username, password) dict"]
-        API_profile["APIClient — User Profiles
-get_profile() dict
-update_profile(university_id, major_id) dict"]
-        API_academic["APIClient — Academic Tracking
-add_subject(name, credits, semester_index, year_level, passing_grade, max_grade) dict
-get_academic_years() List
-update_subject(subject_id, name, credits, semester_index, year_level, passing_grade, max_grade) dict
-delete_subject(subject_id) void
-add_assessment(subject_id, name, weight, score, max_score, passing_grade) dict
-update_assessment(assessment_id, name, weight, max_score, passing_grade) dict
-delete_assessment(assessment_id) void
-update_grade(grade_id, score) dict
-delete_grade(grade_id) void"]
-        API_prog["APIClient — Progression & Analytics
-get_progression_requirements() List
-update_progression_requirement(target_year, credit_percentage, cumulative) dict
-get_all_year_eligibility() List
-get_leaderboard(year_level, search, page, page_size) dict"]
-        API_grad["APIClient — Graduation & Milestones
-get_graduation_settings() dict
-update_graduation_settings(subject_average_weight, max_grade) dict
-get_final_assessments() List
-add_final_assessment(name, weight, max_score, passing_grade) dict
-update_final_assessment(assessment_id, name, weight, max_score, passing_grade) dict
-delete_final_assessment(assessment_id) void
-set_final_assessment_grade(assessment_id, score) dict"]
+    subgraph NETWORK["Network Layer"]
+        APIClient["APIClient
+/auth — register · login
+/profile — profile · universities · majors · delete_account
+/academic — years · subjects · assessments · grades
+/progression — requirements · eligibility · leaderboard
+/graduation — settings · final assessments · grades"]
     end
 
     OLLAMA(["Ollama
 Local LLM
 llama3.2"])
 
-    %% Frontend spawns Workers — links 0-9
+    %% Frontend spawns Workers — links 0-10
     ProfileScreen --> CGW
     ProfileScreen --> ProfLW
     LoginScreen --> LoginW
@@ -341,51 +326,56 @@ llama3.2"])
     ProgScreen --> PLW
     ProgScreen --> PSW
     SimScreen --> SimW
-    GradScreen --> GDW
-    DashScreen --> EW
+    GradScreen --> GradLoadW
+    DashScreen --> GDW
     DashScreen --> DLW
+    LBScreen --> LbLoadW
 
-    %% Frontend calls Services directly — links 10-15
+    %% Frontend calls Services directly — links 11-12
     SubjectScreen -.-> GRADE_SVC
     GradScreen -.-> GRAD_SVC
-    LoginScreen -.-> AUTH_SVC
-    SignupScreen -.-> AUTH_SVC
-    SignupScreen -.-> DATA_SVC
-    DashScreen -.-> DASH_SVC
 
-    %% LeaderboardScreen calls API directly — link 16
-    LBScreen -.-> API_prog
+    %% Workers use Services — links 13-18
+    LoginW -.-> AUTH_SVC
+    SignupW -.-> AUTH_SVC
+    SignupW -.-> DATA_SVC
+    GDW -.-> GRAD_SVC
+    GradLoadW -.-> GRAD_SVC
+    DLW -.-> DASH_SVC
 
-    %% Workers delegate to Agents — links 17-18
+    %% Workers delegate to Agents — links 19-20
     SimW --> GradeAgent
     CGW --> CareerAgent
 
-    %% Agents call Tools — links 19-20
+    %% Agents call Tools — links 21-22
     GradeAgent -.-> Tools
     CareerAgent -.-> Tools
 
-    %% Agents call Ollama — links 21-22
+    %% Agents call Ollama — links 23-24
     GradeAgent -.->|ChatOllama| OLLAMA
     CareerAgent -.->|ChatOllama| OLLAMA
 
-    %% Tools calls API — link 23
-    Tools -.-> API_academic
+    %% Tools and workers/services call API — links 25-35
+    Tools -.-> APIClient
+    ProfLW -.-> APIClient
+    PLW -.-> APIClient
+    PSW -.-> APIClient
+    DLW -.-> APIClient
+    SignupW -.-> APIClient
+    LbLoadW -.-> APIClient
+    GRAD_SVC -.-> APIClient
+    AUTH_SVC -.-> APIClient
+    DATA_SVC -.-> APIClient
+    DASH_SVC -.-> APIClient
 
-    %% Workers call API directly — links 24-31
-    LoginW -.-> API_auth
-    SignupW -.-> API_auth
-    ProfLW -.-> API_profile
-    PLW -.-> API_prog
-    PSW -.-> API_prog
-    GDW -.-> API_grad
-    EW -.-> API_prog
-    DLW -.-> API_academic
+    linkStyle 0,1,2,3,4,5,6,7,8,9,10 stroke:#3b82f6,stroke-width:2px
+    linkStyle 11,12,13,14,15,16,17,18 stroke:#94a3b8,stroke-width:1.5px
+    linkStyle 19,20 stroke:#22c55e,stroke-width:2px
+    linkStyle 21,22,23,24 stroke:#a855f7,stroke-width:1.5px
+    linkStyle 25,26,27,28,29,30,31,32,33,34,35 stroke:#f97316,stroke-width:1.5px
 
-    linkStyle 0,1,2,3,4,5,6,7,8,9 stroke:#3b82f6,stroke-width:2px
-    linkStyle 10,11,12,13,14,15,16 stroke:#94a3b8,stroke-width:1.5px
-    linkStyle 17,18 stroke:#22c55e,stroke-width:2px
-    linkStyle 19,20,21,22 stroke:#a855f7,stroke-width:1.5px
-    linkStyle 23,24,25,26,27,28,29,30,31 stroke:#f97316,stroke-width:1.5px
+    classDef invis fill:none,stroke:none,color:none
+    class SP1,SP2,SP3,SP4,SP5 invis
 ```
 
 *Arrow key — blue solid: spawns worker · gray dashed: local service call · green solid: delegates to agent · purple dashed: tool / LLM call · orange dashed: HTTP API call*
