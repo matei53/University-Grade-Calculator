@@ -222,10 +222,10 @@ class EditSubjectDialog(QDialog):
         if assessment_data:
             row.name_input.setText(assessment_data.get("name", ""))
             row.weight_input.setValue(float(assessment_data.get("weight", 0.0)))
-            grade_score = assessment_data.get("grade_score")
-            row.score_input.setValue(-1.0 if grade_score is None else float(grade_score))
             row.max_score_input.setValue(float(assessment_data.get("max_score", 10.0)))
             row.passing_grade_input.setValue(float(assessment_data.get("passing_grade", 5.0)))
+            grade_score = assessment_data.get("grade_score")
+            row.score_input.setValue(-1.0 if grade_score is None else float(grade_score))
             row.assessment_id = assessment_data.get("id")
             row.grade_id = assessment_data.get("grade_id")
         else:
