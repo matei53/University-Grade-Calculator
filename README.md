@@ -464,20 +464,21 @@ pytest server/tests/ -v
 Once you open UniGrade, you can easily navigate through your academic journey using the menu buttons at the top of the screen:
 
 ### 📊 Main Dashboard & Progress Tracking
-* 📊 **Monitor Your Real Progress:** View your overall grade average and total credits on a live progress bar. **Crucial Rule:** Credits are only unlocked and added to your progress bar *after* you get a passing grade (5.0 or higher) in a subject!
+* 📊 **Monitor Overall Progress:** View your overall weighted average, total credits, and overall completion percentage on a live progress bar. **Crucial Rule:** Credits are only unlocked and added to your progress bar *after* you get a passing grade in a subject!
+* 📊 **Monitor Annual Progress**: Expand the Year dropdown sections to see deep analytics for that specific year including passed credits, simple average, and course lists. 
 * 📊 **Track Year Progression:** Check your eligibility status at a glance. The dashboard displays a clear `✓ ELIGIBLE` or `✗ NOT ELIGIBLE` badge so you know if you have passed enough classes to advance to the next university year.
 
 ### ⚙️ Academic Configuration & Data Management
-* ⚙️ **Manage Subjects:** Go to the **Add Subject** screen to add your courses, input their credit values, and set custom passing or maximum grade scales. 
-* ⚙️ **Log Assessments & Grades:** Break down each subject into individual components (like midterm exams, labs, or final projects). Assign percentage weights to each task, and the system will automatically calculate your final course average.
-* ⚙️ **Set Progression Requirements:** Open the **Progression** settings screen to customize your advancement rules. Here, you can change the minimum credit percentage required to pass each year and toggle between single-year metrics or cumulative (rolling multi-year) calculations.
+* ⚙️ **Manage Subjects:** Click the **Add Subject** button to add your courses, input their credit values, and set custom passing and maximum grade scales. Here, you can add assessment components (for example: exam, homework, project, lab tests) and assign percentage weights to each component (totaling 100%). After you input your grade for each assessment component, the system will automatically calculate your final grade for the subject. 
+* ⚙️ **Log & Edit Course Data:** Click the **Edit** button next to any subject. You can modify any previously entered subject details or entirely delete the subject. 
+* ⚙️ **Set Progression Requirements:** Click the **Progression** button to customize your advancement rules. Here, you can change the minimum credit percentage required to pass each year and toggle between single-year metrics or cumulative (rolling multi-year) calculations.
 
 ### 📊 Analytics & Community Standings
-* 📊 **Leaderboard Tab:** Open the leaderboard to view class standings and see how your academic average stacks up against your peers. You can use the search bar to find friends, filter standings by university year, or toggle your own profile visibility on or off.
+* 📊 **Leaderboard Tab:** Open the **Leaderboard** to view class standings and see how your academic average stacks up against your peers. You can use the search bar to find friends, filter standings by university year, or toggle your own profile visibility on or off.
 
 ### ⚙️ Smart AI Assistants
-* ⚙️ **Grade Simulator Tab:** Run predictive "what-if" scenarios. Simply type in your target GPA, select which upcoming or retakeable assignments you want to calculate, and the AI agent will tell you the exact scores you need to hit your goal.
-* ⚙️ **Career Advisor Tab:** Head to your profile and click **Generate Career Guidance**. The built-in AI counselor will analyze your passed courses, strengths, and grades to build a personalized roadmap for your future internships and career choices.
+* ⚙️ **Grade Simulator Tab:** Click the **Grade Simulator** button to run predictive "what-if" scenarios. Simply type in your target GPA, select which upcoming or retakeable assignments you want to calculate, and the AI agent will tell you the exact scores you need to hit your goal.
+* ⚙️ **Career Advisor Tab:** Head to your **Profile** and click **Generate Career Guidance**. The built-in AI counselor will analyze your passed courses, strengths, and grades to build a personalized roadmap for your future internships and career choices.
 
 ---
 ## 🤖 AI Usage Report
